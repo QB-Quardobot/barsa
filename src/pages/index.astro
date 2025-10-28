@@ -147,17 +147,19 @@ const deadlineISO = deadline.toISOString();
   <!-- About Ilya -->
   <section class="about-section">
     <div class="container mx-auto px-4 py-16">
-      <div class="max-w-4xl mx-auto">
+      <div class="max-w-5xl mx-auto">
         
         <!-- Photos Row -->
         <div class="founder-photos reveal-scale">
           <div class="founder-photo">
             <div class="photo-circle">👤</div>
-            <span class="photo-name">Илья</span>
+            <span class="photo-name gradient-text">Илья</span>
           </div>
-          <div class="founder-photo featured">
-            <div class="photo-circle green">💰</div>
-            <span class="photo-earning">$10K/мес</span>
+          <div class="earning-badge">
+            <span class="earning-icon">💰</span>
+            <div class="earning-info">
+              <div class="earning-amount gradient-text">$10K/мес</div>
+            </div>
           </div>
         </div>
         
@@ -166,7 +168,7 @@ const deadlineISO = deadline.toISOString();
           
           <p class="story-intro">
             Меня зовут <strong>Илья</strong>, я — AI-продюсер, который вышел на 
-            <strong class="text-green">$10 000 в месяц</strong> благодаря AI-моделям.
+            <strong class="gradient-text">$10 000 в месяц</strong> благодаря AI-моделям.
           </p>
           
           <p class="story-para">
@@ -200,11 +202,11 @@ const deadlineISO = deadline.toISOString();
           <div class="story-stats">
             <div class="stat-line">
               <span class="stat-label">Через месяц:</span>
-              <span class="stat-value">$1,000</span>
+              <span class="stat-value gradient-text">$1,000</span>
             </div>
             <div class="stat-line featured">
               <span class="stat-label">Через 4 месяца:</span>
-              <span class="stat-value">$10,000</span>
+              <span class="stat-value gradient-text">$10,000</span>
             </div>
           </div>
           
@@ -233,7 +235,7 @@ const deadlineISO = deadline.toISOString();
   <!-- What You Get -->
   <section class="what-section">
     <div class="container mx-auto px-4 py-16">
-      <div class="max-w-4xl mx-auto">
+      <div class="max-w-5xl mx-auto">
         
         <!-- Models Banner -->
         <div class="models-banner reveal-scale">
@@ -320,7 +322,7 @@ const deadlineISO = deadline.toISOString();
   <!-- System -->
   <section class="system-section">
     <div class="container mx-auto px-4 py-16">
-      <div class="max-w-4xl mx-auto">
+      <div class="max-w-5xl mx-auto">
         
         <!-- Students Banner -->
         <div class="students-banner reveal-scale">
@@ -431,7 +433,7 @@ const deadlineISO = deadline.toISOString();
   <!-- Why Now -->
   <section class="why-now-section">
     <div class="container mx-auto px-4 py-16">
-      <div class="max-w-4xl mx-auto">
+      <div class="max-w-5xl mx-auto">
         
         <!-- Intro -->
         <div class="why-intro reveal-fade">
@@ -528,8 +530,8 @@ const deadlineISO = deadline.toISOString();
   
   <!-- Final CTA -->
   <section class="final-cta-section">
-    <div class="container mx-auto px-4 py-16">
-      <div class="max-w-3xl mx-auto">
+    <div class="container mx-auto px-4 py-20">
+      <div class="max-w-5xl mx-auto">
         
         <!-- TG Preview -->
         <div class="final-tg-preview reveal-scale">
@@ -634,11 +636,71 @@ const deadlineISO = deadline.toISOString();
 </script>
 
 <style>
+  /* === GLOBAL BACKGROUND === */
+  body {
+    position: relative;
+    overflow-x: hidden;
+  }
+  
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      radial-gradient(ellipse at 20% 30%, rgba(96, 165, 250, 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, rgba(168, 85, 247, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 40% 90%, rgba(34, 211, 238, 0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 10%, rgba(249, 115, 22, 0.08) 0%, transparent 50%);
+    z-index: 0;
+    pointer-events: none;
+  }
+  
+  body > * {
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* === GLOBAL CONTAINER === */
+  .container {
+    width: 100%;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  /* === SECTION DIVIDER === */
+  section {
+    position: relative;
+  }
+  
+  section::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 1100px;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(96, 165, 250, 0.3) 20%,
+      rgba(96, 165, 250, 0.3) 80%,
+      transparent
+    );
+  }
+  
+  section:last-of-type::after {
+    display: none;
+  }
+  
   /* === ANIMATED GRADIENT BACKGROUND === */
   .hero-section {
-    background: linear-gradient(300deg, #0a0a0a, #1a1a2e, #16213e, #0a0a0a);
-    background-size: 240% 240%;
-    animation: gradient-animation 15s ease infinite;
+    background: transparent;
     padding: 3rem 1rem;
     position: relative;
     overflow: hidden;
@@ -1071,7 +1133,6 @@ const deadlineISO = deadline.toISOString();
   
   /* === ABOUT SECTION === */
   .about-section {
-    background: transparent;
     padding: 3rem 1rem;
   }
   
@@ -1119,22 +1180,40 @@ const deadlineISO = deadline.toISOString();
     transform: scale(1.05);
   }
   
-  .photo-name, .photo-earning {
+  .photo-name {
     font-size: 0.9375rem;
     font-weight: 600;
-    color: #60a5fa;
   }
   
-  .photo-earning {
-    color: #22c55e;
+  /* Earning Badge */
+  .earning-badge {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: rgba(34, 197, 94, 0.05);
+    border: 2px solid rgba(34, 197, 94, 0.3);
+    border-radius: var(--radius-xl);
+    transition: all 0.3s ease;
+  }
+  
+  .earning-badge:hover {
+    border-color: rgba(34, 197, 94, 0.5);
+    transform: translateY(-2px);
+  }
+  
+  .earning-icon {
+    font-size: 2rem;
+    line-height: 1;
+  }
+  
+  .earning-amount {
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+    font-weight: 900;
+    line-height: 1;
   }
   
   /* Founder Story */
-  .founder-story {
-    max-width: 700px;
-    margin: 0 auto;
-  }
-  
   .story-intro {
     font-size: clamp(1.125rem, 3vw, 1.375rem);
     color: #e5e5e5;
@@ -1548,7 +1627,6 @@ const deadlineISO = deadline.toISOString();
   /* === SYSTEM SECTION === */
   .system-section {
     padding: 3rem 1rem;
-    background: transparent;
   }
   
   @media (min-width: 768px) {
@@ -1789,7 +1867,6 @@ const deadlineISO = deadline.toISOString();
   /* === WHY NOW SECTION === */
   .why-now-section {
     padding: 3rem 1rem;
-    background: rgba(13, 13, 16, 0.2);
   }
   
   @media (min-width: 768px) {
