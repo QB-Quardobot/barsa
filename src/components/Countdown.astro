@@ -1,0 +1,195 @@
+---
+interface Props {
+  deadline: string; // ISO 8601 date string in UTC
+  title?: string;
+}
+
+const { deadline, title = 'Предложение актуально 24 часа' } = Astro.props;
+---
+
+<div class="countdown-container reveal-fade" data-deadline={deadline}>
+  <div class="countdown-header">
+    <p class="countdown-title">{title}</p>
+  </div>
+  
+  <div class="countdown-timer" role="timer" aria-live="polite" aria-atomic="true">
+    <div class="countdown-item">
+      <span class="countdown-number" data-unit="hours">00</span>
+      <span class="countdown-label">часов</span>
+    </div>
+    
+    <div class="countdown-separator">:</div>
+    
+    <div class="countdown-item">
+      <span class="countdown-number" data-unit="minutes">00</span>
+      <span class="countdown-label">минут</span>
+    </div>
+    
+    <div class="countdown-separator">:</div>
+    
+    <div class="countdown-item">
+      <span class="countdown-number" data-unit="seconds">00</span>
+      <span class="countdown-label">секунд</span>
+    </div>
+  </div>
+  
+  <div class="countdown-aria-text" aria-live="polite" aria-atomic="true" style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;"></div>
+</div>
+
+<script>
+  import { CountdownTimer, formatNumber, getAriaText } from './Countdown';
+
+  // Initialize countdown for all containers on the page
+  document.querySelectorAll('.countdown-container').forEach(container => {
+    const deadline = container.getAttribute('data-deadline');
+    
+    if (!deadline) {
+      console.error('Countdown: missing data-deadline attribute');
+      return;
+    }
+    
+    try {
+      const timer = new CountdownTimer(deadline);
+      const numbers = container.querySelectorAll('.countdown-number');
+      const ariaText = container.querySelector('.countdown-aria-text');
+      
+      timer.subscribe(state => {
+        // Update display
+        numbers.forEach(num => {
+          const unit = num.getAttribute('data-unit');
+          if (unit) {
+            const value = state[unit as keyof typeof state];
+            if (typeof value === 'number') {
+              num.textContent = formatNumber(value);
+            }
+          }
+        });
+        
+        // Update ARIA text
+        if (ariaText) {
+          ariaText.textContent = getAriaText(state);
+        }
+        
+        // Update aria-label on timer
+        const timerEl = container.querySelector('.countdown-timer');
+        if (timerEl) {
+          timerEl.setAttribute('aria-label', getAriaText(state));
+        }
+        
+        // Handle expired state
+        if (state.expired) {
+          container.classList.add('countdown-expired');
+        }
+      });
+      
+      // Start the timer
+      timer.start();
+    } catch (error) {
+      console.error('Countdown error:', error);
+    }
+  });
+</script>
+
+<style>
+  .countdown-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-xl);
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.08) 0%, rgba(34, 211, 238, 0.08) 100%);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    border-radius: var(--radius-2xl);
+    position: relative;
+    text-align: center;
+  }
+  
+  .countdown-header {
+    text-align: center;
+  }
+  
+  .countdown-title {
+    font-size: clamp(0.875rem, 1vw + 0.25rem, 1rem);
+    font-weight: 600;
+    color: var(--primary);
+    margin: 0;
+  }
+  
+  .countdown-timer {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+    font-variant-numeric: tabular-nums;
+  }
+  
+  .countdown-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+    min-width: 60px;
+  }
+  
+  .countdown-number {
+    font-size: clamp(2.5rem, 3.5vw + 1rem, 4rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  
+  .countdown-label {
+    font-size: clamp(0.75rem, 1vw + 0.125rem, 0.875rem);
+    color: var(--muted);
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+  }
+  
+  .countdown-separator {
+    font-size: clamp(2rem, 2.5vw + 1rem, 3rem);
+    font-weight: 800;
+    color: var(--primary);
+    opacity: 0.4;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  
+  .countdown-expired {
+    opacity: 0.5;
+  }
+  
+  .countdown-expired .countdown-number {
+    opacity: 0.5;
+  }
+  
+  /* Mobile adjustments */
+  @media (max-width: 640px) {
+    .countdown-timer {
+      gap: var(--spacing-sm);
+    }
+    
+    .countdown-item {
+      min-width: 55px;
+    }
+    
+    .countdown-separator {
+      font-size: 1.75rem;
+    }
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 0.6;
+    }
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .countdown-separator {
+      animation: none;
+    }
+  }
+</style>

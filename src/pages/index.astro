@@ -1,16 +1,1179 @@
 ---
+import Base from '../layouts/Base.astro';
+import FeatureCard from '../components/FeatureCard.astro';
+import Countdown from '../components/Countdown.astro';
 
+// Set deadline to 24 hours from now in UTC
+const deadline = new Date();
+deadline.setHours(deadline.getHours() + 24);
+const deadlineISO = deadline.toISOString();
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Base title="Главная" description="Как зарабатывать $500–$2500 на AI-моделях без команды, без лица и без вложений. Система AI Model 2.0.">
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-container">
+      <div class="hero-content reveal-up">
+        <div class="hero-badge reveal-up">
+          <span class="badge-dot"></span>
+          ЛИД-МАГНИТ
+        </div>
+        
+        <h1 class="hero-title reveal-up">
+          Как молодые ребята зарабатывают<br class="hidden sm:block" />
+          первые <span class="gradient-text">$500–$2 500</span> на AI-моделях<br class="hidden sm:block" />
+          без команды, без лица<br class="hidden sm:block" />
+          и <span class="gradient-text">без вложений</span>
+        </h1>
+        
+        <p class="hero-subtitle reveal-up">
+          Хватит пытаться угадать, что выстрелит или нет.<br class="hidden md:block" />
+          <span class="hero-subtitle-highlight">
+            Крипта, NFT, товарка, арбитраж — везде одно и то же:
+          </span>
+          просранное время, ноль стабильности,<br class="hidden md:block" />
+          и чувство, что рядом есть профессия будущего, которую ты не попробовал.
+        </p>
+        
+        <p class="hero-callout reveal-up">
+          <span class="callout-icon">🔥</span>
+          Вот она… В 2025 году появился рынок, где тысячи людей зарабатывают реальные деньги,
+          не снимая лица, не бегая за клиентами и не вкладывая ни цента в рекламу.
+        </p>
+        
+        <nav class="hero-cta reveal-up" aria-label="Основные действия">
+          <a href="https://t.me/aimodels24" class="btn-capsule" data-cta data-href="https://t.me/aimodels24" aria-label="Вступить в Telegram канал - главная кнопка">
+            Вступить ✅
+          </a>
+          <a href="https://t.me/aimodels24" class="btn-secondary" data-cta data-href="https://t.me/aimodels24" aria-label="Ворваться в новую нишу - вторичная кнопка">
+            Ворваться в новую нишу 💰
+          </a>
+        </nav>
+        
+        <div class="hero-social-proof reveal-up">
+          <div class="social-proof-item">
+            <span class="social-proof-number">$10 000+</span>
+            <span class="social-proof-label">в месяц</span>
+          </div>
+          <div class="social-proof-divider"></div>
+          <div class="social-proof-item">
+            <span class="social-proof-number">0.1%</span>
+            <span class="social-proof-label">знают сейчас</span>
+          </div>
+          <div class="social-proof-divider"></div>
+          <div class="social-proof-item">
+            <span class="social-proof-number">100%</span>
+            <span class="social-proof-label">легально</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-glow"></div>
+  </section>
+  
+  <!-- About Me Section -->
+  <section class="about-me-section">
+    <div class="about-me-container">
+      <div class="about-me-content reveal-up">
+        <h2 class="about-me-title">
+          Меня зовут <span class="gradient-text">Илья</span>
+        </h2>
+        <p class="about-me-subtitle">AI-продюсер, который вышел на $10 000 в месяц благодаря AI-моделям</p>
+        
+        <div class="about-me-text reveal-up">
+          <p>
+            Когда-то я был в той же точке, что и ты: прыгал из темы в тему — пробовал крипту, арбитраж, шортсы, товарку, 
+            сидел ночами и искал хоть что-то, что будет работать…
+          </p>
+          <p>
+            <strong>Везде было одно и то же:</strong> или слишком рутинно, или нестабильно, или все упиралось в бешеные бюджеты.
+          </p>
+          <p>
+            Я помню, как одной такой ночью наткнулся на фразу: "AI-модели — новая эпоха онлайн заработка".
+            Я не поверил. Но решил проверить… И через неделю создал свою первую цифровую модель.
+          </p>
+          <p class="about-me-highlight">
+            <strong>Через месяц — $1 000</strong><br />
+            <strong>Через четыре — $10 000</strong><br />
+            Без команды, без офиса, без рекламы.
+          </p>
+        </div>
+        
+        <div class="about-me-cta reveal-up">
+          <a href="https://t.me/aimodels24" class="btn-capsule" data-cta data-href="https://t.me/aimodels24" aria-label="Создать свою AI-модель">
+            Создать свою AI-модель
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What You Get Section -->
+  <section class="features-section">
+    <div class="features-container">
+      <div class="features-header reveal-up">
+        <div class="section-label">⚙️ Что ты получишь</div>
+        <h2 class="features-title">Система AI Model 2.0</h2>
+        <p class="features-subtitle">
+          Полная система заработка на AI-моделях без вложений и команды
+        </p>
+      </div>
+
+      <div class="features-grid reveal-scale-wrapper">
+        <FeatureCard
+          title="Создание AI-модели с нуля"
+          description="Подбор внешности, стиля и вайба. Создание модели, которую никто не отличит от реальной девушки. Генерация визуала для Instagram/Threads"
+          icon='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12,17.5C14.33,17.5 16.3,16.04 17.11,14H6.89C7.69,16.04 9.67,17.5 12,17.5M8.5,11A1.5,1.5 0 0,0 10,9.5A1.5,1.5 0 0,0 8.5,8A1.5,1.5 0 0,0 7,9.5A1.5,1.5 0 0,0 8.5,11M15.5,11A1.5,1.5 0 0,0 17,9.5A1.5,1.5 0 0,0 15.5,8A1.5,1.5 0 0,0 14,9.5A1.5,1.5 0 0,0 15.5,11M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/></svg>'
+        />
+        
+        <FeatureCard
+          title="Контент-система"
+          description="Готовые шаблоны постов, стратегия продвижения на американскую аудиторию, органический трафик без вложений"
+          icon='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6C11.53,6 11.13,6.3 11,6.76L10.23,9.71H14.77L14,6.76C13.87,6.3 13.47,6 13,6M12,16C10.89,16 10,15.11 10,14C10,12.89 10.89,12 12,12C13.11,12 14,12.89 14,14C14,15.11 13.11,16 12,16M6,16C4.89,16 4,15.11 4,14C4,12.89 4.89,12 6,12C7.11,12 8,12.89 8,14C8,15.11 7.11,16 6,16M18,16C16.89,16 16,15.11 16,14C16,12.89 16.89,12 18,12C19.11,12 20,12.89 20,14C20,15.11 19.11,16 18,16Z"/></svg>'
+        />
+        
+        <FeatureCard
+          title="Монетизация и Fanvue"
+          description="Как оформить аккаунт, вести переписку и выстраивать психологию общения. Зарабатывать с первых дней и делегировать переписку"
+          icon='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12,2C6.48,2 2,6.48 2,12S6.48,22 12,22 22,17.52 22,12 17.52,2 12,2M12,13H7V11H12M15.59,8.88L17.13,7.34C17.49,6.98 18.16,6.98 18.53,7.34L19.41,8.22C19.77,8.59 19.77,9.26 19.41,9.63L17.87,11.17C17.51,11.53 16.84,11.53 16.47,11.17L15.59,10.29C15.23,9.93 15.23,9.25 15.59,8.88M13,14H7V16H13M15,18H7V20H17V18Z"/></svg>'
+        />
+        
+        <FeatureCard
+          title="Автоматизация и масштаб"
+          description="Делегирование задач, запуск второй модели, выход на стабильные $10 000–$30 000 в месяц"
+          icon='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12,1L8,5H11V14H13V5H16M18,23A2,2 0 0,1 16,21V9A2,2 0 0,1 18,7H21V9H18V21H21V23M14,20A2,2 0 0,1 12,18V15A2,2 0 0,1 14,13H16A2,2 0 0,1 18,15V18A2,2 0 0,1 16,20H14M14,18H16V15H14V18Z"/></svg>'
+        />
+        
+        <FeatureCard
+          title="MHP: Mind Hunter Protocol"
+          description="Психология американского рынка, гарантированное получение клиентов, быстрый доход в течение первого месяца"
+          icon='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10A2,2 0 0,1 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/></svg>'
+        />
+        
+        <FeatureCard
+          title="Система вывода денег"
+          description="Быстрый и безопасный вывод на карту или криптокошелек. Полная автоматизация всех выплат"
+          icon='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M2,2V8H4V21H14V8H20V2H2M4,4H18V6H14V19H6V6H4V4Z"/></svg>'
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- System Steps Section -->
+  <section class="system-steps-section">
+    <div class="system-steps-container">
+      <div class="system-steps-header reveal-up">
+        <div class="section-label">📦 Система</div>
+        <h2 class="system-steps-title">AI Model 2.0</h2>
+        <p class="system-steps-subtitle">
+          Пошаговая система создания своей AI-модели и выхода на стабильный доход
+        </p>
+      </div>
+
+      <div class="system-steps-list">
+        <div class="system-step reveal-up">
+          <div class="step-icon-wrapper">
+            <div class="step-number">1</div>
+            <div class="step-icon">🎨</div>
+          </div>
+          <div class="step-content">
+            <h3 class="step-title">Создание AI-модели с нуля</h3>
+            <ul class="step-bullets">
+              <li>Подбор внешности, стиля и вайба</li>
+              <li>Создание AI-модели (которую никто не отличит от реальной)</li>
+              <li>Генерация визуала для Instagram/Threads</li>
+              <li>Продвижение в соцсетях</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="system-step reveal-up">
+          <div class="step-icon-wrapper">
+            <div class="step-number">2</div>
+            <div class="step-icon">📱</div>
+          </div>
+          <div class="step-content">
+            <h3 class="step-title">Контент-система</h3>
+            <ul class="step-bullets">
+              <li>Готовые шаблоны постов</li>
+              <li>Стратегия продвижения на американскую аудиторию</li>
+              <li>Органический трафик без вложений</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="system-step reveal-up">
+          <div class="step-icon-wrapper">
+            <div class="step-number">3</div>
+            <div class="step-icon">💰</div>
+          </div>
+          <div class="step-content">
+            <h3 class="step-title">Монетизация и платформа Fanvue</h3>
+            <ul class="step-bullets">
+              <li>Как оформить аккаунт</li>
+              <li>Как вести переписку и выстраивать психологию общения</li>
+              <li>Как зарабатывать с первых дней</li>
+              <li>Как полностью делегировать переписку</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="system-step reveal-up">
+          <div class="step-icon-wrapper">
+            <div class="step-number">4</div>
+            <div class="step-icon">⚡</div>
+          </div>
+          <div class="step-content">
+            <h3 class="step-title">Автоматизация и масштаб</h3>
+            <ul class="step-bullets">
+              <li>Делегирование задач</li>
+              <li>Запуск второй модели</li>
+              <li>Выход на стабильные $10 000–$30 000 в месяц</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="system-step reveal-up">
+          <div class="step-icon-wrapper">
+            <div class="step-number">5</div>
+            <div class="step-icon">🎯</div>
+          </div>
+          <div class="step-content">
+            <h3 class="step-title">Американская система MHP</h3>
+            <ul class="step-bullets">
+              <li>Психология американского рынка</li>
+              <li>Гарантированное получение клиентов</li>
+              <li>Быстрый доход в течение первого месяца</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="system-steps-cta reveal-up">
+        <a href="https://t.me/aimodels24" class="btn-capsule" data-cta data-href="https://t.me/aimodels24" aria-label="Получить всю систему - CTA кнопка">
+          Получить всю систему
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Now Section -->
+  <section class="why-now-section">
+    <div class="why-now-container">
+      <h2 class="why-now-title">Почему именно сейчас?</h2>
+      <div class="why-now-content">
+        <div class="why-now-item">
+          <span class="why-now-number">10,000+</span>
+          <p class="why-now-text">Компаний уже используют нашу платформу и увеличили доход на <strong>300%</strong></p>
+        </div>
+        <div class="why-now-item">
+          <span class="why-now-number">24/7</span>
+          <p class="why-now-text">Рынок никогда не спит. Запустите автоматизацию сейчас и <strong>не теряйте клиентов</strong></p>
+        </div>
+        <div class="why-now-item">
+          <span class="why-now-number">0₽</span>
+          <p class="why-now-text">Начните бесплатно, платите только когда видите результат. <strong>Без скрытых платежей</strong></p>
+        </div>
+      </div>
+      <div class="why-now-cta">
+        <a href="https://example.com/signup" class="btn-primary" data-cta aria-label="Присоединиться к успеху - CTA кнопка">
+          Присоединиться к успеху
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Countdown Section -->
+  <section class="countdown-section">
+    <div class="countdown-wrapper">
+      <Countdown 
+        deadline={deadlineISO} 
+        title="Предложение актуально 24 часа"
+      />
+      <div class="countdown-section-cta">
+        <a href="https://t.me/aimodels24" class="btn-capsule" data-cta data-href="https://t.me/aimodels24" aria-label="Успей забрать систему - CTA кнопка">
+          Успей забрать систему
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gallery Before/After Section -->
+  <section class="gallery-section">
+    <div class="gallery-container">
+      <div class="gallery-header reveal-fade">
+        <div class="section-label">📸 Доказательства</div>
+        <h2 class="gallery-title">Результаты моих учеников</h2>
+        <p class="gallery-subtitle">
+          Реальные фото доходов, созданных моделей и трансформаций жизни
+        </p>
+      </div>
+
+      <div class="gallery-grid reveal-fade">
+        <div class="gallery-item">
+          <img 
+            src="/placeholder-before.svg" 
+            alt="До: старые попытки заработка"
+            loading="lazy"
+            decoding="async"
+            class="gallery-image"
+          />
+          <div class="gallery-label">До: старые попытки</div>
+        </div>
+        <div class="gallery-item">
+          <img 
+            src="/placeholder-now.svg" 
+            alt="Сейчас: доходы AI-моделей"
+            loading="lazy"
+            decoding="async"
+            class="gallery-image"
+          />
+          <div class="gallery-label">Сейчас: доходы</div>
+        </div>
+        <div class="gallery-item">
+          <img 
+            src="/placeholder-ai-model.svg" 
+            alt="AI-модель ученика"
+            loading="lazy"
+            decoding="async"
+            class="gallery-image"
+          />
+          <div class="gallery-label">AI-модель ученика</div>
+        </div>
+        <div class="gallery-item">
+          <img 
+            src="/placeholder-results.svg" 
+            alt="Результаты первых недель"
+            loading="lazy"
+            decoding="async"
+            class="gallery-image"
+          />
+          <div class="gallery-label">Результаты первых недель</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats-section">
+    <div class="stats-container">
+      <div class="stats-header reveal-fade">
+        <div class="section-label">📊 Цифры</div>
+        <h2 class="stats-title">Почему это работает</h2>
+      </div>
+
+      <div class="stats-grid reveal-fade">
+        <div class="stats-item">
+          <span class="stats-number">$10,000+</span>
+          <p class="stats-label">в месяц с одной модели</p>
+        </div>
+        <div class="stats-item">
+          <span class="stats-number">0.1%</span>
+          <p class="stats-label">людей знают об этом сейчас</p>
+        </div>
+        <div class="stats-item">
+          <span class="stats-number">100%</span>
+          <p class="stats-label">легальный доход</p>
+        </div>
+        <div class="stats-item">
+          <span class="stats-number">24/7</span>
+          <p class="stats-label">доходы даже пока спишь</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import '../lib/reveal-init.js';
+</script>
+
+<style>
+  /* Reveal animations are now handled by src/lib/reveal.ts and src/styles/global.css */
+  
+  /* Hero Section */
+  .hero {
+    position: relative;
+    min-height: 95vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-3xl) var(--spacing-lg);
+    overflow: hidden;
+  }
+  
+  .hero-container {
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+  }
+  
+  .hero-content {
+    text-align: center;
+  }
+  
+  /* Hero Badge */
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.25rem;
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.1) 0%, rgba(34, 211, 238, 0.1) 100%);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 2rem;
+  }
+  
+  .badge-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  
+  .hero-title {
+    margin-bottom: 1.5rem;
+    max-width: 100%;
+  }
+  
+  .gradient-text {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .hero-subtitle {
+    font-size: clamp(1rem, 1.5vw + 0.5rem, 1.25rem);
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .hero-subtitle-highlight {
+    color: var(--fg);
+    font-weight: 600;
+  }
+  
+  .hero-callout {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.05) 0%, rgba(34, 211, 238, 0.05) 100%);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    border-radius: var(--radius-2xl);
+    font-size: clamp(0.875rem, 1vw + 0.25rem, 1rem);
+    color: var(--muted);
+    margin-bottom: 2rem;
+    max-width: 700px;
+  }
+  
+  .callout-icon {
+    font-size: 1.5rem;
+  }
+  
+  .hero-cta {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 3rem;
+  }
+  
+  @media (min-width: 640px) {
+    .hero-cta {
+      flex-direction: row;
+      justify-content: center;
+    }
+  }
+  
+  .hero-social-proof {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  
+  .social-proof-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  .social-proof-number {
+    font-size: clamp(1.5rem, 2vw + 0.5rem, 2.25rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .social-proof-label {
+    font-size: 0.875rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .social-proof-divider {
+    width: 1px;
+    height: 40px;
+    background: var(--border);
+  }
+  
+  @media (max-width: 640px) {
+    .social-proof-divider {
+      display: none;
+    }
+    
+    .hero-social-proof {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+  }
+  
+  /* About Me Section */
+  .about-me-section {
+    padding: var(--spacing-3xl) var(--spacing-lg);
+    background: var(--panel);
+  }
+  
+  .about-me-container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  
+  .about-me-content {
+    text-align: center;
+  }
+  
+  .about-me-title {
+    margin-bottom: 1rem;
+  }
+  
+  .about-me-subtitle {
+    font-size: clamp(1rem, 1.5vw + 0.5rem, 1.25rem);
+    color: var(--muted);
+    margin-bottom: 2rem;
+  }
+  
+  .about-me-text {
+    text-align: left;
+    max-width: 700px;
+    margin: 0 auto 2rem;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+  
+  .about-me-text p {
+    margin-bottom: 1.25rem;
+  }
+  
+  .about-me-text strong {
+    color: var(--fg);
+    font-weight: 600;
+  }
+  
+  .about-me-highlight {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.05) 0%, rgba(34, 211, 238, 0.05) 100%);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    border-radius: var(--radius-2xl);
+    margin: 2rem 0;
+    color: var(--fg);
+  }
+  
+  .about-me-cta {
+    text-align: center;
+  }
+  
+  @media (min-width: 1024px) {
+    .hero {
+      padding: var(--spacing-3xl) var(--spacing-desktop-xl);
+    }
+  }
+  
+  /* Hero Glow Effect */
+  .hero-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 1000px;
+    height: 1000px;
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: pulse 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .hero-glow {
+      animation: none;
+    }
+  }
+  
+  /* Features Section */
+  .features-section {
+    padding: var(--spacing-3xl) var(--spacing-lg);
+    background: var(--color-bg);
+  }
+  
+  .features-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .section-label {
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.1) 0%, rgba(34, 211, 238, 0.1) 100%);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+  }
+  
+  .features-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+  
+  .features-title {
+    margin-bottom: 1rem;
+  }
+  
+  .features-subtitle {
+    color: var(--muted);
+    max-width: 700px;
+    margin: 0 auto;
+    font-size: clamp(1rem, 1.5vw + 0.5rem, 1.25rem);
+  }
+  
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  
+  @media (min-width: 768px) {
+    .features-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .features-section {
+      padding: var(--spacing-3xl) var(--spacing-desktop-xl);
+    }
+    
+    .features-header {
+      margin-bottom: 4rem;
+    }
+    
+    .features-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+    }
+  }
+  
+  /* System Steps Section */
+  .system-steps-section {
+    padding: var(--spacing-3xl) var(--spacing-lg);
+    background: var(--bg);
+  }
+  
+  .system-steps-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .system-steps-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+  
+  .system-steps-title {
+    margin-bottom: 1rem;
+  }
+  
+  .system-steps-subtitle {
+    color: var(--muted);
+    max-width: 700px;
+    margin: 0 auto;
+    font-size: clamp(1rem, 1.5vw + 0.5rem, 1.25rem);
+  }
+  
+  .system-steps-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+  
+  .system-step {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    padding: 2rem;
+    background: var(--panel);
+    border: 1px solid rgba(96, 165, 250, 0.1);
+    border-radius: var(--radius-2xl);
+    transition: all 0.3s ease;
+  }
+  
+  .system-step:hover {
+    border-color: rgba(96, 165, 250, 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 40px rgba(96, 165, 250, 0.1);
+  }
+  
+  @media (max-width: 768px) {
+    .system-step {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1.5rem;
+    }
+  }
+  
+  .step-icon-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 80px;
+  }
+  
+  .step-number {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+    color: white;
+    border-radius: 50%;
+    box-shadow: 0 4px 20px rgba(96, 165, 250, 0.3);
+  }
+  
+  .step-icon {
+    font-size: 2rem;
+    line-height: 1;
+  }
+  
+  .step-content {
+    flex: 1;
+  }
+  
+  .step-title {
+    font-size: clamp(1.25rem, 2vw + 0.25rem, 1.75rem);
+    font-weight: 700;
+    color: var(--fg);
+    margin-bottom: 1rem;
+  }
+  
+  .step-bullets {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .step-bullets li {
+    position: relative;
+    padding-left: 1.5rem;
+    color: var(--muted);
+    line-height: 1.6;
+    font-size: clamp(0.875rem, 1vw + 0.125rem, 1rem);
+  }
+  
+  .step-bullets li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-weight: 700;
+  }
+  
+  .system-steps-cta {
+    text-align: center;
+  }
+  
+  @media (min-width: 1024px) {
+    .system-steps-section {
+      padding: var(--spacing-3xl) var(--spacing-desktop-xl);
+    }
+    
+    .system-steps-header {
+      margin-bottom: 4rem;
+    }
+    
+    .system-steps-list {
+      gap: 2.5rem;
+      margin-bottom: 4rem;
+    }
+  }
+  
+  /* Why Now Section */
+  .why-now-section {
+    padding: var(--spacing-3xl) var(--spacing-lg);
+    background: var(--color-bg-secondary);
+  }
+  
+  .why-now-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .why-now-title {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+  }
+  
+  .why-now-content {
+    display: grid;
+    gap: var(--spacing-2xl);
+    margin-bottom: var(--spacing-2xl);
+  }
+  
+  @media (min-width: 768px) {
+    .why-now-content {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--spacing-xl);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .why-now-section {
+      padding: var(--spacing-3xl) var(--spacing-desktop-xl);
+    }
+    
+    .why-now-title {
+      margin-bottom: var(--spacing-3xl);
+    }
+    
+    .why-now-content {
+      gap: var(--spacing-desktop-xl);
+      margin-bottom: var(--spacing-3xl);
+    }
+  }
+  
+  .why-now-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    animation: fadeIn 0.6s ease forwards;
+    opacity: 0;
+  }
+  
+  .why-now-item:nth-child(1) { animation-delay: 0.1s; }
+  .why-now-item:nth-child(2) { animation-delay: 0.2s; }
+  .why-now-item:nth-child(3) { animation-delay: 0.3s; }
+  
+  .why-now-number {
+    font-size: 3.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: inline-block;
+    padding-bottom: 0.5rem;
+    border-bottom: 4px solid transparent;
+    border-image: linear-gradient(90deg, var(--color-primary), var(--color-accent)) 1;
+    animation: slideIn 0.6s ease;
+  }
+  
+  .why-now-text {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: var(--color-fg-muted);
+  }
+  
+  .why-now-text strong {
+    color: var(--color-fg);
+  }
+  
+  .why-now-cta {
+    text-align: center;
+  }
+  
+  /* Animations */
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 0.5;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: translate(-50%, -50%) scale(1.05);
+    }
+  }
+  
+  @keyframes slideIn {
+    from {
+      transform: translateX(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .reveal-up,
+    .reveal-scale,
+    .reveal-fade,
+    .why-now-item,
+    .gallery-item,
+    .stats-item {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+    
+    .why-now-number {
+      animation: none;
+    }
+    
+    .badge-dot {
+      animation: none;
+    }
+    
+    .gallery-item:hover,
+    .stats-item:hover {
+      transform: none;
+    }
+  }
+  
+  /* Countdown Section */
+  .countdown-section {
+    padding: var(--spacing-3xl) var(--spacing-lg);
+    background: var(--color-bg);
+  }
+  
+  .countdown-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-2xl);
+  }
+  
+  .countdown-section-cta {
+    text-align: center;
+  }
+  
+  @media (min-width: 1024px) {
+    .countdown-section {
+      padding: var(--spacing-3xl) var(--spacing-desktop-xl);
+    }
+  }
+  
+  /* Gallery Section */
+  .gallery-section {
+    padding: var(--spacing-3xl) var(--spacing-lg);
+    background: var(--bg);
+  }
+  
+  .gallery-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .gallery-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+  
+  .gallery-title {
+    font-size: clamp(2rem, 5vw + 1rem, 3.5rem);
+    font-weight: 900;
+    color: var(--fg);
+    margin-bottom: 1rem;
+  }
+  
+  .gallery-subtitle {
+    font-size: clamp(1rem, 1.5vw + 0.5rem, 1.25rem);
+    color: var(--muted);
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
+  @media (max-width: 640px) {
+    .gallery-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .gallery-item {
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-2xl);
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .gallery-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 40px rgba(96, 165, 250, 0.1);
+    border-color: rgba(96, 165, 250, 0.3);
+  }
+  
+  .gallery-image {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    display: block;
+  }
+  
+  .gallery-label {
+    padding: 1rem;
+    text-align: center;
+    font-size: clamp(0.875rem, 1vw + 0.125rem, 1rem);
+    font-weight: 600;
+    color: var(--fg);
+  }
+  
+  @media (min-width: 1024px) {
+    .gallery-section {
+      padding: var(--spacing-3xl) var(--spacing-desktop-xl);
+    }
+    
+    .gallery-grid {
+      gap: 2rem;
+    }
+    
+    .gallery-image {
+      height: 400px;
+    }
+  }
+  
+  /* Stats Section */
+  .stats-section {
+    padding: var(--spacing-3xl) var(--spacing-lg);
+    background: var(--panel);
+  }
+  
+  .stats-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .stats-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+  
+  .stats-title {
+    font-size: clamp(2rem, 5vw + 1rem, 3.5rem);
+    font-weight: 900;
+    color: var(--fg);
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+  }
+  
+  .stats-item {
+    text-align: center;
+    padding: 2rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-2xl);
+    transition: all 0.3s ease;
+  }
+  
+  .stats-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 40px rgba(96, 165, 250, 0.1);
+    border-color: rgba(96, 165, 250, 0.3);
+  }
+  
+  .stats-number {
+    display: block;
+    font-size: clamp(2.5rem, 6vw + 1rem, 4rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+    line-height: 1;
+  }
+  
+  .stats-label {
+    color: var(--muted);
+    font-size: clamp(0.875rem, 1vw + 0.125rem, 1rem);
+    margin: 0;
+  }
+  
+  @media (min-width: 1024px) {
+    .stats-section {
+      padding: var(--spacing-3xl) var(--spacing-desktop-xl);
+    }
+    
+    .stats-grid {
+      gap: 3rem;
+    }
+  }
+
+  /* Mobile optimizations */
+  @media (max-width: 640px) {
+    .hero-title {
+      font-size: 2.5rem;
+    }
+    
+    .hero-subtitle {
+      font-size: 1.25rem;
+    }
+    
+    .features-title,
+    .why-now-title,
+    .gallery-title,
+    .stats-title {
+      font-size: 2rem;
+    }
+    
+    .features-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,75 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base 
+  title="Политика конфиденциальности" 
+  description="Политика конфиденциальности и условия использования нашего сервиса."
+>
+  <section class="py-20 px-4">
+    <div class="container max-w-container mx-auto max-w-4xl">
+      <div class="space-y-8">
+        <h1 class="text-5xl md:text-6xl font-bold">
+          Политика конфиденциальности
+        </h1>
+        
+        <div class="card space-y-6">
+          <p class="text-fg-muted">
+            Последнее обновление: {new Date().toLocaleDateString('ru-RU')}
+          </p>
+          
+          <div class="space-y-4">
+            <h2 class="text-2xl font-bold">Введение</h2>
+            <p class="text-fg-muted">
+              Мы уважаем вашу конфиденциальность и обязуемся защищать ваши личные данные.
+              Эта политика объясняет, как мы собираем, используем и защищаем вашу информацию.
+            </p>
+          </div>
+          
+          <div class="space-y-4">
+            <h2 class="text-2xl font-bold">Собираемые данные</h2>
+            <p class="text-fg-muted">
+              Мы можем собирать следующие типы информации:
+            </p>
+            <ul class="list-disc list-inside space-y-2 text-fg-muted">
+              <li>Имя и контактная информация</li>
+              <li>Адрес электронной почты</li>
+              <li>Информация об использовании сервиса</li>
+              <li>Технические данные устройств</li>
+            </ul>
+          </div>
+          
+          <div class="space-y-4">
+            <h2 class="text-2xl font-bold">Использование данных</h2>
+            <p class="text-fg-muted">
+              Ваши данные используются для:
+            </p>
+            <ul class="list-disc list-inside space-y-2 text-fg-muted">
+              <li>Предоставления и улучшения наших услуг</li>
+              <li>Обработки ваших запросов и запросов</li>
+              <li>Отправки важных уведомлений</li>
+              <li>Улучшения пользовательского опыта</li>
+            </ul>
+          </div>
+          
+          <div class="space-y-4">
+            <h2 class="text-2xl font-bold">Контакты</h2>
+            <p class="text-fg-muted">
+              Если у вас есть вопросы о этой политике, пожалуйста, свяжитесь с нами:
+              <a href="mailto:privacy@example.com" class="text-primary hover:underline">
+                privacy@example.com
+              </a>
+            </p>
+          </div>
+        </div>
+        
+        <div class="pt-8">
+          <a href="/" class="btn-secondary">
+            ← Вернуться на главную
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+

@@ -1,0 +1,250 @@
+---
+import '../styles/global.css';
+import { parseUTMFromURL } from '../lib/utm';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+}
+
+const { title, description = 'Инновационный продукт для вашего бизнеса', image = '/og.jpg' } = Astro.props;
+const siteUrl = 'https://example.com';
+const fullTitle = `${title} | Product`;
+
+// Get UTM parameters from URL
+const url = Astro.url.toString();
+const utmParams = parseUTMFromURL(url);
+---
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  
+  <!-- Primary Meta Tags -->
+  <title>{fullTitle}</title>
+  <meta name="title" content={fullTitle}>
+  <meta name="description" content={description}>
+  <meta name="author" content="Product Team">
+  <meta name="robots" content="index, follow">
+  <meta name="language" content="Russian">
+  
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="msapplication-TileColor" content="#0a0a0a">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content={Astro.url.href}>
+  <meta property="og:title" content={fullTitle}>
+  <meta property="og:description" content={description}>
+  <meta property="og:image" content={new URL(image, Astro.site || siteUrl).href}>
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:site_name" content="Product">
+  <meta property="og:locale" content="ru_RU">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content={Astro.url.href}>
+  <meta name="twitter:title" content={fullTitle}>
+  <meta name="twitter:description" content={description}>
+  <meta name="twitter:image" content={new URL(image, Astro.site || siteUrl).href}>
+  <meta name="twitter:image:alt" content={fullTitle}>
+  
+  <!-- Preload Fonts -->
+  <link rel="preload" href="/fonts/inter-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/inter-medium.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/inter-bold.woff2" as="font" type="font/woff2" crossorigin>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  
+  <!-- Telegram WebApp API -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  
+  <!-- Pass UTM params to client -->
+  <script define:vars={{ utmParams: JSON.stringify(utmParams) }}>
+    window.utmParams = utmParams;
+  </script>
+  
+  <!-- Initialize UTM tracking and Telegram WebApp -->
+  <script is:inline>
+    (function() {
+      // Initialize UTM tracking
+      const utmParams = window.utmParams || {};
+      if (Object.keys(utmParams).length > 0) {
+        try {
+          sessionStorage.setItem('utm_params', JSON.stringify(utmParams));
+        } catch (e) {
+          console.warn('Failed to store UTM params:', e);
+        }
+      }
+      
+      // Check if in Telegram
+      if (window.Telegram?.WebApp) {
+        const webApp = window.Telegram.WebApp;
+        
+        // Initialize and expand
+        webApp.ready();
+        webApp.expand();
+        
+        // Enable closing confirmation
+        webApp.enableClosingConfirmation();
+        
+        // Apply theme colors
+        const themeParams = webApp.themeParams;
+        if (themeParams.bg_color) {
+          document.documentElement.style.setProperty('--tg-theme-bg-color', themeParams.bg_color);
+        }
+        if (themeParams.text_color) {
+          document.documentElement.style.setProperty('--tg-theme-text-color', themeParams.text_color);
+        }
+        if (themeParams.hint_color) {
+          document.documentElement.style.setProperty('--tg-theme-hint-color', themeParams.hint_color);
+        }
+        if (themeParams.link_color) {
+          document.documentElement.style.setProperty('--tg-theme-link-color', themeParams.link_color);
+        }
+        if (themeParams.button_color) {
+          document.documentElement.style.setProperty('--tg-theme-button-color', themeParams.button_color);
+        }
+        if (themeParams.button_text_color) {
+          document.documentElement.style.setProperty('--tg-theme-button-text-color', themeParams.button_text_color);
+        }
+        if (themeParams.secondary_bg_color) {
+          document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', themeParams.secondary_bg_color);
+        }
+        
+        // Listen to theme changes
+        webApp.onEvent('themeChanged', () => {
+          location.reload(); // Reload to apply new theme
+        });
+        
+        // Hide banner if exists
+        const banner = document.getElementById('telegram-banner');
+        if (banner) banner.style.display = 'none';
+      } else {
+        // Show "Open in Telegram" banner
+        const banner = document.createElement('div');
+        banner.id = 'telegram-banner';
+        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#3b82f6;color:white;padding:1rem;text-align:center;z-index:9999;font-weight:600;';
+        banner.innerHTML = '📱 Открой в Telegram для лучшего опыта';
+        document.body.prepend(banner);
+      }
+    })();
+  </script>
+</head>
+<body>
+  <!-- Skip to main content link for accessibility -->
+  <a href="#main-content" class="skip-to-main">
+    Перейти к основному содержимому
+  </a>
+  
+  <main id="main-content">
+    <slot />
+  </main>
+  
+  <!-- Client-side CTA links with Telegram WebApp support -->
+  <script is:inline>
+    (function() {
+      // Get stored UTM params from sessionStorage
+      function getStoredUTM() {
+        try {
+          const stored = sessionStorage.getItem('utm_params');
+          return stored ? JSON.parse(stored) : {};
+        } catch (e) {
+          return {};
+        }
+      }
+      
+      // Helper to add UTM params to URL
+      function withUTM(url) {
+        const utmParams = getStoredUTM();
+        
+        if (Object.keys(utmParams).length === 0) return url;
+        
+        try {
+          const urlObj = new URL(url);
+          
+          // Add UTM params to URL
+          Object.entries(utmParams).forEach(([key, value]) => {
+            if (value && !urlObj.searchParams.has(key)) {
+              urlObj.searchParams.set(key, value);
+            }
+          });
+          
+          return urlObj.toString();
+        } catch (e) {
+          // If URL parsing fails, append params manually
+          const separator = url.includes('?') ? '&' : '?';
+          const params = new URLSearchParams();
+          
+          Object.entries(utmParams).forEach(([key, value]) => {
+            if (value) params.set(key, value);
+          });
+          
+          return `${url}${separator}${params.toString()}`;
+        }
+      }
+      
+      // Check if in Telegram WebApp
+      const isTelegram = window.Telegram?.WebApp;
+      
+      // Handle CTA links
+      function setupCTALinks() {
+        document.querySelectorAll('a[data-cta]').forEach(link => {
+          link.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            if (!href) return;
+            
+            const urlWithUtm = withUTM(href);
+            
+            if (isTelegram) {
+              // In Telegram - use WebApp API
+              e.preventDefault();
+              window.Telegram.WebApp.openLink(urlWithUtm);
+            } else {
+              // Not in Telegram - open in new tab
+              this.target = '_blank';
+              this.rel = 'noopener noreferrer';
+              this.href = urlWithUtm;
+            }
+          });
+        });
+      }
+      
+      // Update links on page load with UTM params for non-Telegram
+      function updateLinksOnLoad() {
+        if (isTelegram) return; // Don't modify hrefs in Telegram
+        
+        const utmParams = getStoredUTM();
+        if (Object.keys(utmParams).length === 0) return;
+        
+        document.querySelectorAll('a[data-cta]').forEach(link => {
+          const href = link.getAttribute('href');
+          if (href && !href.includes('utm_')) {
+            link.setAttribute('href', withUTM(href));
+          }
+        });
+      }
+      
+      // Initialize
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          setupCTALinks();
+          updateLinksOnLoad();
+        });
+      } else {
+        setupCTALinks();
+        updateLinksOnLoad();
+      }
+    })();
+  </script>
+</body>
+</html>
+
