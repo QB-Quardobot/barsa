@@ -1,7 +1,21 @@
 {
-  "name": "irregular-inclination",
+  "name": "ai-model-2.0-landing",
   "type": "module",
-  "version": "0.0.1",
+  "version": "1.0.0",
+  "description": "Professional landing page for AI Model 2.0 system built with Astro + Tailwind CSS + Telegram WebApp",
+  "keywords": [
+    "astro",
+    "tailwindcss",
+    "telegram",
+    "webapp",
+    "landing",
+    "typescript",
+    "accessibility",
+    "seo",
+    "performance"
+  ],
+  "author": "coolpac",
+  "license": "MIT",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -12,5 +26,13 @@
     "@tailwindcss/vite": "^4.1.16",
     "astro": "^5.15.2",
     "tailwindcss": "^4.1.16"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/coolpac/barsa.git"
+  },
+  "bugs": {
+    "url": "https://github.com/coolpac/barsa/issues"
+  },
+  "homepage": "https://github.com/coolpac/barsa#readme"
 }
