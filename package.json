@@ -18,6 +18,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "astro dev",
+    "dev:tunnel": "concurrently \"npm run dev\" \"wait-on http://localhost:4321 && ngrok http 4321\"",
+    "dev:ngrok": "npm run dev:tunnel",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
@@ -26,6 +28,10 @@
     "@tailwindcss/vite": "^4.1.16",
     "astro": "^5.15.2",
     "tailwindcss": "^4.1.16"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "wait-on": "^8.0.1"
   },
   "repository": {
     "type": "git",
