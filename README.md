@@ -1,39 +1,65 @@
-# Landing Page - Astro + Tailwind CSS
+# AI Model 2.0 Landing Page
 
-Современный статический лендинг на Astro с Tailwind CSS в стиле темной темы.
+> Профессиональный лендинг для продвижения системы заработка на AI-моделях. Построен на Astro + Tailwind CSS с поддержкой Telegram WebApp.
+
+[![Astro](https://img.shields.io/badge/Astro-FF5D01?logo=astro&logoColor=white)](https://astro.build)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Telegram](https://img.shields.io/badge/Telegram-0088cc?logo=telegram&logoColor=white)](https://core.telegram.org/bots/webapps)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 🚀 Особенности
 
-- **Astro** - быстрый статический генератор
+- **Astro** - быстрый статический генератор с SSR
 - **Tailwind CSS** - utility-first CSS фреймворк
-- **Темная тема** по умолчанию
-- **Lighthouse 95+** - оптимизированная производительность
-- **UTM-метки** - автоматическое добавление к CTA ссылкам
-- **SEO-оптимизация** - мета-теги, Open Graph, Twitter Card
+- **Telegram WebApp API** - нативная поддержка Telegram Mini Apps
+- **Intersection Observer** - плавные reveal-анимации
+- **Темная тема** - профессиональный дизайн в стиле tgmonopoly.ru
+- **UTM-метки** - автоматическое отслеживание кампаний
+- **SEO-оптимизация** - Open Graph, Twitter Card, meta-теги
+- **Accessibility (A11Y)** - WCAG 2.1 AA compliance
+- **Lighthouse 95+** - максимальная производительность
 - **Локальные шрифты** - Inter с preload и font-display: swap
 - **Адаптивный дизайн** - мобильные устройства и десктоп
+
+## 🛠 Технологии
+
+- [Astro](https://astro.build) - Static Site Generator
+- [Tailwind CSS](https://tailwindcss.com) - Utility-first CSS
+- [TypeScript](https://www.typescriptlang.org/) - Type safety
+- [Telegram WebApp](https://core.telegram.org/bots/webapps) - Mini Apps API
+- [Intersection Observer](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) - Scroll animations
 
 ## 📁 Структура проекта
 
 ```
 .
 ├── public/
-│   ├── fonts/          # Локальные шрифты Inter (woff2)
-│   ├── favicon.svg     # Иконка сайта
-│   └── og.jpg          # OG изображение
+│   ├── fonts/                    # Локальные шрифты Inter (woff2)
+│   ├── favicon.svg               # Иконка сайта
+│   ├── og.jpg                    # OG изображение
+│   └── placeholder-*.svg         # Placeholder изображения для галереи
 ├── src/
+│   ├── components/
+│   │   ├── Countdown.astro       # Таймер обратного отсчёта (24ч)
+│   │   ├── Countdown.ts          # Логика таймера (vanilla TS)
+│   │   └── FeatureCard.astro     # Карточки фич (1px border-gradient)
 │   ├── layouts/
-│   │   └── Base.astro  # Базовый layout с SEO и UTM
+│   │   └── Base.astro            # Базовый layout: SEO + Telegram + UTM
 │   ├── lib/
-│   │   └── utm.ts      # Утилиты для работы с UTM
+│   │   ├── reveal.ts             # Intersection Observer анимации
+│   │   ├── reveal-init.ts        # Инициализация reveal
+│   │   ├── telegram.ts           # Telegram WebApp API wrapper
+│   │   └── utm.ts                # UTM parsing и sessionStorage
 │   ├── pages/
-│   │   ├── index.astro # Главная страница
-│   │   └── policy.astro # Политика конфиденциальности
+│   │   ├── index.astro           # Главная страница (Hero + Features + Stats)
+│   │   └── policy.astro          # Политика конфиденциальности
 │   └── styles/
-│       └── global.css  # Глобальные стили и токены
-├── astro.config.mjs    # Конфигурация Astro
-├── tailwind.config.js  # Конфигурация Tailwind
-└── package.json
+│       └── global.css             # Дизайн-токены, reveal-анимации, типографика
+├── astro.config.mjs              # Конфигурация Astro
+├── tailwind.config.js            # Конфигурация Tailwind (1200px container)
+├── package.json
+└── README.md
 ```
 
 ## 🛠 Установка и запуск
@@ -156,6 +182,19 @@ jobs:
 
 CTA ссылки добавят эти параметры автоматически.
 
+## 🤖 Telegram WebApp Integration
+
+Проект включает нативную поддержку [Telegram WebApp API](https://core.telegram.org/bots/webapps):
+
+- Автоматическое обнаружение Telegram-окружения
+- Применение темы из `Telegram.WebApp.themeParams`
+- Инициализация через `Telegram.WebApp.ready()` и `Telegram.WebApp.expand()`
+- Открытие ссылок через `Telegram.WebApp.openLink()` (в Telegram)
+- Banner "Открой в Telegram" для обычных браузеров
+- Подписка на `themeChanged` для динамической смены темы
+
+Документация: `TELEGRAM_WEBAPP.md`
+
 ## 🔍 SEO
 
 Страницы включают:
@@ -172,11 +211,27 @@ CTA ссылки добавят эти параметры автоматичес
 
 Для достижения Lighthouse 95+:
 
-- ✅ Статический HTML без лишнего JS
-- ✅ Минимальный размер бандла
-- ✅ Lazy loading для изображений (добавьте `loading="lazy"`)
-- ✅ Оптимизированные шрифты (woff2)
-- ✅ Минимальные внешние зависимости
+- ✅ **Static HTML** - нулевой JS в основной сборке
+- ✅ **Минимальный бандл** - только необходимый код
+- ✅ **Lazy loading** - все изображения с `loading="lazy"`
+- ✅ **WebP/градиенты** - оптимизированные ассеты
+- ✅ **Font preload** - Inter шрифты с `font-display: swap`
+- ✅ **Intersection Observer** - reveal-анимации без тяжёлых библиотек
+- ✅ **CSS Variables** - дизайн-токены без JS
+- ✅ **Page Visibility API** - остановка таймера при неактивной вкладке
+
+## ♿ Accessibility (A11Y)
+
+Проект соответствует [WCAG 2.1 Level AA](https://www.w3.org/WAI/WCAG21/quickref/):
+
+- ✅ Правильная иерархия заголовков (H1-H6)
+- ✅ ARIA-атрибуты для интерактивных элементов
+- ✅ Focus-стейты для всех интерактивных элементов
+- ✅ Skip-to-content ссылка для screen readers
+- ✅ `prefers-reduced-motion` поддержка
+- ✅ Контрастность текста >= 4.5:1
+
+Документация: `A11Y_AUDIT_FIXES.md`
 
 ## 📝 Лицензия
 
