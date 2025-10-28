@@ -57,9 +57,10 @@ export default {
           'padding': 'var(--spacing-xl)',
         },
         
-        // Gradient capsule button
+        // Gradient capsule button (modern style like tgmonopoly.ru)
         '.btn-capsule': {
-          'background': 'linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%)',
+          'background': 'linear-gradient(90deg, var(--primary), var(--primary-2))',
+          'box-shadow': '0 8px 24px rgba(96,165,250,.25)',
           'color': 'var(--fg)',
           'font-weight': '600',
           'padding': '0.875rem 2rem',
@@ -70,12 +71,16 @@ export default {
           'text-decoration': 'none',
           'display': 'inline-flex',
           'align-items': 'center',
+          'justify-content': 'center',
           'gap': '0.5rem',
           'font-size': 'clamp(0.9375rem, 1vw + 0.25rem, 1.125rem)',
         },
         '.btn-capsule:hover': {
-          'transform': 'translateY(-2px)',
-          'box-shadow': '0 10px 30px rgba(96, 165, 250, 0.3)',
+          'transform': 'translateY(-1px)',
+          'box-shadow': '0 12px 32px rgba(96, 165, 250, 0.35)',
+        },
+        '.btn-capsule:active': {
+          'transform': 'translateY(1px)',
         },
         '.btn-capsule:focus-visible': {
           'outline': '3px solid var(--primary)',
@@ -84,6 +89,9 @@ export default {
         },
         '@media (prefers-reduced-motion: reduce)': {
           '.btn-capsule:hover': {
+            'transform': 'none',
+          },
+          '.btn-capsule:active': {
             'transform': 'none',
           },
         },
