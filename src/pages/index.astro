@@ -14,11 +14,10 @@ const deadlineISO = deadline.toISOString();
     <div class="container mx-auto px-4 py-20">
       <div class="max-w-5xl mx-auto" id="hero-container">
         
-        <!-- Badge -->
-        <div class="text-center">
-          <div class="badge-cymbal reveal-up">
-            <span class="badge-dot"></span>
-            ЛИД-МАГНИТ
+        <!-- Animated Dot Badge - Centered -->
+        <div class="text-center mb-8 reveal-up">
+          <div class="single-dot-badge">
+            <span class="pulsing-dot"></span>
           </div>
         </div>
         
@@ -1129,6 +1128,26 @@ const deadlineISO = deadline.toISOString();
   @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
+  }
+  
+  /* Single Pulsing Dot Badge */
+  .single-dot-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: rgba(96, 165, 250, 0.1);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    border-radius: 50%;
+  }
+  
+  .pulsing-dot {
+    width: 12px;
+    height: 12px;
+    background: #60a5fa;
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
   }
   
   /* === ABOUT SECTION === */
