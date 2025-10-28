@@ -95,10 +95,19 @@ html {
 }
 
 body {
-  background-color: var(--bg);
+  background: linear-gradient(300deg, #0a0a0a, #1a1a2e, #16213e, #0f0f23, #0a0a0a);
+  background-size: 240% 240%;
+  animation: body-gradient-animation 20s ease infinite;
   color: var(--fg);
   line-height: 1.5;
   font-size: clamp(0.9375rem, 1vw + 0.5rem, 1rem); /* 15px-16px */
+  min-height: 100vh;
+}
+
+@keyframes body-gradient-animation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Typography Scale with clamp() */
