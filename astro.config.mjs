@@ -7,6 +7,14 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   site: 'https://example.com',
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    server: {
+      host: true,
+      allowedHosts: [
+        '.trycloudflare.com',
+        '.ngrok.io',
+        '.localhost'
+      ]
+    }
   }
 });
