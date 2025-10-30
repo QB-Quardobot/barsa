@@ -1,0 +1,465 @@
+---
+// Earnings Ticker Component
+// Shows how much user could have earned while scrolling
+---
+
+<div id="earnings-ticker" class="earnings-ticker" role="status" aria-live="polite">
+  <button class="earnings-ticker-btn" type="button" aria-label="Перейти к кнопкам действий">
+    <div class="earnings-ticker-content">
+      <p class="earnings-label">Столько ты мог бы уже заработать:</p>
+      <div class="earnings-amount-wrapper">
+        <span class="earnings-currency">$</span>
+        <span id="earnings-amount" class="earnings-amount">0</span>
+      </div>
+      <p class="earnings-hint">на AI-моделях</p>
+      <div class="earnings-pulse"></div>
+    </div>
+  </button>
+</div>
+
+<script>
+  // Earnings Ticker Logic
+  (function() {
+    const ticker = document.getElementById('earnings-ticker');
+    const amountEl = document.getElementById('earnings-amount');
+    const btn = ticker ? ticker.querySelector('.earnings-ticker-btn') : null;
+    
+    if (!ticker || !amountEl || !btn) return;
+    
+    let currentAmount = 0;
+    let tickInterval = null;
+    let isVisible = false;
+    let scrollStartTime = null;
+    let hasStarted = false;
+    
+    // Scroll threshold to show ticker (300px)
+    const SCROLL_THRESHOLD = 300;
+    // Amount increment (per tick)
+    const AMOUNT_INCREMENT = 50;
+    // Tick interval (ms)
+    const TICK_INTERVAL = 2000;
+    
+    // Format number with commas
+    function formatAmount(num: number): string {
+      return num.toLocaleString('en-US');
+    }
+    
+    // Update display
+    function updateDisplay() {
+      amountEl.textContent = formatAmount(currentAmount);
+      
+      // Pulse animation
+      amountEl.classList.add('amount-pulse');
+      setTimeout(() => {
+        amountEl.classList.remove('amount-pulse');
+      }, 600);
+    }
+    
+    // Start counting
+    function startCounting() {
+      if (tickInterval) return; // Already running
+      
+      scrollStartTime = Date.now();
+      hasStarted = true;
+      
+      // First tick immediately
+      currentAmount += AMOUNT_INCREMENT;
+      updateDisplay();
+      
+      // Then every 2 seconds
+      tickInterval = window.setInterval(function() {
+        // Check if tab is visible (pause when hidden)
+        if (document.hidden) return;
+        
+        currentAmount += AMOUNT_INCREMENT;
+        updateDisplay();
+      }, TICK_INTERVAL);
+    }
+    
+    // Stop counting
+    function stopCounting() {
+      if (tickInterval) {
+        clearInterval(tickInterval);
+        tickInterval = null;
+      }
+    }
+    
+    // Show ticker
+    function showTicker() {
+      if (isVisible) return;
+      isVisible = true;
+      ticker.classList.add('is-visible');
+      
+      // Start counting when shown
+      startCounting();
+    }
+    
+    // Hide ticker
+    function hideTicker() {
+      if (!isVisible) return;
+      isVisible = false;
+      ticker.classList.remove('is-visible');
+      
+      // Stop counting when hidden
+      stopCounting();
+    }
+    
+    // Scroll handler
+    function handleScroll() {
+      const scrollY = window.scrollY || window.pageYOffset;
+      
+      if (scrollY >= SCROLL_THRESHOLD) {
+        showTicker();
+      } else {
+        hideTicker();
+      }
+    }
+    
+    // Page visibility handler (pause when tab is hidden)
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        // Pause counting, but keep ticker visible
+        // Interval will skip ticks automatically
+      } else if (hasStarted && isVisible) {
+        // Resume if ticker is visible
+        if (!tickInterval) {
+          tickInterval = window.setInterval(function() {
+            if (!document.hidden) {
+              currentAmount += AMOUNT_INCREMENT;
+              updateDisplay();
+            }
+          }, TICK_INTERVAL);
+        }
+      }
+    }
+    
+    // Smooth scroll to final CTA with pre-reveal optimization
+    function scrollToCTA() {
+      const ctaSection = document.querySelector('.final-cta-section');
+      if (!ctaSection) return;
+      
+      // First, pre-reveal all elements on the path to target
+      // This prevents white flash during scroll
+      var revealInstance = window.revealInstance;
+      if (revealInstance && typeof revealInstance.preRevealToTarget === 'function') {
+        revealInstance.preRevealToTarget('.final-cta-section');
+      } else {
+        // Fallback: manually reveal elements
+        const allRevealElements = document.querySelectorAll(
+          '[class*="reveal-fade"]:not(.is-revealed), [class*="reveal-up"]:not(.is-revealed), [class*="reveal-scale"]:not(.is-revealed)'
+        );
+        
+        const currentScroll = window.scrollY;
+        const targetRect = ctaSection.getBoundingClientRect();
+        const targetScroll = targetRect.top + currentScroll;
+        
+        allRevealElements.forEach((el) => {
+          const elRect = (el as HTMLElement).getBoundingClientRect();
+          const elScroll = elRect.top + currentScroll;
+          
+          if (elScroll >= currentScroll - 200 && elScroll <= targetScroll + 500) {
+            const element = el as HTMLElement;
+            element.style.transition = 'none';
+            element.style.opacity = '1';
+            element.style.transform = 'none';
+            element.classList.add('is-revealed');
+          }
+        });
+      }
+      
+      // Wait a frame for content to render
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const offset = 80; // Offset from top
+          const elementPosition = ctaSection.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - offset;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        });
+      });
+    }
+    
+    // Event listeners
+    let scrollTimeout = null;
+    window.addEventListener('scroll', function() {
+      if (scrollTimeout) {
+        window.cancelAnimationFrame(scrollTimeout);
+      }
+      scrollTimeout = window.requestAnimationFrame(handleScroll);
+    }, { passive: true });
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    btn.addEventListener('click', scrollToCTA);
+    
+    // Initial check
+    handleScroll();
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      stopCounting();
+    });
+  })();
+</script>
+
+<style>
+  .earnings-ticker {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 999;
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+    will-change: opacity, transform;
+  }
+  
+  .earnings-ticker.is-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: all;
+  }
+  
+  .earnings-ticker-btn {
+    position: relative;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    outline: none;
+    transition: transform 0.3s ease;
+  }
+  
+  .earnings-ticker-btn:hover {
+    transform: scale(1.05);
+  }
+  
+  .earnings-ticker-btn:active {
+    transform: scale(0.98);
+  }
+  
+  .earnings-ticker-content {
+    position: relative;
+    padding: 1.5rem 1.75rem;
+    background: linear-gradient(135deg, rgba(15, 15, 20, 0.95), rgba(25, 25, 35, 0.95));
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    border-radius: 20px;
+    box-shadow: 
+      0 10px 40px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(96, 165, 250, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    min-width: 220px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  
+  .earnings-ticker-btn:hover .earnings-ticker-content {
+    border-color: rgba(96, 165, 250, 0.5);
+    box-shadow: 
+      0 15px 50px rgba(96, 165, 250, 0.3),
+      0 0 0 1px rgba(96, 165, 250, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+  }
+  
+  /* Gradient overlay for depth */
+  .earnings-ticker-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(
+      135deg,
+      rgba(96, 165, 250, 0.1) 0%,
+      rgba(34, 197, 94, 0.1) 100%
+    );
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  
+  /* Pulsing glow effect */
+  .earnings-pulse {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+      circle,
+      rgba(96, 165, 250, 0.2) 0%,
+      transparent 70%
+    );
+    animation: pulse-glow 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.6;
+      transform: scale(1.1);
+    }
+  }
+  
+  .earnings-label {
+    font-size: 0.875rem;
+    color: #a3a3a3;
+    margin: 0 0 0.5rem 0;
+    font-weight: 500;
+    letter-spacing: 0.025em;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .earnings-amount-wrapper {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.25rem;
+    margin: 0.5rem 0;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .earnings-currency {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #60a5fa, #22c55e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    /* Use system fonts for uniform rendering */
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+    font-variant-numeric: normal !important;
+    font-feature-settings: normal !important;
+    font-variant-ligatures: none !important;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+  }
+  
+  .earnings-amount {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #60a5fa, #22c55e, #60a5fa);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    /* Use system fonts for uniform rendering */
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+    font-variant-numeric: normal !important;
+    font-feature-settings: normal !important;
+    font-variant-ligatures: none !important;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    transition: all 0.3s ease;
+    animation: gradient-shift 3s ease infinite;
+  }
+  
+  @keyframes gradient-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  .earnings-amount.amount-pulse {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 10px rgba(96, 165, 250, 0.6));
+  }
+  
+  .earnings-hint {
+    font-size: 0.75rem;
+    color: #737373;
+    margin: 0.5rem 0 0 0;
+    font-weight: 400;
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Mobile adjustments */
+  @media (max-width: 768px) {
+    .earnings-ticker {
+      bottom: 1.5rem;
+      right: 1rem;
+      left: auto;
+    }
+    
+    .earnings-ticker-content {
+      padding: 1.25rem 1.5rem;
+      min-width: 200px;
+      border-radius: 16px;
+    }
+    
+    .earnings-label {
+      font-size: 0.8125rem;
+    }
+    
+    .earnings-currency {
+      font-size: 1.25rem;
+    }
+    
+    .earnings-amount {
+      font-size: 2rem;
+    }
+    
+    .earnings-hint {
+      font-size: 0.6875rem;
+    }
+  }
+  
+  /* Small mobile */
+  @media (max-width: 480px) {
+    .earnings-ticker {
+      bottom: 1rem;
+      right: 0.75rem;
+    }
+    
+    .earnings-ticker-content {
+      padding: 1rem 1.25rem;
+      min-width: 180px;
+    }
+    
+    .earnings-amount {
+      font-size: 1.75rem;
+    }
+  }
+  
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .earnings-ticker,
+    .earnings-ticker-btn,
+    .earnings-ticker-content,
+    .earnings-amount {
+      transition: none;
+      animation: none;
+    }
+    
+    .earnings-pulse {
+      display: none;
+    }
+  }
+  
+  /* Focus styles for accessibility */
+  .earnings-ticker-btn:focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 4px;
+    border-radius: 24px;
+  }
+</style>

@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import Countdown from '../components/Countdown.astro';
+import EarningsTicker from '../components/EarningsTicker.astro';
 
 const deadline = new Date();
 deadline.setHours(deadline.getHours() + 24);
@@ -300,10 +301,22 @@ const deadlineISO = deadline.toISOString();
           </p>
           
           <div class="no-hassle">
-            <div class="no-item">❌ Никаких пустых вливаний в рекламу</div>
-            <div class="no-item">❌ Никаких рискованных схем</div>
-            <div class="no-item">❌ Никаких огромных команд</div>
-            <div class="no-item">❌ Никакой конкуренции</div>
+            <div class="no-item">
+              <span class="no-icon">❌</span>
+              <span class="no-text">Никаких пустых вливаний в рекламу</span>
+            </div>
+            <div class="no-item">
+              <span class="no-icon">❌</span>
+              <span class="no-text">Никаких рискованных схем</span>
+            </div>
+            <div class="no-item">
+              <span class="no-icon">❌</span>
+              <span class="no-text">Никаких огромных команд</span>
+            </div>
+            <div class="no-item">
+              <span class="no-icon">❌</span>
+              <span class="no-text">Никакой конкуренции</span>
+            </div>
           </div>
         </div>
         
@@ -512,7 +525,7 @@ const deadlineISO = deadline.toISOString();
         <!-- Unique Value -->
         <div class="why-value reveal-fade">
           <p class="value-text">
-            Эта модель дает то, чего нет ни в одной другой сфере:<br/>
+            Эта модель дает то, чего нет ни в одной другой сфере:
             <strong class="gradient-text">Стабильность, автоматизацию и масштабируемость.</strong>
           </p>
         </div>
@@ -569,6 +582,17 @@ const deadlineISO = deadline.toISOString();
             </div>
           </div>
           
+          <!-- Info + CTA above benefits -->
+          <p class="info-line">
+            Вся база для создания AI-моделей внутри
+          </p>
+          
+          <div class="final-btn-group">
+            <a href="https://t.me/aimodels24" class="btn-capsule" data-cta data-href="https://t.me/aimodels24">
+              Вступить ✅
+            </a>
+          </div>
+          
           <!-- Benefits Block -->
           <div class="benefits-block">
             <div class="benefit-row">
@@ -584,16 +608,6 @@ const deadlineISO = deadline.toISOString();
               <span class="benefit-label">Пошаговая система</span>
             </div>
           </div>
-          
-          <div class="final-btn-group">
-            <a href="https://t.me/aimodels24" class="btn-capsule" data-cta data-href="https://t.me/aimodels24">
-              Вступить ✅
-            </a>
-          </div>
-          
-          <p class="info-line">
-            Вся база для создания AI-моделей внутри
-          </p>
           
           <div class="urgency-bar">
             <p class="urgency-p">⚡ Не откладывай — ссылка доступна ограниченное время</p>
@@ -611,6 +625,9 @@ const deadlineISO = deadline.toISOString();
       </div>
     </div>
   </section>
+  
+  <!-- Earnings Ticker Widget -->
+  <EarningsTicker />
   
 </Base>
 
@@ -634,6 +651,46 @@ const deadlineISO = deadline.toISOString();
         }, 100);
       }
     }
+    
+    // Optimize lazy-loaded images to prevent white flash
+    const lazyImages = document.querySelectorAll('img[loading="lazy"]');
+    
+    if ('IntersectionObserver' in window) {
+      const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target as HTMLImageElement;
+            
+            // If image is already loaded, show it immediately
+            if (img.complete && img.naturalHeight !== 0) {
+              img.classList.add('loaded');
+              observer.unobserve(img);
+            } else {
+              // Wait for image to load
+              img.addEventListener('load', () => {
+                img.classList.add('loaded');
+              }, { once: true });
+              
+              img.addEventListener('error', () => {
+                // Handle error - still show image to prevent white space
+                img.classList.add('loaded');
+              }, { once: true });
+            }
+            
+            observer.unobserve(img);
+          }
+        });
+      }, {
+        rootMargin: '50px' // Start loading images 50px before they enter viewport
+      });
+      
+      lazyImages.forEach(img => imageObserver.observe(img));
+    } else {
+      // Fallback: show all images immediately
+      lazyImages.forEach(img => {
+        (img as HTMLImageElement).classList.add('loaded');
+      });
+    }
   });
 </script>
 
@@ -651,13 +708,18 @@ const deadlineISO = deadline.toISOString();
     left: 0;
     width: 100%;
     height: 100%;
-    background: 
+    /* Base dark background to prevent white flash */
+    background-color: #0a0a0a;
+    background-image: 
       radial-gradient(ellipse at 20% 30%, rgba(96, 165, 250, 0.15) 0%, transparent 50%),
       radial-gradient(ellipse at 80% 70%, rgba(168, 85, 247, 0.12) 0%, transparent 50%),
       radial-gradient(ellipse at 40% 90%, rgba(34, 211, 238, 0.1) 0%, transparent 50%),
       radial-gradient(ellipse at 70% 10%, rgba(249, 115, 22, 0.08) 0%, transparent 50%);
     z-index: 0;
     pointer-events: none;
+    /* Ensure it covers entire viewport even during fast scroll */
+    min-height: 100vh;
+    will-change: transform;
   }
   
   body > * {
@@ -1029,9 +1091,21 @@ const deadlineISO = deadline.toISOString();
     border-radius: var(--radius-2xl);
     padding: 2rem 1.5rem;
     margin: 2rem auto;
-    max-width: 600px;
+    max-width: 550px;
     position: relative;
     overflow: hidden;
+    /* Prevent card stretching */
+    height: auto;
+    min-height: 0;
+  }
+  
+  /* Small screens - fix stretching and line breaks */
+  @media (max-width: 445px) {
+    .solution-hero-card {
+      padding: 1.5rem 1.25rem;
+      margin: 1.5rem auto;
+      max-width: calc(100% - 2rem);
+    }
   }
   
   @media (min-width: 768px) {
@@ -1055,33 +1129,99 @@ const deadlineISO = deadline.toISOString();
     display: inline-block;
     background: rgba(249, 115, 22, 0.15);
     color: #fb923c;
-    padding: 0.5rem 1rem;
+    padding: 0.625rem 1.25rem;
     border-radius: 9999px;
-    font-size: clamp(0.75rem, 2vw, 0.875rem);
+    font-size: clamp(0.75rem, 2vw, 1rem);
     font-weight: 700;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     position: relative;
     z-index: 1;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    filter: drop-shadow(0 2px 8px rgba(249, 115, 22, 0.3));
+    white-space: nowrap;
+  }
+  
+  /* Small screens - adjust badge */
+  @media (max-width: 445px) {
+    .solution-badge {
+      padding: 0.5rem 1rem;
+      font-size: clamp(0.6875rem, 2.2vw, 0.875rem);
+      margin-bottom: 1.25rem;
+      /* Allow wrapping only if absolutely necessary */
+      white-space: normal;
+      max-width: 100%;
+    }
   }
   
   .solution-hero-title {
-    font-size: clamp(2rem, 5vw, 3rem);
+    font-size: clamp(1.75rem, 5vw, 3.5rem);
     font-weight: 900;
     color: #ffffff;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
     position: relative;
     z-index: 1;
     letter-spacing: -0.02em;
     line-height: 1.15;
+    /* Prevent awkward line breaks */
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    hyphens: none;
+  }
+  
+  /* Small screens - better control over line breaks */
+  @media (max-width: 445px) {
+    .solution-hero-title {
+      font-size: clamp(1.5rem, 6vw, 2.25rem);
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      /* Force better word wrapping */
+      word-break: normal;
+      overflow-wrap: anywhere;
+    }
+  }
+  
+  /* Subtle glow effect on gradient text */
+  .solution-hero-title .gradient-text {
+    /* Use system fonts for better cyrillic/latin balance */
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+    font-weight: 900 !important;
+    font-style: normal !important;
+    letter-spacing: inherit;
+    font-synthesis: none;
+    font-variant-numeric: normal !important;
+    font-variant-ligatures: none !important;
+    font-feature-settings: normal !important;
+    text-rendering: optimizeLegibility;
+    position: relative;
+    filter: drop-shadow(0 0 20px rgba(96, 165, 250, 0.4));
   }
   
   .solution-hero-subtitle {
-    font-size: clamp(1.25rem, 3vw, 1.5rem);
+    font-size: clamp(1.125rem, 3vw, 1.625rem);
     color: #e5e5e5;
-    line-height: 1.65;
+    line-height: 1.6;
     position: relative;
     z-index: 1;
     font-weight: 400;
+    margin-top: 0.5rem;
+    letter-spacing: -0.01em;
+    /* Better text wrapping */
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  
+  /* Small screens - prevent stretching */
+  @media (max-width: 445px) {
+    .solution-hero-subtitle {
+      font-size: clamp(1rem, 3.5vw, 1.375rem);
+      line-height: 1.5;
+      margin-top: 0.75rem;
+      /* Improve line breaks on very small screens */
+      overflow-wrap: anywhere;
+      hyphens: manual;
+    }
   }
   
   .solution-promise-card {
@@ -1090,8 +1230,20 @@ const deadlineISO = deadline.toISOString();
     border-radius: var(--radius-xl);
     padding: 1.5rem;
     margin: 2rem auto;
-    max-width: 700px;
+    max-width: 550px;
     text-align: left;
+    /* Prevent card stretching */
+    height: auto;
+    min-height: 0;
+  }
+  
+  /* Small screens - fix stretching */
+  @media (max-width: 445px) {
+    .solution-promise-card {
+      padding: 1.25rem 1rem;
+      margin: 1.5rem auto;
+      max-width: calc(100% - 2rem);
+    }
   }
   
   @media (min-width: 768px) {
@@ -1101,16 +1253,67 @@ const deadlineISO = deadline.toISOString();
   }
   
   .promise-label {
-    font-size: clamp(0.875rem, 2vw, 1rem);
+    font-size: clamp(1rem, 2.2vw, 1.5rem);
     color: var(--primary);
-    font-weight: 700;
-    margin-bottom: 0.75rem;
+    font-weight: 800;
+    margin-bottom: 1.25rem;
+    margin-top: 0.5rem;
+    letter-spacing: -0.01em;
+    filter: drop-shadow(0 2px 12px rgba(96, 165, 250, 0.3));
+    display: inline-block;
+    word-break: normal;
+    overflow-wrap: break-word;
+  }
+  
+  /* Small screens - adjust label */
+  @media (max-width: 445px) {
+    .promise-label {
+      font-size: clamp(0.9375rem, 2.5vw, 1.25rem);
+      margin-bottom: 1rem;
+    }
   }
   
   .promise-text {
-    font-size: clamp(1rem, 2.5vw, 1.125rem);
+    font-size: clamp(1rem, 2.5vw, 1.375rem);
     color: #e5e5e5;
-    line-height: 1.7;
+    line-height: 1.65;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+    /* Better text wrapping */
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  
+  /* Small screens - prevent awkward line breaks */
+  @media (max-width: 445px) {
+    .promise-text {
+      font-size: clamp(0.9375rem, 3vw, 1.125rem);
+      line-height: 1.6;
+      /* Improve wrapping on very small screens */
+      overflow-wrap: anywhere;
+      hyphens: manual;
+    }
+  }
+  
+  /* Enhance highlighted text in promise */
+  .promise-text strong.gradient-text {
+    font-weight: 700 !important;
+    /* Use system fonts for uniform appearance */
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+    font-style: normal !important;
+    font-variant-numeric: normal !important;
+    font-variant-ligatures: none !important;
+    font-feature-settings: normal !important;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    position: relative;
+    filter: drop-shadow(0 0 10px rgba(96, 165, 250, 0.4));
+  }
+  
+  .promise-text strong:not(.gradient-text) {
+    font-weight: 600;
+    color: #d1d5db;
   }
   
   /* === MOBILE PADDING === */
@@ -1266,7 +1469,15 @@ const deadlineISO = deadline.toISOString();
     background: linear-gradient(90deg, #60a5fa, #22d3ee);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-bottom: 0.125rem;
+    /* Use system fonts for uniform rendering */
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+    font-variant-numeric: normal !important;
+    font-feature-settings: normal !important;
+    font-variant-ligatures: none !important;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
   }
   
   .earning-corner .earning-period {
@@ -1345,9 +1556,17 @@ const deadlineISO = deadline.toISOString();
     background: linear-gradient(90deg, #60a5fa, #22d3ee);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
     letter-spacing: -0.02em;
     position: relative;
     z-index: 2;
+    /* Use system fonts for uniform rendering */
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+    font-variant-numeric: normal !important;
+    font-feature-settings: normal !important;
+    font-variant-ligatures: none !important;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
   }
   
   .earning-period {
@@ -1371,6 +1590,15 @@ const deadlineISO = deadline.toISOString();
     background: linear-gradient(90deg, #22c55e, #16a34a);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
+    /* Use system fonts for uniform rendering */
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+    font-variant-numeric: normal !important;
+    font-feature-settings: normal !important;
+    font-variant-ligatures: none !important;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    display: inline-block;
   }
   
   .story-para {
@@ -1460,9 +1688,14 @@ const deadlineISO = deadline.toISOString();
   .stat-value {
     font-size: clamp(1.75rem, 4vw, 2.5rem);
     font-weight: 900;
-    color: #60a5fa;
     white-space: nowrap;
     letter-spacing: -0.03em;
+    /* Use system fonts for uniform cyrillic/latin rendering */
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+    font-variant-numeric: normal !important;
+    font-feature-settings: normal !important;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
   }
   
   .stat-line.featured .stat-value {
@@ -1666,6 +1899,28 @@ const deadlineISO = deadline.toISOString();
     background: rgba(239, 68, 68, 0.05);
     border-radius: var(--radius-lg);
     border-left: 3px solid rgba(239, 68, 68, 0.4);
+    /* Left align with flexbox */
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    text-align: left;
+  }
+  
+  /* Icon container - fixed width for consistent alignment */
+  .no-icon {
+    flex-shrink: 0;
+    width: 1.25em;
+    display: inline-block;
+    text-align: center;
+    color: #ef4444;
+    font-size: 1em;
+    line-height: 1.5;
+  }
+  
+  /* Text container */
+  .no-text {
+    flex: 1;
+    line-height: 1.5;
   }
   
   /* Final Pitch */
@@ -1797,9 +2052,30 @@ const deadlineISO = deadline.toISOString();
   .students-banner {
     display: flex;
     gap: 1.5rem;
-    justify-content: center;
+    justify-content: flex-start;
     margin-bottom: 3rem;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 1rem 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0;
+  }
+  
+  .students-banner::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+  
+  @media (max-width: 768px) {
+    .students-banner {
+      gap: 1rem;
+      margin: 0 -1rem 3rem;
+      padding: 1rem;
+      justify-content: center;
+    }
   }
   
   .student-photo {
@@ -1812,6 +2088,8 @@ const deadlineISO = deadline.toISOString();
     border: 1px solid rgba(34, 197, 94, 0.1);
     border-radius: 20px;
     transition: all 0.3s ease;
+    scroll-snap-align: center;
+    flex-shrink: 0;
   }
   
   .student-photo:hover {
@@ -1867,6 +2145,13 @@ const deadlineISO = deadline.toISOString();
     margin-top: 0.5rem;
     text-align: center;
     position: relative;
+    /* Use system fonts for uniform rendering */
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+    font-variant-numeric: normal !important;
+    font-feature-settings: normal !important;
+    font-variant-ligatures: none !important;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
     animation: gradient-shift 3s ease infinite;
     text-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
   }
@@ -2238,38 +2523,154 @@ const deadlineISO = deadline.toISOString();
   .why-value {
     margin: 3rem 0;
     text-align: center;
-    padding: 2rem 1.5rem;
-    background: linear-gradient(135deg, rgba(96, 165, 250, 0.08), rgba(34, 211, 238, 0.05));
+    padding: 3rem 2rem;
+    background: linear-gradient(135deg, 
+      rgba(96, 165, 250, 0.12) 0%, 
+      rgba(34, 211, 238, 0.08) 50%,
+      rgba(96, 165, 250, 0.12) 100%
+    );
     border-radius: var(--radius-2xl);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    box-shadow: 
+      0 8px 32px rgba(96, 165, 250, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 0 0 1px rgba(96, 165, 250, 0.05);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    transition: all 0.4s ease;
+  }
+  
+  .why-value::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -50%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(96, 165, 250, 0.1) 50%,
+      transparent 100%
+    );
+    animation: shimmer 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+  
+  @keyframes shimmer {
+    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0; }
+    50% { transform: translateX(0%) translateY(0); opacity: 1; }
+  }
+  
+  .why-value:hover {
+    border-color: rgba(96, 165, 250, 0.35);
+    box-shadow: 
+      0 12px 48px rgba(96, 165, 250, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15),
+      0 0 0 1px rgba(96, 165, 250, 0.1);
+    transform: translateY(-2px);
   }
   
   .value-text {
     font-size: clamp(1.25rem, 3vw, 1.5rem);
     color: #e5e5e5;
-    line-height: 1.7;
+    line-height: 1.8;
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .value-text strong.gradient-text {
+    display: block;
+    margin-top: 0.75rem;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    filter: drop-shadow(0 0 20px rgba(96, 165, 250, 0.3));
   }
   
   /* Why CTA Block */
   .why-cta-block {
     margin: 3rem 0;
     text-align: center;
-    padding: 2rem 1.5rem;
-    background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(234, 88, 12, 0.08));
+    padding: 3rem 2rem;
+    background: linear-gradient(135deg, 
+      rgba(249, 115, 22, 0.15) 0%,
+      rgba(234, 88, 12, 0.12) 50%,
+      rgba(249, 115, 22, 0.15) 100%
+    );
     border-radius: var(--radius-2xl);
-    border: 1px solid rgba(249, 115, 22, 0.3);
+    border: 1px solid rgba(249, 115, 22, 0.35);
+    box-shadow: 
+      0 8px 32px rgba(249, 115, 22, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 0 0 1px rgba(249, 115, 22, 0.1);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    transition: all 0.4s ease;
+  }
+  
+  .why-cta-block::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+      circle,
+      rgba(249, 115, 22, 0.15) 0%,
+      transparent 70%
+    );
+    animation: pulse-glow-orange 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+  
+  @keyframes pulse-glow-orange {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.1); }
+  }
+  
+  .why-cta-block:hover {
+    border-color: rgba(249, 115, 22, 0.5);
+    box-shadow: 
+      0 12px 48px rgba(249, 115, 22, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15),
+      0 0 0 1px rgba(249, 115, 22, 0.15);
+    transform: translateY(-2px);
   }
   
   .cta-question {
-    font-size: clamp(1.25rem, 3vw, 1.5rem);
+    font-size: clamp(1.375rem, 3.5vw, 1.75rem);
     color: var(--fg);
-    font-weight: 700;
-    margin-bottom: 1rem;
+    font-weight: 800;
+    margin-bottom: 1.25rem;
+    letter-spacing: -0.01em;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   }
   
   .cta-action {
     font-size: clamp(1.125rem, 3vw, 1.375rem);
     color: #e5e5e5;
-    line-height: 1.7;
+    line-height: 1.8;
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+  }
+  
+  @media (max-width: 640px) {
+    .why-value,
+    .why-cta-block {
+      padding: 2rem 1.5rem;
+    }
+    
+    .value-text strong.gradient-text {
+      font-size: clamp(1.375rem, 5vw, 1.75rem);
+    }
   }
   
   /* === STATS SECTION === */
@@ -2418,32 +2819,58 @@ const deadlineISO = deadline.toISOString();
   
   /* Steps Block */
   .steps-block {
-    margin: 3rem 0;
-    padding: 2rem 1.5rem;
-    background: rgba(96, 165, 250, 0.05);
-    border: 1px solid rgba(96, 165, 250, 0.2);
-    border-radius: var(--radius-xl);
+    margin: 2rem 0;
+    padding: 2rem;
+    background: rgba(13, 13, 16, 0.6);
+    border: 1px solid rgba(96, 165, 250, 0.15);
+    border-radius: var(--radius-2xl);
+    backdrop-filter: blur(10px);
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
   }
   
   .step-line {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 0.75rem 0;
+    gap: 0.875rem;
+    padding: 0;
+    min-height: 44px;
   }
   
   .step-num {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
     background: linear-gradient(135deg, var(--primary), var(--primary-2));
     color: #fff;
     font-size: 1.125rem;
     font-weight: 900;
     border-radius: 50%;
     flex-shrink: 0;
+    box-shadow: 
+      0 4px 12px rgba(96, 165, 250, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+  }
+  
+  .step-num::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+    pointer-events: none;
   }
   
   .step-text {
@@ -2451,13 +2878,52 @@ const deadlineISO = deadline.toISOString();
     color: #e5e5e5;
     font-weight: 600;
     text-align: left;
+    line-height: 1.5;
+    margin: 0;
+    flex: 1;
+  }
+  
+  .step-text strong {
+    color: var(--primary);
+    font-weight: 700;
   }
   
   .arrow-down {
     text-align: center;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     color: var(--primary);
-    margin: 0.25rem 0;
+    margin: 0.125rem 0;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.3));
+  }
+  
+  @media (max-width: 640px) {
+    .steps-block {
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+    
+    .step-num {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      font-size: 1rem;
+    }
+    
+    .step-line {
+      gap: 0.75rem;
+      min-height: 40px;
+    }
+    
+    .arrow-down {
+      font-size: 1.125rem;
+      margin: 0.1rem 0;
+      height: 20px;
+    }
   }
   
   /* Benefits Block */
@@ -3188,7 +3654,48 @@ const deadlineISO = deadline.toISOString();
     background: linear-gradient(90deg, var(--primary), var(--primary-2));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
+    /* Use system fonts or better balanced font stack for uniform rendering */
+    /* System fonts often have better cyrillic/latin balance */
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+    font-weight: inherit;
+    font-style: normal !important;
+    letter-spacing: inherit;
+    /* Disable font synthesis to prevent automatic weight variations */
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility; /* Better for mixed scripts */
+    /* Ensure numbers and all characters have same weight - no special numeric variants */
+    font-variant-numeric: normal !important;
+    font-variant-east-asian: normal;
+    font-variant-ligatures: none !important;
+    font-feature-settings: normal !important;
+    text-transform: none;
+    /* Force consistent rendering for all character types */
+    font-optical-sizing: auto;
+    font-kerning: normal;
+    /* Ensure display type for consistent rendering */
+    display: inline-block;
+    vertical-align: baseline;
+    /* Force consistent color application */
+    color: transparent;
   }
+  
+  /* Force same weight for all child elements within gradient text */
+  /* This ensures Russian, English letters and numbers all have identical weight */
+  .gradient-text *,
+  .gradient-text span,
+  .gradient-text strong,
+  .gradient-text em {
+    font-weight: inherit !important;
+    font-style: normal !important;
+    font-variant-numeric: normal !important;
+    font-feature-settings: normal !important;
+    font-synthesis: none;
+    font-family: inherit !important;
+  }
+  
   
   /* === BUTTONS === */
   .btn-outline {

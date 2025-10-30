@@ -129,12 +129,7 @@ const utmParams = parseUTMFromURL(url);
         const banner = document.getElementById('telegram-banner');
         if (banner) banner.style.display = 'none';
       } else {
-        // Show "Open in Telegram" banner
-        const banner = document.createElement('div');
-        banner.id = 'telegram-banner';
-        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#3b82f6;color:white;padding:1rem;text-align:center;z-index:9999;font-weight:600;';
-        banner.innerHTML = '📱 Открой в Telegram для лучшего опыта';
-        document.body.prepend(banner);
+        // Do not show any banner outside Telegram
       }
     })();
   </script>

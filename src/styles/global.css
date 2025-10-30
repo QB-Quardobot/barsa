@@ -348,12 +348,20 @@ html {
 .reveal-up,
 .reveal-scale {
   opacity: 0;
-  transition: opacity 0.8s ease, transform 0.8s ease;
+  /* Smooth transition for reveal animations (600ms matches JS cleanup) */
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  /* Enable GPU acceleration */
+  will-change: opacity, transform;
+  /* Prevent layout shifts */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  /* Force hardware acceleration */
+  transform: translateZ(0);
 }
 
 /* Reveal fade animation */
 .reveal-fade {
-  transform: translateY(0);
+  transform: translateY(0) translateZ(0);
 }
 
 .reveal-fade.is-revealed {
@@ -380,20 +388,20 @@ html {
   transform: scale(1);
 }
 
-/* Staggered delays for child elements */
-.reveal-up:nth-child(1) { transition-delay: 0.1s; }
-.reveal-up:nth-child(2) { transition-delay: 0.2s; }
-.reveal-up:nth-child(3) { transition-delay: 0.3s; }
-.reveal-up:nth-child(4) { transition-delay: 0.4s; }
-.reveal-up:nth-child(5) { transition-delay: 0.5s; }
-.reveal-up:nth-child(6) { transition-delay: 0.6s; }
+/* Staggered delays for child elements (reduced for faster rendering) */
+.reveal-up:nth-child(1) { transition-delay: 0.05s; }
+.reveal-up:nth-child(2) { transition-delay: 0.1s; }
+.reveal-up:nth-child(3) { transition-delay: 0.15s; }
+.reveal-up:nth-child(4) { transition-delay: 0.2s; }
+.reveal-up:nth-child(5) { transition-delay: 0.25s; }
+.reveal-up:nth-child(6) { transition-delay: 0.3s; }
 
-.reveal-scale:nth-child(1) { transition-delay: 0.1s; }
-.reveal-scale:nth-child(2) { transition-delay: 0.2s; }
-.reveal-scale:nth-child(3) { transition-delay: 0.3s; }
-.reveal-scale:nth-child(4) { transition-delay: 0.4s; }
-.reveal-scale:nth-child(5) { transition-delay: 0.5s; }
-.reveal-scale:nth-child(6) { transition-delay: 0.6s; }
+.reveal-scale:nth-child(1) { transition-delay: 0.05s; }
+.reveal-scale:nth-child(2) { transition-delay: 0.1s; }
+.reveal-scale:nth-child(3) { transition-delay: 0.15s; }
+.reveal-scale:nth-child(4) { transition-delay: 0.2s; }
+.reveal-scale:nth-child(5) { transition-delay: 0.25s; }
+.reveal-scale:nth-child(6) { transition-delay: 0.3s; }
 
 /* Respect prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
@@ -404,4 +412,96 @@ html {
     transform: none !important;
     transition: none !important;
   }
+}
+
+/* ========================================
+   Performance Optimizations for Fast Scroll
+   ======================================== */
+
+/* Content Visibility for large sections */
+/* Note: content-visibility can cause white flash during fast scroll */
+/* Using more conservative approach with min-height instead */
+section {
+  /* Prevent layout shifts by maintaining minimum height */
+  min-height: 600px;
+  /* Contain layout and style recalculations (less aggressive) */
+  contain: layout style;
+  /* Ensure background color to prevent white flash */
+  background-color: transparent;
+}
+
+/* Force GPU acceleration for smooth scrolling */
+html {
+  -webkit-overflow-scrolling: touch;
+  /* Ensure background color */
+  background-color: var(--color-bg, #0a0a0a);
+  /* Add scroll padding for anchor links */
+  scroll-padding-top: 100px;
+}
+
+body {
+  /* Ensure background color to prevent white flash - critical! */
+  background-color: #0a0a0a !important;
+  /* Fallback gradient background */
+  background: linear-gradient(180deg, #0a0a0a 0%, #0f0f23 100%) !important;
+  min-height: 100vh;
+  /* Ensure body fills entire viewport */
+  position: relative;
+}
+
+/* Optimize image rendering */
+img {
+  /* Prevent layout shift */
+  height: auto;
+  max-width: 100%;
+  /* Enable GPU acceleration */
+  transform: translateZ(0);
+  will-change: contents;
+}
+
+/* Prevent white flash on images during fast scroll */
+img[loading="lazy"] {
+  /* Set background to match page background */
+  background-color: var(--color-bg, #0a0a0a);
+  /* Smooth loading transition */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Images with lazy loading and async decoding will be handled by JavaScript */
+
+img.loaded {
+  opacity: 1;
+}
+
+/* Optimize container rendering */
+.container {
+  /* Contain paint operations */
+  contain: layout style;
+  /* Force layer creation for smooth compositing */
+  transform: translateZ(0);
+}
+
+/* Prevent flash on reveal elements during fast scroll */
+.reveal-fade:not(.is-revealed),
+.reveal-up:not(.is-revealed),
+.reveal-scale:not(.is-revealed) {
+  /* Keep minimal background to prevent white flash */
+  background-color: transparent;
+  /* Ensure visibility even when not revealed (to prevent white space) */
+  visibility: visible;
+}
+
+/* Ensure containers have background during render */
+.container,
+.max-w-5xl,
+.max-w-7xl {
+  background-color: transparent;
+}
+
+/* Prevent white flash - ensure all major containers have transparent or dark background */
+main,
+.main-content,
+[role="main"] {
+  background-color: transparent;
 }
