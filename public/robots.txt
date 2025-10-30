@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Block build artifacts
+Disallow: /_astro/
+
+Sitemap: https://example.com/sitemap.xml
+
