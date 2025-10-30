@@ -1,0 +1,98 @@
+---
+interface Props {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  priority?: boolean; // if true → eager + fetchpriority=high
+  class?: string;
+}
+
+const { src, alt, width, height, priority = false } = Astro.props as Props;
+const aspect = (height / width) * 100;
+---
+
+<figure class={`img-lite ${Astro.props.class ?? ''}`} style={`--w:${width}px;--h:${height}px;--ratio:${aspect}%;`}>
+  <img
+    src={priority ? src : ''}
+    data-src={!priority ? src : undefined}
+    alt={alt}
+    width={width}
+    height={height}
+    loading={priority ? 'eager' : 'lazy'}
+    decoding="async"
+    fetchpriority={priority ? 'high' : 'auto'}
+    class="img-lite__img"
+  />
+</figure>
+
+<style>
+  .img-lite {
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: var(--w);
+    aspect-ratio: var(--w) / var(--h);
+    background: rgba(255,255,255,0.02);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .img-lite::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+    background-size: 200% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+  .img-lite__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    opacity: 0;
+    transition: opacity .3s ease;
+  }
+  .img-lite__img.is-loaded {
+    opacity: 1;
+  }
+  @keyframes shimmer {
+    0% { background-position: 0% 0; }
+    100% { background-position: -200% 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .img-lite::before { animation: none; }
+  }
+</style>
+
+<script is:inline>
+  (function(){
+    const root = document.currentScript?.parentElement;
+    if (!root) return;
+    const img = root.querySelector('img');
+    if (!img) return;
+    const src = img.getAttribute('data-src');
+    function onLoad(){ img.classList.add('is-loaded'); root.style.background='transparent'; }
+    img.addEventListener('load', onLoad, { once: true });
+    if (!src) { if (img.complete) onLoad(); return; }
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries)=>{
+        for (const e of entries){
+          if (e.isIntersecting){
+            img.src = src;
+            io.disconnect();
+          }
+        }
+      }, { rootMargin: '200px' });
+      io.observe(img);
+    } else {
+      // Fallback
+      img.src = src;
+    }
+  })();
+  </script>
+
+

@@ -150,12 +150,66 @@ const utmParams = parseUTMFromURL(url);
         tg.onEvent('themeChanged', () => location.reload());
         const banner = doc.getElementById('telegram-banner');
         if (banner) banner.style.display = 'none';
+
+        // Expose fullscreen request helper for Mini App (uses Telegram API if available)
+        (win as any).requestAppFullscreen = function() {
+          try {
+            // New API
+            if (typeof (tg as any).requestFullscreen === 'function') {
+              (tg as any).requestFullscreen();
+              return true;
+            }
+            // Legacy/alt API name
+            if (typeof (tg as any).expand === 'function') {
+              (tg as any).expand();
+              return true;
+            }
+          } catch {}
+          return false;
+        };
+
+        // Basic haptics helper
+        const haptics = tg.HapticFeedback;
+        const triggerHaptic = (type = 'medium') => {
+          try {
+            if (!haptics) return;
+            if (type === 'selection') haptics.selectionChanged();
+            else if (type === 'success') haptics.notificationOccurred('success');
+            else if (type === 'warning') haptics.notificationOccurred('warning');
+            else if (type === 'error') haptics.notificationOccurred('error');
+            else haptics.impactOccurred(type as any);
+          } catch {}
+        };
+        (win as any).triggerAppHaptic = triggerHaptic;
+
+        // Prevent closing by swipe/back: show BackButton and confirmation
+        try {
+          // Back button interception (Android). Show our handler to avoid default close
+          if (tg.BackButton) {
+            tg.BackButton.show();
+            tg.BackButton.onClick(() => {
+              // Ask user; keep app open by default
+              tg.showConfirm?.('Закрыть приложение?', (ok: boolean) => {
+                if (ok) tg.close();
+              });
+            });
+          }
+          // System-level closing confirmation (iOS/Android)
+          tg.enableClosingConfirmation();
+          // Attempt to disable vertical swipes if API exists (iOS specific)
+          if (typeof (tg as any).disableVerticalSwipes === 'function') {
+            (tg as any).disableVerticalSwipes();
+          }
+        } catch {}
       }
 
-      // CTA links
+      // CTA links + haptics
       function setupCTALinks() {
         const isTelegram = !!tg;
         doc.querySelectorAll('a[data-cta]').forEach(link => {
+          if (isTelegram) {
+            link.addEventListener('mouseenter', () => { try { tg.HapticFeedback?.selectionChanged(); } catch {} });
+          }
           link.addEventListener('click', function(e) {
             const href = this.getAttribute('href');
             if (!href) return;
@@ -163,10 +217,25 @@ const utmParams = parseUTMFromURL(url);
             if (isTelegram) {
               e.preventDefault();
               tg.openLink(urlWithUtm);
+              try { tg.HapticFeedback?.impactOccurred('medium'); } catch {}
             } else {
               this.target = '_blank';
               this.rel = 'noopener noreferrer';
               this.href = urlWithUtm;
+            }
+          });
+        });
+
+        // Fullscreen toggles: any element with [data-fullscreen]
+        doc.querySelectorAll('[data-fullscreen]')?.forEach(btn => {
+          btn.addEventListener('click', () => {
+            let ok = false;
+            if (tg) { try { ok = (win as any).requestAppFullscreen?.() || false; } catch {} }
+            if (!ok) {
+              // Desktop fallback via Fullscreen API (must be user gesture)
+              const el = doc.documentElement as any;
+              const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+              if (req) try { req.call(el); } catch {}
             }
           });
         });
