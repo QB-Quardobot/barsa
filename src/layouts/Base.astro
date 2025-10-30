@@ -31,6 +31,8 @@ const utmParams = parseUTMFromURL(url);
   <meta name="author" content="Product Team">
   <meta name="robots" content="index, follow">
   <meta name="language" content="Russian">
+  <link rel="canonical" href={Astro.url.href}>
+  <link rel="alternate" hrefLang="ru" href={Astro.url.href}>
   
   <!-- Theme Color -->
   <meta name="theme-color" content="#0a0a0a">
@@ -64,72 +66,121 @@ const utmParams = parseUTMFromURL(url);
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   
+  <!-- Performance Hints -->
+  <link rel="preconnect" href="https://telegram.org" crossorigin>
+  <link rel="dns-prefetch" href="//telegram.org">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
   <!-- Telegram WebApp API -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  
+  <!-- JSON-LD Schema -->
+  <script type="application/ld+json" is:inline>{JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'AI Model 2.0',
+    url: Astro.url.href,
+    inLanguage: 'ru-RU',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${Astro.url.origin}/?q={search_term_string}`,
+      'query-input': 'required name=search_term_string'
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'AI Model 2.0',
+      url: Astro.url.origin
+    }
+  })}</script>
   
   <!-- Pass UTM params to client -->
   <script define:vars={{ utmParams: JSON.stringify(utmParams) }}>
     window.utmParams = utmParams;
   </script>
   
-  <!-- Initialize UTM tracking and Telegram WebApp -->
+  <!-- Initialize UTM, Telegram WebApp and CTA links (consolidated) -->
   <script is:inline>
     (function() {
-      // Initialize UTM tracking
-      const utmParams = window.utmParams || {};
-      if (Object.keys(utmParams).length > 0) {
+      const win = window;
+      const doc = document;
+      
+      // UTM helpers
+      const storedUtmKey = 'utm_params';
+      const utm = (win.utmParams && typeof win.utmParams === 'object') ? win.utmParams : {};
+      if (Object.keys(utm).length) {
+        try { sessionStorage.setItem(storedUtmKey, JSON.stringify(utm)); } catch {}
+      }
+
+      function getStoredUTM() {
+        try { return JSON.parse(sessionStorage.getItem(storedUtmKey) || '{}'); } catch { return {}; }
+      }
+      function withUTM(url) {
+        const params = getStoredUTM();
+        if (!Object.keys(params).length) return url;
         try {
-          sessionStorage.setItem('utm_params', JSON.stringify(utmParams));
-        } catch (e) {
-          console.warn('Failed to store UTM params:', e);
+          const u = new URL(url);
+          Object.entries(params).forEach(([k, v]) => { if (v && !u.searchParams.has(k)) u.searchParams.set(k, v); });
+          return u.toString();
+        } catch {
+          const qs = new URLSearchParams(params).toString();
+          return url + (url.includes('?') ? '&' : '?') + qs;
         }
       }
-      
-      // Check if in Telegram
-      if (window.Telegram?.WebApp) {
-        const webApp = window.Telegram.WebApp;
-        
-        // Initialize and expand
-        webApp.ready();
-        webApp.expand();
-        
-        // Enable closing confirmation
-        webApp.enableClosingConfirmation();
-        
-        // Apply theme colors
-        const themeParams = webApp.themeParams;
-        if (themeParams.bg_color) {
-          document.documentElement.style.setProperty('--tg-theme-bg-color', themeParams.bg_color);
-        }
-        if (themeParams.text_color) {
-          document.documentElement.style.setProperty('--tg-theme-text-color', themeParams.text_color);
-        }
-        if (themeParams.hint_color) {
-          document.documentElement.style.setProperty('--tg-theme-hint-color', themeParams.hint_color);
-        }
-        if (themeParams.link_color) {
-          document.documentElement.style.setProperty('--tg-theme-link-color', themeParams.link_color);
-        }
-        if (themeParams.button_color) {
-          document.documentElement.style.setProperty('--tg-theme-button-color', themeParams.button_color);
-        }
-        if (themeParams.button_text_color) {
-          document.documentElement.style.setProperty('--tg-theme-button-text-color', themeParams.button_text_color);
-        }
-        if (themeParams.secondary_bg_color) {
-          document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', themeParams.secondary_bg_color);
-        }
-        
-        // Listen to theme changes
-        webApp.onEvent('themeChanged', () => {
-          location.reload(); // Reload to apply new theme
-        });
-        
-        // Hide banner if exists
-        const banner = document.getElementById('telegram-banner');
+
+      // Telegram init (if present)
+      const tg = win.Telegram?.WebApp;
+      if (tg) {
+        tg.ready();
+        tg.expand();
+        tg.enableClosingConfirmation();
+        const p = tg.themeParams || {};
+        const root = doc.documentElement.style;
+        if (p.bg_color) root.setProperty('--tg-theme-bg-color', p.bg_color);
+        if (p.text_color) root.setProperty('--tg-theme-text-color', p.text_color);
+        if (p.hint_color) root.setProperty('--tg-theme-hint-color', p.hint_color);
+        if (p.link_color) root.setProperty('--tg-theme-link-color', p.link_color);
+        if (p.button_color) root.setProperty('--tg-theme-button-color', p.button_color);
+        if (p.button_text_color) root.setProperty('--tg-theme-button-text-color', p.button_text_color);
+        if (p.secondary_bg_color) root.setProperty('--tg-theme-secondary-bg-color', p.secondary_bg_color);
+        tg.onEvent('themeChanged', () => location.reload());
+        const banner = doc.getElementById('telegram-banner');
         if (banner) banner.style.display = 'none';
+      }
+
+      // CTA links
+      function setupCTALinks() {
+        const isTelegram = !!tg;
+        doc.querySelectorAll('a[data-cta]').forEach(link => {
+          link.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            if (!href) return;
+            const urlWithUtm = withUTM(href);
+            if (isTelegram) {
+              e.preventDefault();
+              tg.openLink(urlWithUtm);
+            } else {
+              this.target = '_blank';
+              this.rel = 'noopener noreferrer';
+              this.href = urlWithUtm;
+            }
+          });
+        });
+      }
+
+      function updateLinksOnLoad() {
+        if (tg) return;
+        const params = getStoredUTM();
+        if (!Object.keys(params).length) return;
+        doc.querySelectorAll('a[data-cta]').forEach(link => {
+          const href = link.getAttribute('href');
+          if (href && !href.includes('utm_')) link.setAttribute('href', withUTM(href));
+        });
+      }
+
+      if (doc.readyState === 'loading') {
+        doc.addEventListener('DOMContentLoaded', () => { setupCTALinks(); updateLinksOnLoad(); });
       } else {
-        // Do not show any banner outside Telegram
+        setupCTALinks(); updateLinksOnLoad();
       }
     })();
   </script>
@@ -144,102 +195,7 @@ const utmParams = parseUTMFromURL(url);
     <slot />
   </main>
   
-  <!-- Client-side CTA links with Telegram WebApp support -->
-  <script is:inline>
-    (function() {
-      // Get stored UTM params from sessionStorage
-      function getStoredUTM() {
-        try {
-          const stored = sessionStorage.getItem('utm_params');
-          return stored ? JSON.parse(stored) : {};
-        } catch (e) {
-          return {};
-        }
-      }
-      
-      // Helper to add UTM params to URL
-      function withUTM(url) {
-        const utmParams = getStoredUTM();
-        
-        if (Object.keys(utmParams).length === 0) return url;
-        
-        try {
-          const urlObj = new URL(url);
-          
-          // Add UTM params to URL
-          Object.entries(utmParams).forEach(([key, value]) => {
-            if (value && !urlObj.searchParams.has(key)) {
-              urlObj.searchParams.set(key, value);
-            }
-          });
-          
-          return urlObj.toString();
-        } catch (e) {
-          // If URL parsing fails, append params manually
-          const separator = url.includes('?') ? '&' : '?';
-          const params = new URLSearchParams();
-          
-          Object.entries(utmParams).forEach(([key, value]) => {
-            if (value) params.set(key, value);
-          });
-          
-          return `${url}${separator}${params.toString()}`;
-        }
-      }
-      
-      // Check if in Telegram WebApp
-      const isTelegram = window.Telegram?.WebApp;
-      
-      // Handle CTA links
-      function setupCTALinks() {
-        document.querySelectorAll('a[data-cta]').forEach(link => {
-          link.addEventListener('click', function(e) {
-            const href = this.getAttribute('href');
-            if (!href) return;
-            
-            const urlWithUtm = withUTM(href);
-            
-            if (isTelegram) {
-              // In Telegram - use WebApp API
-              e.preventDefault();
-              window.Telegram.WebApp.openLink(urlWithUtm);
-            } else {
-              // Not in Telegram - open in new tab
-              this.target = '_blank';
-              this.rel = 'noopener noreferrer';
-              this.href = urlWithUtm;
-            }
-          });
-        });
-      }
-      
-      // Update links on page load with UTM params for non-Telegram
-      function updateLinksOnLoad() {
-        if (isTelegram) return; // Don't modify hrefs in Telegram
-        
-        const utmParams = getStoredUTM();
-        if (Object.keys(utmParams).length === 0) return;
-        
-        document.querySelectorAll('a[data-cta]').forEach(link => {
-          const href = link.getAttribute('href');
-          if (href && !href.includes('utm_')) {
-            link.setAttribute('href', withUTM(href));
-          }
-        });
-      }
-      
-      // Initialize
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-          setupCTALinks();
-          updateLinksOnLoad();
-        });
-      } else {
-        setupCTALinks();
-        updateLinksOnLoad();
-      }
-    })();
-  </script>
+  <!-- Client-side script consolidated above -->
 </body>
 </html>
 
