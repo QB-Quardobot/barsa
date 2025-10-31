@@ -653,9 +653,16 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             'a[href]:not([data-cta])',
             '[role="button"]:not([data-cta])',
             '.proof-item',
+            '.proof-image-placeholder',
+            '.student-photo',
+            '.student-circle',
+            '.banner-photo',
+            '.models-banner > div',
             '.step-card',
             '.system-step',
-            '.benefit-item'
+            '.benefit-item',
+            '.timeline-step',
+            '.step-marker'
           ].join(', ');
           
           doc.querySelectorAll(clickableSelectors).forEach(el => {
@@ -695,7 +702,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         // Setup touch events for interactive elements (replace hover)
         // Visual feedback for touch interactions
         if (isTouchDevice) {
-          doc.querySelectorAll('.reveal-up, .proof-item, .step-card, .cta-section, button, a[data-cta], .btn-capsule').forEach(el => {
+          doc.querySelectorAll('.reveal-up, .proof-item, .proof-image-placeholder, .student-photo, .student-circle, .banner-photo, .models-banner > div, .step-card, .cta-section, button, a[data-cta], .btn-capsule, .timeline-step').forEach(el => {
             el.addEventListener('touchstart', function() {
               this.classList.add('touch-active');
             }, { passive: true });
