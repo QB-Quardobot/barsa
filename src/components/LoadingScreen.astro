@@ -296,6 +296,15 @@ const { showInBrowser = false } = Astro.props;
     // Don't show in regular browser unless explicitly enabled (for SEO)
     if (!isTelegram && !showInBrowser) {
       loadingScreen.style.display = 'none';
+      loadingScreen.style.visibility = 'hidden';
+      loadingScreen.style.pointerEvents = 'none';
+      loadingScreen.style.zIndex = '-1';
+      // Ensure main content is visible immediately
+      const mainContent = document.getElementById('main-content');
+      if (mainContent) {
+        mainContent.style.visibility = 'visible';
+        mainContent.style.display = 'block';
+      }
       return;
     }
     
