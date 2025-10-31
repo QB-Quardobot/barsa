@@ -916,16 +916,6 @@ const DEBUG_MODE = false;
   
 </Base>
 
-<script type="module">
-  // Initialize reveal animations (load as module)
-  try {
-    await import('../lib/reveal-init.js');
-  } catch (e) {
-    // Fallback if module loading fails
-    console.warn('[Reveal] Failed to load reveal-init:', e);
-  }
-</script>
-
 <script>
   // Центрируем среднюю карточку при загрузке (с кэшированием DOM)
   const domReadyHandler = () => {
