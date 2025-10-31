@@ -314,35 +314,74 @@ const utmParams = parseUTMFromURL(url);
         return true;
       }
 
-      // Track click analytics
+      // Enhanced click tracking with analytics module
+      // Note: For full analytics features, import from src/lib/analytics.ts
       function trackClick(href, buttonText) {
         try {
           const clickData = {
+            type: 'cta',
+            label: buttonText || '',
             url: href,
-            text: buttonText || '',
             timestamp: Date.now(),
             userAgent: navigator.userAgent,
             platform: tg ? tg.platform : 'web',
             version: tg ? tg.version : 'unknown'
           };
           
-          // Store in sessionStorage for analytics
+          // Store in sessionStorage for analytics (compatibility)
           const clicks = JSON.parse(sessionStorage.getItem('cta_clicks') || '[]');
           clicks.push(clickData);
           sessionStorage.setItem('cta_clicks', JSON.stringify(clicks.slice(-50))); // Keep last 50
           
-          // Optional: Send to analytics endpoint (uncomment if you have one)
-          // fetch('/api/analytics/click', { method: 'POST', body: JSON.stringify(clickData) });
-          
-          // Telegram analytics event (if available)
+          // Enhanced analytics: send to Telegram bot
           if (tg && typeof tg.sendData === 'function') {
             try {
-              tg.sendData(JSON.stringify({ event: 'cta_click', href: href }));
-            } catch {}
+              // Get UTM params
+              const utmParams = getStoredUTM();
+              
+              // Send structured event to bot
+              const eventData = {
+                event: 'click',
+                type: 'cta',
+                label: buttonText || '',
+                href: href,
+                timestamp: Date.now(),
+                sessionId: sessionStorage.getItem('analytics_session_id') || 'unknown',
+                userId: tg.initDataUnsafe?.user?.id?.toString(),
+                platform: tg.platform,
+                version: tg.version,
+                ...(utmParams.utm_source && { utm_source: utmParams.utm_source }),
+                ...(utmParams.utm_medium && { utm_medium: utmParams.utm_medium }),
+                ...(utmParams.utm_campaign && { utm_campaign: utmParams.utm_campaign }),
+              };
+              
+              tg.sendData(JSON.stringify(eventData));
+            } catch (err) {
+              // Fallback: send minimal data
+              try {
+                tg.sendData(JSON.stringify({ event: 'cta_click', href: href, label: buttonText }));
+              } catch {}
+            }
           }
+          
+          // Optional: Send to server analytics endpoint
+          // Uncomment and configure if you have a server endpoint:
+          // if (typeof fetch !== 'undefined') {
+          //   fetch('/api/analytics/click', {
+          //     method: 'POST',
+          //     headers: { 'Content-Type': 'application/json' },
+          //     body: JSON.stringify(clickData),
+          //     keepalive: true
+          //   }).catch(() => {});
+          // }
         } catch (e) {
           // Silent fail for analytics
         }
+      }
+      
+      // Initialize session ID for analytics (if not exists)
+      if (typeof sessionStorage !== 'undefined' && !sessionStorage.getItem('analytics_session_id')) {
+        sessionStorage.setItem('analytics_session_id', 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
       }
       
       // CTA links + haptics + proper Telegram link handling
