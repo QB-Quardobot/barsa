@@ -20,17 +20,32 @@
 <script is:inline>
   // Earnings Ticker Logic
   (function() {
-    const ticker = document.getElementById('earnings-ticker');
-    const amountEl = document.getElementById('earnings-amount');
-    const btn = ticker ? ticker.querySelector('.earnings-ticker-btn') : null;
+    // Wait for DOM to be ready
+    function init() {
+      const ticker = document.getElementById('earnings-ticker');
+      const amountEl = document.getElementById('earnings-amount');
+      const btn = ticker ? ticker.querySelector('.earnings-ticker-btn') : null;
+      
+      if (!ticker || !amountEl || !btn) {
+        // Retry if DOM not ready yet
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+          return;
+        }
+        console.warn('[EarningsTicker] Elements not found');
+        return;
+      }
+      
+      // Run main logic
+      startTicker(ticker, amountEl, btn);
+    }
     
-    if (!ticker || !amountEl || !btn) return;
-    
-    let currentAmount = 0;
-    let tickInterval = null;
-    let isVisible = false;
-    let scrollStartTime = null;
-    let hasStarted = false;
+    function startTicker(ticker, amountEl, btn) {
+      let currentAmount = 0;
+      let tickInterval = null;
+      let isVisible = false;
+      let scrollStartTime = null;
+      let hasStarted = false;
     
     // Scroll threshold to show ticker (lower for better visibility)
     const SCROLL_THRESHOLD = 150;
@@ -202,16 +217,25 @@
     document.addEventListener('visibilitychange', handleVisibilityChange);
     btn.addEventListener('click', scrollToCTA);
     
-    // Initial check
-    handleScroll();
-    // Double check after a short delay to catch any layout shifts
-    setTimeout(checkInitialScroll, 100);
-    setTimeout(checkInitialScroll, 500);
+      // Initial check
+      handleScroll();
+      // Double check after a short delay to catch any layout shifts
+      setTimeout(checkInitialScroll, 100);
+      setTimeout(checkInitialScroll, 500);
+      
+      // Cleanup on page unload
+      window.addEventListener('beforeunload', () => {
+        stopCounting();
+      });
+    }
     
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-      stopCounting();
-    });
+    // Start initialization
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      // DOM already ready, but wait a tick for Astro hydration
+      setTimeout(init, 50);
+    }
   })();
 </script>
 
