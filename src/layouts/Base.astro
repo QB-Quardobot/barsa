@@ -647,32 +647,83 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         
         if (haptics && isTouchDevice) {
-          // Light haptic on touch for non-CTA interactive elements
-          const clickableSelectors = [
-            'button:not([data-cta]):not(.btn-capsule)',
-            'a[href]:not([data-cta])',
-            '[role="button"]:not([data-cta])',
-            '.proof-item',
-            '.proof-image-placeholder',
-            '.student-photo',
-            '.student-circle',
-            '.banner-photo',
-            '.models-banner > div',
-            '.step-card',
-            '.system-step',
-            '.benefit-item',
-            '.timeline-step',
-            '.step-marker'
-          ].join(', ');
-          
-          doc.querySelectorAll(clickableSelectors).forEach(el => {
-            // Use touchstart for immediate feedback on touch
-            el.addEventListener('touchstart', function() {
+          // Function to add haptic to element
+          function addHapticToElement(el) {
+            if (!el || el.hasAttribute('data-haptic-attached')) return;
+            
+            el.setAttribute('data-haptic-attached', 'true');
+            
+            // Light haptic on touchstart
+            el.addEventListener('touchstart', function(e) {
               try {
+                // Prevent event bubbling issues
+                e.stopPropagation();
                 haptics.impactOccurred('light');
               } catch (e) {}
-            }, { passive: true });
-          });
+            }, { passive: true, capture: true });
+          }
+          
+          // Function to setup haptics for elements (with retry for dynamic content)
+          function setupHapticsForElements() {
+            const clickableSelectors = [
+              'button:not([data-cta]):not(.btn-capsule)',
+              'a[href]:not([data-cta])',
+              '[role="button"]:not([data-cta])',
+              '.proof-item',
+              '.proof-image-placeholder',
+              '.student-photo',
+              '.student-circle',
+              '.banner-photo',
+              '.models-banner > div',
+              '.step-card',
+              '.system-step',
+              '.benefit-item',
+              '.timeline-step',
+              '.step-marker',
+              '.founder-avatar',
+              '.photo-circle',
+              '.earning-corner'
+            ];
+            
+            clickableSelectors.forEach(selector => {
+              try {
+                doc.querySelectorAll(selector).forEach(el => {
+                  addHapticToElement(el);
+                });
+              } catch (e) {
+                console.warn('[TG] Haptic setup error for selector:', selector, e);
+              }
+            });
+          }
+          
+          // Setup immediately
+          setupHapticsForElements();
+          
+          // Retry after delays (for dynamic content that loads later)
+          setTimeout(setupHapticsForElements, 300);
+          setTimeout(setupHapticsForElements, 1000);
+          setTimeout(setupHapticsForElements, 2000);
+          
+          // Event delegation as fallback (catches any missed elements)
+          doc.addEventListener('touchstart', function(e) {
+            if (!haptics) return;
+            
+            const target = e.target;
+            if (!target) return;
+            
+            // Check if touched element is one of our interactive elements
+            const isInteractive = target.closest('.proof-item, .proof-image-placeholder, .student-photo, .student-circle, .banner-photo, .models-banner > div, .step-card, .benefit-item, .timeline-step, .founder-avatar, .photo-circle, .earning-corner');
+            
+            if (isInteractive) {
+              // Add to element if not already added
+              addHapticToElement(isInteractive);
+              
+              // Trigger haptic immediately via delegation
+              try {
+                haptics.impactOccurred('light');
+              } catch (err) {}
+            }
+          }, { passive: true, capture: true });
           
           // Medium haptic on click for buttons (non-CTA)
           doc.querySelectorAll('button:not([data-cta]):not(.btn-capsule), [role="button"]:not([data-cta])').forEach(el => {
