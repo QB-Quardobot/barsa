@@ -1,0 +1,324 @@
+---
+// Loading Screen Component
+// Shows only in Telegram Mini App or optionally in browser
+// Auto-hides after page load to avoid SEO impact
+interface Props {
+  showInBrowser?: boolean; // Show in regular browser (default: false for SEO)
+}
+
+const { showInBrowser = false } = Astro.props;
+---
+
+<div id="loading-screen" class="loading-screen" data-show-in-browser={showInBrowser}>
+  <div class="loading-content">
+    <!-- Animated gradient circle -->
+    <div class="loading-logo">
+      <div class="loading-circle">
+        <div class="loading-circle-inner"></div>
+      </div>
+      <div class="loading-pulse"></div>
+    </div>
+    
+    <!-- Loading text with gradient -->
+    <div class="loading-text">
+      <span class="gradient-text">AI Model 2.0</span>
+    </div>
+    
+    <!-- Subtle loading dots -->
+    <div class="loading-dots">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </div>
+  </div>
+  
+  <!-- Background gradient animation -->
+  <div class="loading-bg"></div>
+</div>
+
+<style>
+  .loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
+    background: #0a0a0a;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+    /* Hide by default in browser for SEO */
+    display: none;
+  }
+  
+  /* Show only in Telegram Mini App by default */
+  body.tg-webapp .loading-screen {
+    display: flex;
+  }
+  
+  /* Optionally show in browser if data-show-in-browser="true" */
+  .loading-screen[data-show-in-browser="true"] {
+    display: flex;
+  }
+  
+  .loading-screen.loaded {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  
+  .loading-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      radial-gradient(ellipse at 20% 30%, rgba(96, 165, 250, 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, rgba(168, 85, 247, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 40% 90%, rgba(34, 211, 238, 0.1) 0%, transparent 50%);
+    animation: bgPulse 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+  
+  @keyframes bgPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+  
+  .loading-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+  
+  .loading-logo {
+    position: relative;
+    width: 120px;
+    height: 120px;
+  }
+  
+  .loading-circle {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #60a5fa 0%, #22d3ee 50%, #a855f7 100%);
+    position: relative;
+    animation: rotate 3s linear infinite;
+    padding: 4px;
+  }
+  
+  .loading-circle::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #60a5fa, #22d3ee, #a855f7);
+    opacity: 0.5;
+    filter: blur(8px);
+    animation: rotate 3s linear infinite reverse;
+  }
+  
+  .loading-circle-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #0a0a0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .loading-circle-inner::after {
+    content: '🤖';
+    font-size: 3rem;
+    filter: drop-shadow(0 0 10px rgba(96, 165, 250, 0.5));
+  }
+  
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  .loading-pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 2px solid rgba(96, 165, 250, 0.3);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.2);
+      opacity: 0;
+    }
+  }
+  
+  .loading-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  
+  .loading-text .gradient-text {
+    background: linear-gradient(135deg, #60a5fa 0%, #22d3ee 50%, #a855f7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% 200%;
+    animation: gradientShift 3s ease infinite;
+  }
+  
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  
+  .loading-dots {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  .loading-dots .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #60a5fa, #22d3ee);
+    animation: dotBounce 1.4s ease-in-out infinite;
+  }
+  
+  .loading-dots .dot:nth-child(1) {
+    animation-delay: 0s;
+  }
+  
+  .loading-dots .dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  
+  .loading-dots .dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+  
+  @keyframes dotBounce {
+    0%, 80%, 100% {
+      transform: scale(0.8);
+      opacity: 0.5;
+    }
+    40% {
+      transform: scale(1.2);
+      opacity: 1;
+    }
+  }
+  
+  /* Mobile optimizations */
+  @media (max-width: 640px) {
+    .loading-logo {
+      width: 100px;
+      height: 100px;
+    }
+    
+    .loading-circle-inner::after {
+      font-size: 2.5rem;
+    }
+    
+    .loading-text {
+      font-size: 1.25rem;
+    }
+    
+    .loading-dots .dot {
+      width: 6px;
+      height: 6px;
+    }
+  }
+  
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    .loading-circle,
+    .loading-circle::before {
+      animation: none;
+    }
+    
+    .loading-pulse {
+      animation: none;
+    }
+    
+    .loading-text .gradient-text {
+      animation: none;
+    }
+    
+    .loading-dots .dot {
+      animation: none;
+      opacity: 0.7;
+    }
+    
+    .loading-bg {
+      animation: none;
+    }
+  }
+</style>
+
+<script is:inline>
+  // Auto-hide loading screen after page load
+  (function() {
+    const loadingScreen = document.getElementById('loading-screen');
+    if (!loadingScreen) return;
+    
+    // Check if should show in browser
+    const showInBrowser = loadingScreen.getAttribute('data-show-in-browser') === 'true';
+    const isTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
+    
+    // Don't show in regular browser unless explicitly enabled (for SEO)
+    if (!isTelegram && !showInBrowser) {
+      loadingScreen.style.display = 'none';
+      return;
+    }
+    
+    // Hide after page is fully loaded
+    function hideLoader() {
+      if (loadingScreen && !loadingScreen.classList.contains('loaded')) {
+        loadingScreen.classList.add('loaded');
+        
+        // Remove from DOM after animation
+        setTimeout(() => {
+          if (loadingScreen && loadingScreen.parentNode) {
+            loadingScreen.remove();
+          }
+        }, 500);
+      }
+    }
+    
+    // Hide on DOMContentLoaded (fast) or after max 2 seconds
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', hideLoader);
+    } else {
+      // Already loaded
+      setTimeout(hideLoader, 300);
+    }
+    
+    // Fallback: hide after max 2.5 seconds (UX best practice)
+    setTimeout(hideLoader, 2500);
+    
+    // Also hide on window load
+    window.addEventListener('load', hideLoader);
+  })();
+</script>
+

@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { parseUTMFromURL } from '../lib/utm';
+import LoadingScreen from '../components/LoadingScreen.astro';
 
 interface Props {
   title: string;
@@ -546,6 +547,9 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   </script>
 </head>
 <body>
+  <!-- Loading Screen (shows in Telegram Mini App only by default) -->
+  <LoadingScreen client:load />
+  
   <!-- Skip to main content link for accessibility -->
   <a href="#main-content" class="skip-to-main">
     Перейти к основному содержимому
