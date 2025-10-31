@@ -22,25 +22,19 @@
   (function() {
     // Wait for DOM to be ready
     function init() {
-      console.log('[EarningsTicker] Initializing...');
       const ticker = document.getElementById('earnings-ticker');
       const amountEl = document.getElementById('earnings-amount');
       const btn = ticker ? ticker.querySelector('.earnings-ticker-btn') : null;
       
-      console.log('[EarningsTicker] Elements:', { ticker: !!ticker, amountEl: !!amountEl, btn: !!btn });
-      
       if (!ticker || !amountEl || !btn) {
         // Retry if DOM not ready yet
         if (document.readyState === 'loading') {
-          console.log('[EarningsTicker] DOM loading, waiting for DOMContentLoaded');
           document.addEventListener('DOMContentLoaded', init);
           return;
         }
-        console.warn('[EarningsTicker] Elements not found after retry');
         return;
       }
       
-      console.log('[EarningsTicker] All elements found, starting ticker');
       // Run main logic
       startTicker(ticker, amountEl, btn);
     }
@@ -106,17 +100,9 @@
     
     // Show ticker
     function showTicker() {
-      if (isVisible) {
-        console.log('[EarningsTicker] Already visible, skipping');
-        return;
-      }
-      console.log('[EarningsTicker] showTicker() called - adding is-visible class');
+      if (isVisible) return;
       isVisible = true;
       ticker.classList.add('is-visible');
-      console.log('[EarningsTicker] Ticker element classes:', ticker.className);
-      console.log('[EarningsTicker] Ticker computed style:', window.getComputedStyle(ticker).opacity, window.getComputedStyle(ticker).transform);
-      
-      // Start counting when shown
       startCounting();
     }
     
@@ -159,16 +145,8 @@
       const scrollY = getScrollPosition();
       
       if (scrollY >= SCROLL_THRESHOLD) {
-        if (!isVisible) {
-          const winScroll = window.scrollY || 0;
-          const mainScroll = mainContentEl ? mainContentEl.scrollTop : 0;
-          console.log('[EarningsTicker] Showing ticker, scrollY:', scrollY, 'sources: window=' + winScroll + ', main=' + mainScroll);
-        }
         showTicker();
       } else {
-        if (isVisible) {
-          console.log('[EarningsTicker] Hiding ticker, scrollY:', scrollY);
-        }
         hideTicker();
       }
     }
@@ -176,7 +154,6 @@
     // Also show on page load if already scrolled (e.g., direct link to section)
     function checkInitialScroll() {
       const scrollY = getScrollPosition();
-      console.log('[EarningsTicker] checkInitialScroll, scrollY:', scrollY);
       if (scrollY >= SCROLL_THRESHOLD) {
         showTicker();
       }
@@ -205,8 +182,7 @@
       const ctaSection = document.querySelector('.final-cta-section');
       if (!ctaSection) return;
       
-      // First, pre-reveal all elements on the path to target
-      // This prevents white flash during scroll
+      // Pre-reveal elements to prevent white flash
       var revealInstance = window.revealInstance;
       if (revealInstance && typeof revealInstance.preRevealToTarget === 'function') {
         revealInstance.preRevealToTarget('.final-cta-section');
@@ -215,36 +191,44 @@
         const allRevealElements = document.querySelectorAll(
           '[class*="reveal-fade"]:not(.is-revealed), [class*="reveal-up"]:not(.is-revealed), [class*="reveal-scale"]:not(.is-revealed)'
         );
-        
-        const currentScroll = window.scrollY;
+        const currentScroll = getScrollPosition();
         const targetRect = ctaSection.getBoundingClientRect();
-        const targetScroll = targetRect.top + currentScroll;
+        const targetScroll = targetRect.top + (mainContentEl ? mainContentEl.scrollTop : currentScroll);
         
         allRevealElements.forEach((el) => {
           const elRect = el.getBoundingClientRect();
-          const elScroll = elRect.top + currentScroll;
+          const elScroll = elRect.top + (mainContentEl ? mainContentEl.scrollTop : currentScroll);
           
           if (elScroll >= currentScroll - 200 && elScroll <= targetScroll + 500) {
-            const element = el;
-            element.style.transition = 'none';
-            element.style.opacity = '1';
-            element.style.transform = 'none';
-            element.classList.add('is-revealed');
+            el.style.transition = 'none';
+            el.style.opacity = '1';
+            el.style.transform = 'none';
+            el.classList.add('is-revealed');
           }
         });
       }
       
-      // Wait a frame for content to render
+      // Smooth scroll - works in both Telegram Mini App and regular browsers
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          const offset = 80; // Offset from top
-          const elementPosition = ctaSection.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.pageYOffset - offset;
+          const offset = 80;
+          const targetRect = ctaSection.getBoundingClientRect();
           
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
-          });
+          if (mainContentEl) {
+            // Telegram Mini App: scroll main-content
+            const scrollTop = mainContentEl.scrollTop + targetRect.top - offset;
+            mainContentEl.scrollTo({
+              top: scrollTop,
+              behavior: 'smooth'
+            });
+          } else {
+            // Regular browser: scroll window
+            const scrollTop = window.pageYOffset + targetRect.top - offset;
+            window.scrollTo({
+              top: scrollTop,
+              behavior: 'smooth'
+            });
+          }
         });
       });
     }
@@ -254,11 +238,6 @@
     let scrollEventCount = 0;
     
     function onScrollEvent() {
-      scrollEventCount++;
-      const scrollY = getScrollPosition();
-      if (scrollEventCount <= 5 || scrollEventCount % 10 === 0) {
-        console.log('[EarningsTicker] Scroll event #' + scrollEventCount + ', scrollY:', scrollY);
-      }
       if (scrollTimeout) {
         window.cancelAnimationFrame(scrollTimeout);
       }
@@ -273,42 +252,16 @@
     // ALSO listen to main content scroll (Telegram Mini App - PRIMARY source)
     if (mainContentEl) {
       mainContentEl.addEventListener('scroll', onScrollEvent, { passive: true });
-      console.log('[EarningsTicker] Also listening to main-content scroll (Telegram compatibility)');
     }
-    
-    // Force initial scroll check with manual trigger
-    console.log('[EarningsTicker] Setting up manual scroll test');
-    setTimeout(function() {
-      console.log('[EarningsTicker] Manual scroll trigger test');
-      window.dispatchEvent(new Event('scroll'));
-    }, 2000);
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     btn.addEventListener('click', scrollToCTA);
     
       // Initial check
-      console.log('[EarningsTicker] Running initial scroll check');
       handleScroll();
       // Double check after a short delay to catch any layout shifts
-      setTimeout(function() {
-        console.log('[EarningsTicker] Delayed check 1 (100ms)');
-        checkInitialScroll();
-      }, 100);
-      setTimeout(function() {
-        console.log('[EarningsTicker] Delayed check 2 (500ms)');
-        checkInitialScroll();
-      }, 500);
-      
-      // Debug: Log scroll position periodically
-      let debugCount = 0;
-      const debugInterval = setInterval(function() {
-        if (debugCount++ >= 10) {
-          clearInterval(debugInterval);
-          return;
-        }
-        const scrollY = getScrollPosition();
-        console.log('[EarningsTicker] Debug scroll check #' + debugCount + ', scrollY:', scrollY, 'threshold:', SCROLL_THRESHOLD, 'visible:', isVisible);
-      }, 1000);
+      setTimeout(checkInitialScroll, 100);
+      setTimeout(checkInitialScroll, 500);
       
       // Cleanup on page unload
       window.addEventListener('beforeunload', () => {
