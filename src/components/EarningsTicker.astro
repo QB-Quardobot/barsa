@@ -130,13 +130,39 @@
       stopCounting();
     }
     
+    // Get scroll position from multiple sources (for Telegram Mini App compatibility)
+    const mainContentEl = document.getElementById('main-content') || document.querySelector('main');
+    
+    function getScrollPosition() {
+      // In Telegram Mini App, scroll happens on main-content, not window
+      let scrollY = 0;
+      
+      if (mainContentEl) {
+        scrollY = mainContentEl.scrollTop || 0;
+      }
+      
+      // Fallback to window scroll (for regular browsers)
+      if (scrollY === 0) {
+        scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+      }
+      
+      // Last fallback: body scroll
+      if (scrollY === 0) {
+        scrollY = document.body.scrollTop || 0;
+      }
+      
+      return scrollY;
+    }
+    
     // Scroll handler
     function handleScroll() {
-      const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+      const scrollY = getScrollPosition();
       
       if (scrollY >= SCROLL_THRESHOLD) {
         if (!isVisible) {
-          console.log('[EarningsTicker] Showing ticker, scrollY:', scrollY);
+          const winScroll = window.scrollY || 0;
+          const mainScroll = mainContentEl ? mainContentEl.scrollTop : 0;
+          console.log('[EarningsTicker] Showing ticker, scrollY:', scrollY, 'sources: window=' + winScroll + ', main=' + mainScroll);
         }
         showTicker();
       } else {
@@ -149,7 +175,8 @@
     
     // Also show on page load if already scrolled (e.g., direct link to section)
     function checkInitialScroll() {
-      const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+      const scrollY = getScrollPosition();
+      console.log('[EarningsTicker] checkInitialScroll, scrollY:', scrollY);
       if (scrollY >= SCROLL_THRESHOLD) {
         showTicker();
       }
@@ -222,13 +249,14 @@
       });
     }
     
-    // Event listeners
+    // Event listeners - listen to scroll on window AND main content (Telegram compatibility)
     let scrollTimeout = null;
     let scrollEventCount = 0;
-    window.addEventListener('scroll', function() {
+    
+    function onScrollEvent() {
       scrollEventCount++;
-      if (scrollEventCount <= 3 || scrollEventCount % 10 === 0) {
-        const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+      const scrollY = getScrollPosition();
+      if (scrollEventCount <= 5 || scrollEventCount % 10 === 0) {
         console.log('[EarningsTicker] Scroll event #' + scrollEventCount + ', scrollY:', scrollY);
       }
       if (scrollTimeout) {
@@ -237,7 +265,16 @@
       scrollTimeout = window.requestAnimationFrame(function() {
         handleScroll();
       });
-    }, { passive: true });
+    }
+    
+    // Listen to window scroll (regular browsers)
+    window.addEventListener('scroll', onScrollEvent, { passive: true });
+    
+    // ALSO listen to main content scroll (Telegram Mini App - PRIMARY source)
+    if (mainContentEl) {
+      mainContentEl.addEventListener('scroll', onScrollEvent, { passive: true });
+      console.log('[EarningsTicker] Also listening to main-content scroll (Telegram compatibility)');
+    }
     
     // Force initial scroll check with manual trigger
     console.log('[EarningsTicker] Setting up manual scroll test');
@@ -269,7 +306,7 @@
           clearInterval(debugInterval);
           return;
         }
-        const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+        const scrollY = getScrollPosition();
         console.log('[EarningsTicker] Debug scroll check #' + debugCount + ', scrollY:', scrollY, 'threshold:', SCROLL_THRESHOLD, 'visible:', isVisible);
       }, 1000);
       
