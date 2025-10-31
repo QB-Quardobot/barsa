@@ -314,22 +314,81 @@ const utmParams = parseUTMFromURL(url);
         return true;
       }
 
-      // CTA links + haptics
+      // Track click analytics
+      function trackClick(href, buttonText) {
+        try {
+          const clickData = {
+            url: href,
+            text: buttonText || '',
+            timestamp: Date.now(),
+            userAgent: navigator.userAgent,
+            platform: tg ? tg.platform : 'web',
+            version: tg ? tg.version : 'unknown'
+          };
+          
+          // Store in sessionStorage for analytics
+          const clicks = JSON.parse(sessionStorage.getItem('cta_clicks') || '[]');
+          clicks.push(clickData);
+          sessionStorage.setItem('cta_clicks', JSON.stringify(clicks.slice(-50))); // Keep last 50
+          
+          // Optional: Send to analytics endpoint (uncomment if you have one)
+          // fetch('/api/analytics/click', { method: 'POST', body: JSON.stringify(clickData) });
+          
+          // Telegram analytics event (if available)
+          if (tg && typeof tg.sendData === 'function') {
+            try {
+              tg.sendData(JSON.stringify({ event: 'cta_click', href: href }));
+            } catch {}
+          }
+        } catch (e) {
+          // Silent fail for analytics
+        }
+      }
+      
+      // CTA links + haptics + proper Telegram link handling
       function setupCTALinks() {
         const isTelegram = !!tg;
         doc.querySelectorAll('a[data-cta]').forEach(link => {
+          const href = link.getAttribute('href') || '';
+          const buttonText = link.textContent.trim();
+          const isTelegramLink = href.includes('t.me/') || href.startsWith('https://t.me/');
+          
           if (isTelegram) {
-            link.addEventListener('mouseenter', () => { try { tg.HapticFeedback?.selectionChanged(); } catch {} });
+            link.addEventListener('mouseenter', () => { 
+              try { tg.HapticFeedback?.selectionChanged(); } catch {} 
+            });
           }
+          
           link.addEventListener('click', function(e) {
-            const href = this.getAttribute('href');
             if (!href) return;
+            
             const urlWithUtm = withUTM(href);
+            
+            // Track click
+            trackClick(urlWithUtm, buttonText);
+            
             if (isTelegram) {
               e.preventDefault();
-              tg.openLink(urlWithUtm);
-              try { tg.HapticFeedback?.impactOccurred('medium'); } catch {}
+              
+              // For Telegram links, use openTelegramLink (stays in app)
+              // For external links, use openLink (opens in browser)
+              if (isTelegramLink && typeof tg.openTelegramLink === 'function') {
+                try {
+                  tg.openTelegramLink(urlWithUtm);
+                  try { tg.HapticFeedback?.impactOccurred('medium'); } catch {}
+                } catch (err) {
+                  // Fallback to openLink if openTelegramLink fails
+                  try { tg.openLink(urlWithUtm); } catch {}
+                }
+              } else {
+                // External link - open in browser
+                try {
+                  tg.openLink(urlWithUtm);
+                  try { tg.HapticFeedback?.impactOccurred('medium'); } catch {}
+                } catch {}
+              }
             } else {
+              // Not in Telegram - open in new tab
               this.target = '_blank';
               this.rel = 'noopener noreferrer';
               this.href = urlWithUtm;
