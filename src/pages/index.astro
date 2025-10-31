@@ -1022,9 +1022,14 @@ const DEBUG_MODE = false;
         if (typeof window.initReveal === 'function') {
           window.initReveal();
         } else {
-          // Fallback: reveal-init.js will auto-initialize when loaded
-          // Just ensure the script is loaded (Astro handles this)
-          console.log('[Reveal] Waiting for reveal-init.js to load...');
+          // Fallback: Try importing reveal module directly
+          import('/src/lib/reveal-init.js').then(() => {
+            if (typeof window.initReveal === 'function') {
+              window.initReveal();
+            }
+          }).catch(() => {
+            // Silently fail - reveal will be initialized by reveal-init.js when it loads
+          });
         }
       } catch (e) {
         console.warn('[Reveal] Init error:', e);

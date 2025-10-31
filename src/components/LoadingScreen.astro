@@ -68,9 +68,33 @@ const { showInBrowser = false } = Astro.props;
   }
   
   .loading-screen.loaded {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    display: none !important;
+    z-index: -1 !important;
+  }
+  
+  /* Ensure main-content is always above loading screen when loader is hidden */
+  #main-content {
+    position: relative;
+    z-index: 1;
+  }
+  
+  body.tg-webapp #main-content {
+    z-index: 1;
+  }
+  
+  /* Show only in Telegram Mini App by default */
+  body.tg-webapp .loading-screen {
+    display: flex;
+    pointer-events: auto; /* Allow interaction when visible */
+  }
+  
+  /* Optionally show in browser if data-show-in-browser="true" */
+  .loading-screen[data-show-in-browser="true"] {
+    display: flex;
+    pointer-events: auto;
   }
   
   .loading-bg {
@@ -293,18 +317,21 @@ const { showInBrowser = false } = Astro.props;
     const showInBrowser = loadingScreen.getAttribute('data-show-in-browser') === 'true';
     const isTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
     
+    // Ensure main content is ALWAYS visible (critical!)
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+      mainContent.style.visibility = 'visible';
+      mainContent.style.display = 'block';
+      mainContent.style.opacity = '1';
+      mainContent.style.zIndex = '1';
+    }
+    
     // Don't show in regular browser unless explicitly enabled (for SEO)
     if (!isTelegram && !showInBrowser) {
       loadingScreen.style.display = 'none';
       loadingScreen.style.visibility = 'hidden';
       loadingScreen.style.pointerEvents = 'none';
       loadingScreen.style.zIndex = '-1';
-      // Ensure main content is visible immediately
-      const mainContent = document.getElementById('main-content');
-      if (mainContent) {
-        mainContent.style.visibility = 'visible';
-        mainContent.style.display = 'block';
-      }
       return;
     }
     
@@ -312,6 +339,14 @@ const { showInBrowser = false } = Astro.props;
     function hideLoader() {
       if (loadingScreen && !loadingScreen.classList.contains('loaded')) {
         loadingScreen.classList.add('loaded');
+        
+        // Ensure main content is visible when loader hides
+        if (mainContent) {
+          mainContent.style.visibility = 'visible';
+          mainContent.style.display = 'block';
+          mainContent.style.opacity = '1';
+          mainContent.style.zIndex = '1';
+        }
         
         // Remove from DOM after animation
         const removeTimeout = setTimeout(() => {

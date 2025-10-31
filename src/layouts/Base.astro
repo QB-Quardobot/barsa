@@ -133,6 +133,11 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       padding-bottom: var(--tg-safe-area-inset-bottom);
       padding-left: var(--tg-safe-area-inset-left);
       padding-right: var(--tg-safe-area-inset-right);
+      /* Ensure content is visible */
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      z-index: 1 !important;
     }
     
     /* Safe area padding for non-Telegram */
@@ -141,6 +146,10 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       padding-bottom: var(--tg-safe-area-inset-bottom);
       padding-left: var(--tg-safe-area-inset-left);
       padding-right: var(--tg-safe-area-inset-right);
+      /* Ensure content is visible */
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
     }
     
     /* Ensure buttons respect safe areas */
@@ -656,6 +665,30 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         };
       }
       const logger = win.logger;
+      
+      // Cleanup registry (local to this script)
+      const cleanupFunctions = [];
+      function registerCleanup(fn) {
+        cleanupFunctions.push(fn);
+        return function() {
+          const index = cleanupFunctions.indexOf(fn);
+          if (index > -1) cleanupFunctions.splice(index, 1);
+        };
+      }
+      
+      // Cleanup on unload
+      win.addEventListener('beforeunload', function() {
+        cleanupFunctions.forEach(function(fn) { try { fn(); } catch (e) {} });
+        cleanupFunctions.length = 0;
+      });
+      
+      // Ensure main-content is always visible
+      const mainContent = doc.getElementById('main-content');
+      if (mainContent) {
+        mainContent.style.visibility = 'visible';
+        mainContent.style.display = 'block';
+        mainContent.style.opacity = '1';
+      }
       
       // Check if in Telegram (immediate check)
       const isInTelegram = !!(win.Telegram && win.Telegram.WebApp);
