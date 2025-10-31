@@ -3,6 +3,21 @@
  * Parses UTM from URL and stores in sessionStorage
  */
 
+// Production-safe logger
+const isDev = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || 
+   window.location.hostname === '127.0.0.1' ||
+   window.location.hostname.includes('.ngrok.io') ||
+   window.location.hostname.includes('.trycloudflare.com'));
+
+const logger = {
+  warn: (...args: any[]) => {
+    if (isDev) {
+      console.warn(...args);
+    }
+  }
+};
+
 const STORAGE_KEY = 'utm_params';
 const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
 
