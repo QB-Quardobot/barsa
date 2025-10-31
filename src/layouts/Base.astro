@@ -595,22 +595,31 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       }
       
       // Initialize performance monitoring (async, non-blocking)
-      if (typeof window !== 'undefined') {
+      // Disabled in production builds to avoid module loading issues
+      // Performance monitoring can be enabled via separate script if needed
+      if (typeof window !== 'undefined' && false) { // Disabled for now
         // Use setTimeout to defer initialization and not block page load
         setTimeout(function() {
           try {
             // Dynamic import to avoid blocking initial load
-            import('../lib/performance-monitor').then(function(module) {
-              const perfMonitor = module.getPerformanceMonitor({
-                logToConsole: false,
-                sendToAnalytics: true
+            // Only load if module path is available
+            if (typeof import !== 'undefined') {
+              import('../lib/performance-monitor.js').then(function(module) {
+                if (module && module.getPerformanceMonitor) {
+                  const perfMonitor = module.getPerformanceMonitor({
+                    logToConsole: false,
+                    sendToAnalytics: true
+                  });
+                  win.__performanceMonitor = perfMonitor;
+                }
+              }).catch(function(err) {
+                // Silently fail if module not available
+                logger.warn('[Performance] Monitor not available:', err);
               });
-              win.__performanceMonitor = perfMonitor;
-            }).catch(function() {
-              // Silently fail if module not available
-            });
+            }
           } catch (e) {
             // Silently fail
+            logger.warn('[Performance] Monitor init failed:', e);
           }
         }, 1000); // Delay 1 second to not interfere with page load
       }
@@ -795,7 +804,8 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           try {
             tg.requestFullscreen();
           } catch (err) {
-            logger.warn('[TG] Fullscreen error:', err);
+            const log = logger || win.logger || { warn: function() {} };
+            log.warn('[TG] Fullscreen error:', err);
           }
         }
         
@@ -915,7 +925,8 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                   addHapticToElement(el);
                 });
               } catch (e) {
-                logger.warn('[TG] Haptic setup error for selector:', selector, e);
+                const log = logger || win.logger || { warn: function() {} };
+                log.warn('[TG] Haptic setup error for selector:', selector, e);
               }
             });
           }
@@ -1017,7 +1028,8 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           };
         }
         
-        logger.log('[TG] ✅ Ready');
+        const log = logger || win.logger || { log: function() {} };
+        log.log('[TG] ✅ Ready');
         
         // Setup touch events for interactive elements (replace hover)
         // Visual feedback for touch interactions
@@ -1068,17 +1080,19 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   <style>
     /* Touch feedback for all interactive elements (Telegram only) */
     body.tg-webapp .touch-active {
-      transform: scale(0.97);
+      transform: scale(0.97) translateZ(0);
       opacity: 0.85;
       transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: transform, opacity;
     }
     
     /* Enhanced touch feedback for buttons (Telegram only) */
     body.tg-webapp button.touch-active,
     body.tg-webapp .btn-capsule.touch-active,
     body.tg-webapp a[data-cta].touch-active {
-      transform: scale(0.95);
+      transform: scale(0.95) translateZ(0);
       opacity: 0.9;
+      will-change: transform, opacity;
     }
     
     /* Disable hover effects in Telegram (they don't work) */
@@ -1102,6 +1116,45 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
     body.tg-webapp .btn-capsule {
       min-height: 44px;
       min-width: 44px;
+    }
+    
+    /* Optimize reveal animations for Telegram (better performance) */
+    body.tg-webapp .reveal-fade,
+    body.tg-webapp .reveal-up,
+    body.tg-webapp .reveal-scale {
+      will-change: opacity, transform;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    
+    body.tg-webapp .reveal-fade.is-revealed,
+    body.tg-webapp .reveal-up.is-revealed,
+    body.tg-webapp .reveal-scale.is-revealed {
+      will-change: auto;
+    }
+    
+    /* Force hardware acceleration for smooth animations in Telegram */
+    body.tg-webapp .reveal-up {
+      transform: translateY(20px) translateZ(0);
+    }
+    
+    body.tg-webapp .reveal-up.is-revealed {
+      transform: translateY(0) translateZ(0);
+    }
+    
+    body.tg-webapp .reveal-scale {
+      transform: scale(0.95) translateZ(0);
+    }
+    
+    body.tg-webapp .reveal-scale.is-revealed {
+      transform: scale(1) translateZ(0);
+    }
+    
+    /* Prevent animation jank during scroll in Telegram */
+    body.tg-webapp {
+      -webkit-overflow-scrolling: touch;
+      overflow-scrolling: touch;
     }
   </style>
 </body>
