@@ -46,8 +46,8 @@
       let scrollStartTime = null;
       let hasStarted = false;
     
-    // Scroll threshold to show ticker (lower for better visibility)
-    const SCROLL_THRESHOLD = 150;
+    // Scroll threshold to show ticker
+    const SCROLL_THRESHOLD = 300;
     // Amount increment (per tick)
     const AMOUNT_INCREMENT = 50;
     // Tick interval (ms)
@@ -140,11 +140,19 @@
       return scrollY;
     }
     
-    // Scroll handler
+    // Scroll handler - hide ticker near bottom buttons
     function handleScroll() {
       const scrollY = getScrollPosition();
       
-      if (scrollY >= SCROLL_THRESHOLD) {
+      // Check if we're near the bottom (where CTA buttons are)
+      const scrollContainer = mainContentEl || document.documentElement;
+      const maxScroll = mainContentEl 
+        ? mainContentEl.scrollHeight - mainContentEl.clientHeight 
+        : document.documentElement.scrollHeight - window.innerHeight;
+      const distanceFromBottom = maxScroll - scrollY;
+      const HIDE_THRESHOLD = 400; // Hide ticker when within 400px of bottom
+      
+      if (scrollY >= SCROLL_THRESHOLD && distanceFromBottom > HIDE_THRESHOLD) {
         showTicker();
       } else {
         hideTicker();
@@ -154,7 +162,14 @@
     // Also show on page load if already scrolled (e.g., direct link to section)
     function checkInitialScroll() {
       const scrollY = getScrollPosition();
-      if (scrollY >= SCROLL_THRESHOLD) {
+      const scrollContainer = mainContentEl || document.documentElement;
+      const maxScroll = mainContentEl 
+        ? mainContentEl.scrollHeight - mainContentEl.clientHeight 
+        : document.documentElement.scrollHeight - window.innerHeight;
+      const distanceFromBottom = maxScroll - scrollY;
+      const HIDE_THRESHOLD = 400;
+      
+      if (scrollY >= SCROLL_THRESHOLD && distanceFromBottom > HIDE_THRESHOLD) {
         showTicker();
       }
     }
@@ -284,7 +299,7 @@
     position: fixed;
     bottom: 2rem;
     right: 2rem;
-    z-index: 9999;
+    z-index: 999;
     opacity: 0;
     transform: translateY(20px) scale(0.9);
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -296,7 +311,23 @@
     .earnings-ticker {
       bottom: 1rem;
       right: 1rem;
+      max-width: calc(100vw - 2rem);
     }
+    
+    /* Hide on very small screens near bottom */
+    @media (max-height: 700px) {
+      .earnings-ticker {
+        bottom: 0.5rem;
+        right: 0.5rem;
+      }
+    }
+  }
+  
+  /* Ensure CTA buttons have higher z-index than ticker */
+  .final-cta-section,
+  .final-btn-group {
+    position: relative;
+    z-index: 1000 !important;
   }
   
   .earnings-ticker.is-visible {
