@@ -23,7 +23,7 @@ const utmParams = parseUTMFromURL(url);
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   
   <!-- Primary Meta Tags -->
@@ -76,7 +76,60 @@ const utmParams = parseUTMFromURL(url);
   <link rel="dns-prefetch" href="//telegram.org">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   
-  <!-- Telegram WebApp API -->
+  <!-- Telegram Mini App Safe Area Support -->
+  <style>
+    :root {
+      /* Safe area insets from Telegram WebApp */
+      --tg-safe-area-inset-top: env(safe-area-inset-top, 0px);
+      --tg-safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+      --tg-safe-area-inset-left: env(safe-area-inset-left, 0px);
+      --tg-safe-area-inset-right: env(safe-area-inset-right, 0px);
+      
+      /* Viewport height that accounts for safe areas */
+      --tg-viewport-height: 100vh;
+      --tg-viewport-stable-height: 100vh;
+    }
+    
+    /* Prevent overscroll/bounce on iOS */
+    body {
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: touch;
+      position: fixed;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      /* Disable text selection for native app feel */
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      /* Disable long-press context menu */
+      -webkit-touch-callout: none;
+    }
+    
+    /* Main content scrollable area */
+    #main-content {
+      width: 100%;
+      height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding-top: var(--tg-safe-area-inset-top);
+      padding-bottom: var(--tg-safe-area-inset-bottom);
+      padding-left: var(--tg-safe-area-inset-left);
+      padding-right: var(--tg-safe-area-inset-right);
+    }
+    
+    /* Ensure buttons respect safe areas */
+    .btn-capsule,
+    button,
+    a[data-cta] {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+  </style>
+  
+  <!-- Telegram WebApp API - loads synchronously BEFORE inline scripts -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   
   <!-- JSON-LD Schema -->
@@ -108,6 +161,7 @@ const utmParams = parseUTMFromURL(url);
     (function() {
       const win = window;
       const doc = document;
+      let tg = null; // Telegram WebApp instance
       
       // UTM helpers
       const storedUtmKey = 'utm_params';
@@ -132,12 +186,51 @@ const utmParams = parseUTMFromURL(url);
         }
       }
 
-      // Telegram init (if present)
-      const tg = win.Telegram?.WebApp;
-      if (tg) {
+      // Initialize Telegram WebApp
+      function initTelegramWebApp() {
+        console.log('[TG-Init] Function called');
+        tg = win.Telegram?.WebApp;
+        if (!tg) {
+          console.log('[TG-Init] WebApp not available - running in browser');
+          return false;
+        }
+        
+        console.log('[TG-Init] Found WebApp v' + tg.version + ' on ' + tg.platform);
+        console.log('[TG-Init] Current state: isExpanded=' + tg.isExpanded + ', isFullscreen=' + tg.isFullscreen);
+        
+        // Initialize app
+        console.log('[TG-Init] Calling ready()...');
         tg.ready();
+        
+        console.log('[TG-Init] Calling expand()...');
         tg.expand();
+        
+        console.log('[TG-Init] Calling enableClosingConfirmation()...');
         tg.enableClosingConfirmation();
+        
+        // Bot API 7.7+: Disable vertical swipes to prevent accidental closing
+        if (typeof tg.disableVerticalSwipes === 'function') {
+          console.log('[TG-Init] Calling disableVerticalSwipes()...');
+          tg.disableVerticalSwipes();
+          console.log('[TG-Init] After disableVerticalSwipes: isVerticalSwipesEnabled=' + tg.isVerticalSwipesEnabled);
+        } else {
+          console.warn('[TG-Init] disableVerticalSwipes not available');
+        }
+        
+        // Bot API 8.0+: Request fullscreen mode
+        if (typeof tg.requestFullscreen === 'function') {
+          console.log('[TG-Init] Calling requestFullscreen()...');
+          try {
+            tg.requestFullscreen();
+            console.log('[TG-Init] After requestFullscreen: isFullscreen=' + tg.isFullscreen);
+          } catch (err) {
+            console.error('[TG-Init] Fullscreen error:', err);
+          }
+        } else {
+          console.warn('[TG-Init] requestFullscreen not available');
+        }
+        
+        // Apply theme
         const p = tg.themeParams || {};
         const root = doc.documentElement.style;
         if (p.bg_color) root.setProperty('--tg-theme-bg-color', p.bg_color);
@@ -147,25 +240,40 @@ const utmParams = parseUTMFromURL(url);
         if (p.button_color) root.setProperty('--tg-theme-button-color', p.button_color);
         if (p.button_text_color) root.setProperty('--tg-theme-button-text-color', p.button_text_color);
         if (p.secondary_bg_color) root.setProperty('--tg-theme-secondary-bg-color', p.secondary_bg_color);
+        
+        // Event handlers
         tg.onEvent('themeChanged', () => location.reload());
+        tg.onEvent('fullscreenFailed', (err) => console.warn('[Telegram] Fullscreen failed:', err));
+        
+        // Hide Telegram banner if shown
         const banner = doc.getElementById('telegram-banner');
         if (banner) banner.style.display = 'none';
 
-        // Expose fullscreen request helper for Mini App (uses Telegram API if available)
+        // Expose global helpers
         (win as any).requestAppFullscreen = function() {
-          try {
-            // New API
-            if (typeof (tg as any).requestFullscreen === 'function') {
-              (tg as any).requestFullscreen();
-              return true;
-            }
-            // Legacy/alt API name
-            if (typeof (tg as any).expand === 'function') {
-              (tg as any).expand();
-              return true;
-            }
-          } catch {}
+          if (typeof tg.requestFullscreen === 'function') {
+            try { tg.requestFullscreen(); return true; } catch (e) { console.warn(e); }
+          }
           return false;
+        };
+        
+        (win as any).exitAppFullscreen = function() {
+          if (typeof tg.exitFullscreen === 'function') {
+            try { tg.exitFullscreen(); return true; } catch (e) { console.warn(e); }
+          }
+          return false;
+        };
+        
+        // Debug info (use getTelegramInfo() in console)
+        (win as any).getTelegramInfo = function() {
+          return !tg ? 'Not in Telegram' : {
+            version: tg.version,
+            platform: tg.platform,
+            isExpanded: tg.isExpanded,
+            isFullscreen: tg.isFullscreen,
+            isVerticalSwipesEnabled: tg.isVerticalSwipesEnabled,
+            viewportHeight: tg.viewportHeight
+          };
         };
 
         // Basic haptics helper
@@ -182,25 +290,20 @@ const utmParams = parseUTMFromURL(url);
         };
         (win as any).triggerAppHaptic = triggerHaptic;
 
-        // Prevent closing by swipe/back: show BackButton and confirmation
+        // Prevent closing by swipe/back button
         try {
-          // Back button interception (Android). Show our handler to avoid default close
+          // Back button interception (Android)
           if (tg.BackButton) {
             tg.BackButton.show();
             tg.BackButton.onClick(() => {
-              // Ask user; keep app open by default
-              tg.showConfirm?.('Закрыть приложение?', (ok: boolean) => {
+              tg.showConfirm?.('Закрыть приложение?', (ok) => {
                 if (ok) tg.close();
               });
             });
           }
-          // System-level closing confirmation (iOS/Android)
-          tg.enableClosingConfirmation();
-          // Attempt to disable vertical swipes if API exists (iOS specific)
-          if (typeof (tg as any).disableVerticalSwipes === 'function') {
-            (tg as any).disableVerticalSwipes();
-          }
         } catch {}
+        
+        return true;
       }
 
       // CTA links + haptics
@@ -251,11 +354,20 @@ const utmParams = parseUTMFromURL(url);
         });
       }
 
-      if (doc.readyState === 'loading') {
-        doc.addEventListener('DOMContentLoaded', () => { setupCTALinks(); updateLinksOnLoad(); });
-      } else {
-        setupCTALinks(); updateLinksOnLoad();
+      // Main initialization - fast and simple
+      function init() {
+        console.log('[Init] Running initialization...');
+        initTelegramWebApp();
+        setupCTALinks();
+        updateLinksOnLoad();
+        console.log('[Init] Initialization complete');
       }
+
+      // ALWAYS use window.load to ensure everything is ready (like test page)
+      win.addEventListener('load', () => {
+        console.log('[Init] window.load event - starting init');
+        init();
+      });
     })();
   </script>
 </head>
@@ -269,7 +381,173 @@ const utmParams = parseUTMFromURL(url);
     <slot />
   </main>
   
-  <!-- Client-side script consolidated above -->
+  <!-- Telegram WebApp initialization script - MUST be at end of body -->
+  <script is:inline>
+    (function() {
+      const win = window;
+      const doc = document;
+      
+      // Wait for Telegram WebApp to be available
+      function initTelegramApp() {
+        if (!win.Telegram?.WebApp) {
+          setTimeout(initTelegramApp, 50);
+          return;
+        }
+        
+        const tg = win.Telegram.WebApp;
+        console.log('[TG] Initializing v' + tg.version + ' on ' + tg.platform);
+        
+        // Initialize
+        tg.ready();
+        tg.expand();
+        tg.enableClosingConfirmation();
+        
+        // Update CSS variables with Telegram viewport data
+        if (tg.viewportHeight) {
+          doc.documentElement.style.setProperty('--tg-viewport-height', tg.viewportHeight + 'px');
+        }
+        if (tg.viewportStableHeight) {
+          doc.documentElement.style.setProperty('--tg-viewport-stable-height', tg.viewportStableHeight + 'px');
+        }
+        
+        // Update safe area insets if available
+        if (tg.safeAreaInset) {
+          doc.documentElement.style.setProperty('--tg-safe-area-inset-top', tg.safeAreaInset.top + 'px');
+          doc.documentElement.style.setProperty('--tg-safe-area-inset-bottom', tg.safeAreaInset.bottom + 'px');
+          doc.documentElement.style.setProperty('--tg-safe-area-inset-left', tg.safeAreaInset.left + 'px');
+          doc.documentElement.style.setProperty('--tg-safe-area-inset-right', tg.safeAreaInset.right + 'px');
+        }
+        
+        // Listen for viewport changes
+        tg.onEvent('viewportChanged', () => {
+          if (tg.viewportHeight) {
+            doc.documentElement.style.setProperty('--tg-viewport-height', tg.viewportHeight + 'px');
+          }
+          if (tg.viewportStableHeight) {
+            doc.documentElement.style.setProperty('--tg-viewport-stable-height', tg.viewportStableHeight + 'px');
+          }
+        });
+        
+        // Bot API 7.7+: Disable vertical swipes
+        if (typeof tg.disableVerticalSwipes === 'function') {
+          tg.disableVerticalSwipes();
+        }
+        
+        // Bot API 8.0+: Request fullscreen
+        if (typeof tg.requestFullscreen === 'function') {
+          try {
+            tg.requestFullscreen();
+          } catch (err) {
+            console.warn('[TG] Fullscreen error:', err);
+          }
+        }
+        
+        // Setup haptics for interactive elements
+        const haptics = tg.HapticFeedback;
+        if (haptics) {
+          // Light haptic on all clickable elements
+          const clickableSelectors = [
+            'button',
+            'a[href]',
+            'a[data-cta]',
+            '[role="button"]',
+            '.btn-capsule',
+            '.proof-item',
+            '.step-card'
+          ].join(', ');
+          
+          doc.querySelectorAll(clickableSelectors).forEach(el => {
+            el.addEventListener('touchstart', () => {
+              try {
+                haptics.impactOccurred('light');
+              } catch (e) {}
+            }, { passive: true });
+          });
+          
+          // Medium haptic on CTA buttons (on click)
+          doc.querySelectorAll('a[data-cta], .btn-capsule').forEach(el => {
+            el.addEventListener('click', () => {
+              try {
+                haptics.impactOccurred('medium');
+              } catch (e) {}
+            });
+          });
+          
+          // Expose global haptics helper
+          win.triggerHaptic = (type = 'medium') => {
+            try {
+              if (type === 'selection') haptics.selectionChanged();
+              else if (type === 'success') haptics.notificationOccurred('success');
+              else if (type === 'warning') haptics.notificationOccurred('warning');
+              else if (type === 'error') haptics.notificationOccurred('error');
+              else haptics.impactOccurred(type);
+            } catch (e) {}
+          };
+        }
+        
+        console.log('[TG] ✅ Ready');
+        
+        // Setup touch events for interactive elements (replace hover)
+        doc.querySelectorAll('.reveal-up, .proof-item, .step-card, .cta-section').forEach(el => {
+          el.addEventListener('touchstart', () => {
+            el.classList.add('touch-active');
+          }, { passive: true });
+          
+          el.addEventListener('touchend', () => {
+            setTimeout(() => el.classList.remove('touch-active'), 150);
+          }, { passive: true });
+        });
+      }
+      
+      // Start initialization
+      initTelegramApp();
+    })();
+  </script>
+  
+  <!-- Touch interaction styles for Telegram -->
+  <style>
+    /* Touch feedback for all interactive elements */
+    .touch-active {
+      transform: scale(0.97);
+      opacity: 0.85;
+      transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Enhanced touch feedback for buttons */
+    button.touch-active,
+    .btn-capsule.touch-active,
+    a[data-cta].touch-active {
+      transform: scale(0.95);
+      opacity: 0.9;
+    }
+    
+    /* Disable hover effects in Telegram (they don't work) */
+    @media (hover: none) {
+      *:hover {
+        transform: none !important;
+      }
+      
+      .reveal-up:hover,
+      .proof-item:hover,
+      .step-card:hover,
+      .btn-capsule:hover,
+      button:hover,
+      a:hover {
+        transform: none !important;
+        box-shadow: none !important;
+      }
+    }
+    
+    /* Better touch targets for Telegram */
+    @media (hover: none) and (pointer: coarse) {
+      button,
+      a[href],
+      .btn-capsule {
+        min-height: 44px;
+        min-width: 44px;
+      }
+    }
+  </style>
 </body>
 </html>
 

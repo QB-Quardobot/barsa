@@ -42,6 +42,11 @@ export interface WebApp {
   headerColor: string;
   backgroundColor: string;
   isClosingConfirmationEnabled: boolean;
+  // Bot API 7.7+
+  isVerticalSwipesEnabled: boolean;
+  // Bot API 8.0+
+  isFullscreen: boolean;
+  isActive: boolean;
   BackButton: BackButton;
   MainButton: MainButton;
   HapticFeedback: HapticFeedback;
@@ -64,16 +69,18 @@ export interface WebApp {
   close(): void;
   enableClosingConfirmation(): void;
   disableClosingConfirmation(): void;
+  // Bot API 7.7+ - Vertical swipes control
   enableVerticalSwipes(): void;
   disableVerticalSwipes(): void;
+  // Bot API 8.0+ - Fullscreen mode
+  requestFullscreen(): void;
+  exitFullscreen(): void;
   setHeaderColor(color: 'bg_color' | 'secondary_bg_color' | string): void;
   setBackgroundColor(color: string): void;
   onEvent(eventType: string, eventHandler: Function): void;
   offEvent(eventType: string, eventHandler: Function): void;
   sendData(data: string): void;
   switchInlineQuery(query: string, choose_chat_types?: string[]): void;
-  openLink(url: string, options?: { try_instant_view?: boolean }): void;
-  openTelegramLink(url: string): void;
 }
 
 export interface BackButton {
@@ -167,6 +174,20 @@ export function initTelegramWebApp(): void {
   
   // Enable closing confirmation
   webApp.enableClosingConfirmation();
+  
+  // Bot API 7.7+: Disable vertical swipes to prevent accidental closing
+  if (typeof webApp.disableVerticalSwipes === 'function') {
+    webApp.disableVerticalSwipes();
+  }
+  
+  // Bot API 8.0+: Request fullscreen mode for immersive experience
+  if (typeof webApp.requestFullscreen === 'function') {
+    try {
+      webApp.requestFullscreen();
+    } catch (e) {
+      console.warn('Fullscreen request failed:', e);
+    }
+  }
 }
 
 /**

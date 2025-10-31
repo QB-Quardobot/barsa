@@ -7,11 +7,14 @@
 ## Возможности
 
 ✅ **Автоинициализация** — `Telegram.WebApp.ready()` и `Telegram.WebApp.expand()`  
+✅ **Полноэкранный режим** — `Telegram.WebApp.requestFullscreen()` (Bot API 8.0+)  
+✅ **Запрет свайпа** — `Telegram.WebApp.disableVerticalSwipes()` (Bot API 7.7+)  
 ✅ **Автонастройка темы** — `Telegram.WebApp.colorScheme` и `themeParams`  
 ✅ **Подписка на изменения темы** — `themeChanged` event  
+✅ **Подписка на fullscreen события** — `fullscreenChanged`, `fullscreenFailed` events  
 ✅ **Специальная обработка CTA** — `Telegram.WebApp.openLink()` в Telegram  
 ✅ **Fallback для браузера** — обычные `<a target="_blank">` вне Telegram  
-✅ **Баннер "Открой в Telegram"** — автоматически показывается в браузере
+✅ **Баннер "Открй в Telegram"** — автоматически показывается в браузере
 
 ## Файлы
 
@@ -50,6 +53,8 @@ hapticFeedback('medium');
 - `Telegram.WebApp.ready()` — готовность к работе
 - `Telegram.WebApp.expand()` — расширение на весь экран
 - `enableClosingConfirmation()` — подтверждение закрытия
+- `disableVerticalSwipes()` — запрет свайпов для закрытия (Bot API 7.7+)
+- `requestFullscreen()` — полноэкранный режим (Bot API 8.0+)
 
 **Автонастройка темы:**
 - Применение цветов из `themeParams` к CSS-переменным
@@ -118,30 +123,43 @@ hapticFeedback('medium');
 
 ### Основные методы
 
-| Метод | Описание |
-|-------|----------|
-| `Telegram.WebApp.ready()` | Готовность к работе |
-| `Telegram.WebApp.expand()` | Расширение на весь экран |
-| `Telegram.WebApp.close()` | Закрытие WebApp |
-| `Telegram.WebApp.openLink(url)` | Открытие ссылки |
-| `Telegram.WebApp.sendData(data)` | Отправка данных боту |
-| `Telegram.WebApp.enableClosingConfirmation()` | Подтверждение закрытия |
-| `Telegram.WebApp.onEvent(event, handler)` | Подписка на события |
+| Метод | Описание | Bot API |
+|-------|----------|---------|
+| `Telegram.WebApp.ready()` | Готовность к работе | — |
+| `Telegram.WebApp.expand()` | Расширение на весь экран | — |
+| `Telegram.WebApp.close()` | Закрытие WebApp | — |
+| `Telegram.WebApp.openLink(url)` | Открытие ссылки | — |
+| `Telegram.WebApp.sendData(data)` | Отправка данных боту | — |
+| `Telegram.WebApp.enableClosingConfirmation()` | Подтверждение закрытия | — |
+| `Telegram.WebApp.disableVerticalSwipes()` | Запретить свайпы для закрытия | 7.7+ |
+| `Telegram.WebApp.enableVerticalSwipes()` | Включить свайпы для закрытия | 7.7+ |
+| `Telegram.WebApp.requestFullscreen()` | Включить полноэкранный режим | 8.0+ |
+| `Telegram.WebApp.exitFullscreen()` | Выйти из полноэкранного режима | 8.0+ |
+| `Telegram.WebApp.onEvent(event, handler)` | Подписка на события | — |
 
 ### События
 
-- `themeChanged` — изменение темы
-- `viewportChanged` — изменение viewport
-- `mainButtonClicked` — клик по кнопке
+| Событие | Описание | Bot API |
+|---------|----------|---------|
+| `themeChanged` | Изменение темы | — |
+| `viewportChanged` | Изменение viewport | — |
+| `mainButtonClicked` | Клик по кнопке | — |
+| `fullscreenChanged` | Изменение полноэкранного режима | 8.0+ |
+| `fullscreenFailed` | Ошибка полноэкранного режима | 8.0+ |
 
 ### Свойства
 
-- `colorScheme` — 'light' | 'dark'
-- `themeParams` — цвета темы
-- `isExpanded` — развёрнуто ли на весь экран
-- `platform` — платформа (web, ios, android, etc)
-- `initData` — данные инициализации
-- `initDataUnsafe` — данные пользователя
+| Свойство | Описание | Bot API |
+|----------|----------|---------|
+| `colorScheme` | 'light' \| 'dark' | — |
+| `themeParams` | Цвета темы | — |
+| `isExpanded` | Развёрнуто ли на весь экран | — |
+| `isVerticalSwipesEnabled` | Разрешены ли свайпы | 7.7+ |
+| `isFullscreen` | Полноэкранный режим | 8.0+ |
+| `isActive` | Приложение активно | 8.0+ |
+| `platform` | Платформа (web, ios, android) | — |
+| `initData` | Данные инициализации | — |
+| `initDataUnsafe` | Данные пользователя | — |
 
 ## Тестирование
 
@@ -200,6 +218,68 @@ window.Telegram = {
 // Перезагрузите страницу
 location.reload();
 ```
+
+## Полноэкранный режим и запрет свайпов
+
+### Полноэкранный режим (Bot API 8.0+)
+
+Полноэкранный режим расширяет приложение на весь экран устройства, скрывая верхнюю и нижнюю панели Telegram. Идеально подходит для игр и медиа-контента.
+
+**Автоматическая активация:**
+```javascript
+// Вызывается автоматически при инициализации в Base.astro
+Telegram.WebApp.requestFullscreen();
+```
+
+**Ручное управление:**
+```javascript
+// Включить полноэкранный режим
+window.requestAppFullscreen();
+
+// Выйти из полноэкранного режима
+window.exitAppFullscreen();
+
+// Проверить статус
+console.log(Telegram.WebApp.isFullscreen);
+```
+
+**События:**
+```javascript
+Telegram.WebApp.onEvent('fullscreenChanged', () => {
+  console.log('Fullscreen:', Telegram.WebApp.isFullscreen);
+});
+
+Telegram.WebApp.onEvent('fullscreenFailed', (error) => {
+  console.warn('Fullscreen failed:', error);
+});
+```
+
+### Запрет свайпов (Bot API 7.7+)
+
+Отключение вертикальных свайпов предотвращает случайное закрытие приложения при взаимодействии с контентом.
+
+**Автоматическая активация:**
+```javascript
+// Вызывается автоматически при инициализации в Base.astro
+Telegram.WebApp.disableVerticalSwipes();
+```
+
+**Ручное управление:**
+```javascript
+// Запретить свайпы
+Telegram.WebApp.disableVerticalSwipes();
+
+// Включить свайпы обратно
+Telegram.WebApp.enableVerticalSwipes();
+
+// Проверить статус
+console.log(Telegram.WebApp.isVerticalSwipesEnabled);
+```
+
+**Важно:**
+- Пользователь всегда может закрыть приложение через заголовок Mini App
+- `enableClosingConfirmation()` показывает подтверждение перед закрытием
+- Back Button (Android) перехватывается и показывает диалог подтверждения
 
 ## UTM + Telegram
 
