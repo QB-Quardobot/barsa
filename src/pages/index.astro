@@ -1024,11 +1024,46 @@ const DEBUG_MODE = false;
     max-width: 1200px;
     margin-left: auto;
     margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
   
-  /* === SECTION DIVIDER === */
+  @media (min-width: 640px) {
+    .container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .container {
+      padding-left: 2.5rem;
+      padding-right: 2.5rem;
+    }
+  }
+  
+  /* === SECTION STYLES === */
   section {
     position: relative;
+    width: 100%;
+    /* Ensure sections don't overflow */
+    overflow-x: hidden;
+  }
+  
+  /* Center all section content on desktop */
+  @media (min-width: 1024px) {
+    section > * {
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
   }
   
   section::after {
