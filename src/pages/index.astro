@@ -1007,6 +1007,27 @@ const DEBUG_MODE = false;
   } else {
     initLazyImages();
   }
+  
+  // Initialize reveal animations (non-blocking, after DOM ready)
+  (function() {
+    function initRevealAnimations() {
+      try {
+        // Use dynamic import (non-blocking, async)
+        import('../lib/reveal-init.js').catch(function(err) {
+          console.warn('[Reveal] Failed to load:', err);
+        });
+      } catch (e) {
+        console.warn('[Reveal] Init error:', e);
+      }
+    }
+    
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initRevealAnimations, { once: true });
+    } else {
+      // Delay slightly to not block initial render
+      setTimeout(initRevealAnimations, 100);
+    }
+  })();
 </script>
 
 <style>
