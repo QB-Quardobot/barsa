@@ -393,15 +393,15 @@
       // Silently fail
     }
     
-    // Return state object for external access
-    return tickerState;
-    
     // Cleanup on page unload
     const unloadHandler = () => {
       cleanup();
     };
     window.addEventListener('beforeunload', unloadHandler);
     registerCleanup(() => window.removeEventListener('beforeunload', unloadHandler));
+    
+    // Return state object for external access
+    return tickerState;
     
     // Start initialization - multiple strategies to ensure it runs
     function startInit() {
