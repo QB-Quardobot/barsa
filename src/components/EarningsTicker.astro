@@ -22,20 +22,25 @@
   (function() {
     // Wait for DOM to be ready
     function init() {
+      console.log('[EarningsTicker] Initializing...');
       const ticker = document.getElementById('earnings-ticker');
       const amountEl = document.getElementById('earnings-amount');
       const btn = ticker ? ticker.querySelector('.earnings-ticker-btn') : null;
       
+      console.log('[EarningsTicker] Elements:', { ticker: !!ticker, amountEl: !!amountEl, btn: !!btn });
+      
       if (!ticker || !amountEl || !btn) {
         // Retry if DOM not ready yet
         if (document.readyState === 'loading') {
+          console.log('[EarningsTicker] DOM loading, waiting for DOMContentLoaded');
           document.addEventListener('DOMContentLoaded', init);
           return;
         }
-        console.warn('[EarningsTicker] Elements not found');
+        console.warn('[EarningsTicker] Elements not found after retry');
         return;
       }
       
+      console.log('[EarningsTicker] All elements found, starting ticker');
       // Run main logic
       startTicker(ticker, amountEl, btn);
     }
@@ -55,7 +60,7 @@
     const TICK_INTERVAL = 2000;
     
     // Format number with commas
-    function formatAmount(num: number): string {
+    function formatAmount(num) {
       return num.toLocaleString('en-US');
     }
     
@@ -124,8 +129,14 @@
       const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
       
       if (scrollY >= SCROLL_THRESHOLD) {
+        if (!isVisible) {
+          console.log('[EarningsTicker] Showing ticker, scrollY:', scrollY);
+        }
         showTicker();
       } else {
+        if (isVisible) {
+          console.log('[EarningsTicker] Hiding ticker, scrollY:', scrollY);
+        }
         hideTicker();
       }
     }
@@ -177,11 +188,11 @@
         const targetScroll = targetRect.top + currentScroll;
         
         allRevealElements.forEach((el) => {
-          const elRect = (el as HTMLElement).getBoundingClientRect();
+          const elRect = el.getBoundingClientRect();
           const elScroll = elRect.top + currentScroll;
           
           if (elScroll >= currentScroll - 200 && elScroll <= targetScroll + 500) {
-            const element = el as HTMLElement;
+            const element = el;
             element.style.transition = 'none';
             element.style.opacity = '1';
             element.style.transform = 'none';

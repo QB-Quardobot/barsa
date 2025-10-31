@@ -141,7 +141,7 @@ const utmParams = parseUTMFromURL(url);
   <script is:inline src="https://telegram.org/js/telegram-web-app.js"></script>
   
   <!-- JSON-LD Schema -->
-  <script type="application/ld+json" is:inline>{JSON.stringify({
+  <script type="application/ld+json" set:html={JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'AI Model 2.0',
@@ -157,7 +157,7 @@ const utmParams = parseUTMFromURL(url);
       name: 'AI Model 2.0',
       url: Astro.url.origin
     }
-  })}</script>
+  })}></script>
   
   <!-- Pass UTM params to client -->
   <script define:vars={{ utmParams: JSON.stringify(utmParams) }}>
@@ -258,14 +258,14 @@ const utmParams = parseUTMFromURL(url);
         if (banner) banner.style.display = 'none';
 
         // Expose global helpers
-        (win as any).requestAppFullscreen = function() {
+        win.requestAppFullscreen = function() {
           if (typeof tg.requestFullscreen === 'function') {
             try { tg.requestFullscreen(); return true; } catch (e) { console.warn(e); }
           }
           return false;
         };
         
-        (win as any).exitAppFullscreen = function() {
+        win.exitAppFullscreen = function() {
           if (typeof tg.exitFullscreen === 'function') {
             try { tg.exitFullscreen(); return true; } catch (e) { console.warn(e); }
           }
@@ -273,7 +273,7 @@ const utmParams = parseUTMFromURL(url);
         };
         
         // Debug info (use getTelegramInfo() in console)
-        (win as any).getTelegramInfo = function() {
+        win.getTelegramInfo = function() {
           return !tg ? 'Not in Telegram' : {
             version: tg.version,
             platform: tg.platform,
@@ -293,10 +293,10 @@ const utmParams = parseUTMFromURL(url);
             else if (type === 'success') haptics.notificationOccurred('success');
             else if (type === 'warning') haptics.notificationOccurred('warning');
             else if (type === 'error') haptics.notificationOccurred('error');
-            else haptics.impactOccurred(type as any);
+            else haptics.impactOccurred(type);
           } catch {}
         };
-        (win as any).triggerAppHaptic = triggerHaptic;
+        win.triggerAppHaptic = triggerHaptic;
 
         // Prevent closing by swipe/back button
         try {
@@ -341,10 +341,10 @@ const utmParams = parseUTMFromURL(url);
         doc.querySelectorAll('[data-fullscreen]')?.forEach(btn => {
           btn.addEventListener('click', () => {
             let ok = false;
-            if (tg) { try { ok = (win as any).requestAppFullscreen?.() || false; } catch {} }
+            if (tg) { try { ok = (win.requestAppFullscreen && win.requestAppFullscreen()) || false; } catch {} }
             if (!ok) {
               // Desktop fallback via Fullscreen API (must be user gesture)
-              const el = doc.documentElement as any;
+              const el = doc.documentElement;
               const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
               if (req) try { req.call(el); } catch {}
             }
