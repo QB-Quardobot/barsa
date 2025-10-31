@@ -597,32 +597,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       // Initialize performance monitoring (async, non-blocking)
       // Disabled in production builds to avoid module loading issues
       // Performance monitoring can be enabled via separate script if needed
-      if (typeof window !== 'undefined' && false) { // Disabled for now
-        // Use setTimeout to defer initialization and not block page load
-        setTimeout(function() {
-          try {
-            // Dynamic import to avoid blocking initial load
-            // Only load if module path is available
-            if (typeof import !== 'undefined') {
-              import('../lib/performance-monitor.js').then(function(module) {
-                if (module && module.getPerformanceMonitor) {
-                  const perfMonitor = module.getPerformanceMonitor({
-                    logToConsole: false,
-                    sendToAnalytics: true
-                  });
-                  win.__performanceMonitor = perfMonitor;
-                }
-              }).catch(function(err) {
-                // Silently fail if module not available
-                logger.warn('[Performance] Monitor not available:', err);
-              });
-            }
-          } catch (e) {
-            // Silently fail
-            logger.warn('[Performance] Monitor init failed:', e);
-          }
-        }, 1000); // Delay 1 second to not interfere with page load
-      }
+      // NOTE: Dynamic import() is not available in inline scripts, disabled for now
       
       // Main initialization - fast and simple
       function init() {
@@ -744,7 +719,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       // Wait for Telegram WebApp to be available
       function initTelegramApp() {
         // Ensure logger is available (use closure logger or win.logger as fallback)
-        const log = logger || win.logger || {
+        const initLogger = logger || win.logger || {
           log: function() {},
           warn: function() {},
           error: function() { console.error(...arguments); }
@@ -763,7 +738,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         }
         
         const tg = win.Telegram.WebApp;
-        log.log('[TG] Initializing v' + tg.version + ' on ' + tg.platform);
+        initLogger.log('[TG] Initializing v' + tg.version + ' on ' + tg.platform);
         
         // Ensure class is added (double-check)
         if (!doc.body.classList.contains('tg-webapp')) {
@@ -811,14 +786,20 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           try {
             tg.requestFullscreen();
           } catch (err) {
-            const log = logger || win.logger || { warn: function() {} };
-            log.warn('[TG] Fullscreen error:', err);
+            hapticLogger.warn('[TG] Fullscreen error:', err);
           }
         }
         
         // Setup haptics for interactive elements (excluding CTA links - handled separately)
         const haptics = tg.HapticFeedback;
         const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        // Ensure logger is available for this scope
+        const hapticLogger = logger || win.logger || {
+          log: function() {},
+          warn: function() {},
+          error: function() { console.error(...arguments); }
+        };
         
         // Always setup haptics if available (even if not touch device - for desktop Telegram)
         if (haptics) {
@@ -932,8 +913,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                   addHapticToElement(el);
                 });
               } catch (e) {
-                const log = logger || win.logger || { warn: function() {} };
-                log.warn('[TG] Haptic setup error for selector:', selector, e);
+                hapticLogger.warn('[TG] Haptic setup error for selector:', selector, e);
               }
             });
           }
@@ -1035,8 +1015,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           };
         }
         
-        const log = logger || win.logger || { log: function() {} };
-        log.log('[TG] ✅ Ready');
+        hapticLogger.log('[TG] ✅ Ready');
         
         // Setup touch events for interactive elements (replace hover)
         // Visual feedback for touch interactions
