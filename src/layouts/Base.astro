@@ -17,6 +17,10 @@ const fullTitle = `${title} | Product`;
 // Get UTM parameters from URL
 const url = Astro.url.toString();
 const utmParams = parseUTMFromURL(url);
+
+// Analytics IDs (set via environment variables or public env)
+const GA4_MEASUREMENT_ID = import.meta.env.PUBLIC_GA4_MEASUREMENT_ID || null;
+const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
 ---
 
 <!DOCTYPE html>
@@ -75,6 +79,16 @@ const utmParams = parseUTMFromURL(url);
   <link rel="preconnect" href="https://telegram.org" crossorigin>
   <link rel="dns-prefetch" href="//telegram.org">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+  <link rel="preconnect" href="https://mc.yandex.ru" crossorigin>
+  
+  {/* Analytics configuration - IDs passed to client script */}
+  {GA4_MEASUREMENT_ID && (
+    <script type="text/plain" data-ga4-id={GA4_MEASUREMENT_ID}></script>
+  )}
+  {YM_COUNTER_ID && (
+    <script type="text/plain" data-ym-id={YM_COUNTER_ID}></script>
+  )}
   
   <!-- Telegram Mini App Safe Area Support -->
   <style>
@@ -314,66 +328,39 @@ const utmParams = parseUTMFromURL(url);
         return true;
       }
 
-      // Enhanced click tracking with analytics module
-      // Note: For full analytics features, import from src/lib/analytics.ts
+      // Track click with Google Analytics 4 & Яндекс.Метрика
       function trackClick(href, buttonText) {
         try {
-          const clickData = {
-            type: 'cta',
-            label: buttonText || '',
-            url: href,
-            timestamp: Date.now(),
-            userAgent: navigator.userAgent,
-            platform: tg ? tg.platform : 'web',
-            version: tg ? tg.version : 'unknown'
-          };
+          // Get UTM params from sessionStorage
+          const utmParams = getStoredUTM();
           
-          // Store in sessionStorage for analytics (compatibility)
-          const clicks = JSON.parse(sessionStorage.getItem('cta_clicks') || '[]');
-          clicks.push(clickData);
-          sessionStorage.setItem('cta_clicks', JSON.stringify(clicks.slice(-50))); // Keep last 50
-          
-          // Enhanced analytics: send to Telegram bot
-          if (tg && typeof tg.sendData === 'function') {
-            try {
-              // Get UTM params
-              const utmParams = getStoredUTM();
-              
-              // Send structured event to bot
-              const eventData = {
-                event: 'click',
-                type: 'cta',
-                label: buttonText || '',
-                href: href,
-                timestamp: Date.now(),
-                sessionId: sessionStorage.getItem('analytics_session_id') || 'unknown',
-                userId: tg.initDataUnsafe?.user?.id?.toString(),
-                platform: tg.platform,
-                version: tg.version,
-                ...(utmParams.utm_source && { utm_source: utmParams.utm_source }),
-                ...(utmParams.utm_medium && { utm_medium: utmParams.utm_medium }),
-                ...(utmParams.utm_campaign && { utm_campaign: utmParams.utm_campaign }),
-              };
-              
-              tg.sendData(JSON.stringify(eventData));
-            } catch (err) {
-              // Fallback: send minimal data
-              try {
-                tg.sendData(JSON.stringify({ event: 'cta_click', href: href, label: buttonText }));
-              } catch {}
-            }
+          // Google Analytics 4: Track CTA click event
+          if (typeof gtag !== 'undefined' && gtag) {
+            gtag('event', 'cta_click', {
+              event_category: 'CTA',
+              event_label: buttonText || '',
+              link_url: href,
+              ...(utmParams.utm_source && { utm_source: utmParams.utm_source }),
+              ...(utmParams.utm_medium && { utm_medium: utmParams.utm_medium }),
+              ...(utmParams.utm_campaign && { utm_campaign: utmParams.utm_campaign }),
+              ...(utmParams.utm_term && { utm_term: utmParams.utm_term }),
+              ...(utmParams.utm_content && { utm_content: utmParams.utm_content }),
+            });
           }
           
-          // Optional: Send to server analytics endpoint
-          // Uncomment and configure if you have a server endpoint:
-          // if (typeof fetch !== 'undefined') {
-          //   fetch('/api/analytics/click', {
-          //     method: 'POST',
-          //     headers: { 'Content-Type': 'application/json' },
-          //     body: JSON.stringify(clickData),
-          //     keepalive: true
-          //   }).catch(() => {});
-          // }
+          // Яндекс.Метрика: Track goal (cta_click)
+          if (typeof ym !== 'undefined' && ym && window.ym) {
+            // Get counter ID from ym function (first initialized counter)
+            if (window.ym.a && window.ym.a.length > 0 && window.ym.a[0][0]) {
+              const ymId = window.ym.a[0][0];
+              try {
+                window.ym(ymId, 'reachGoal', 'cta_click', {
+                  label: buttonText || '',
+                  href: href,
+                });
+              } catch (e) {}
+            }
+          }
         } catch (e) {
           // Silent fail for analytics
         }
@@ -460,10 +447,91 @@ const utmParams = parseUTMFromURL(url);
         });
       }
 
+      // Initialize Google Analytics 4 & Яндекс.Метрика
+      function initAnalytics() {
+        // Get IDs from script tag (injected by Astro)
+        const ga4IdEl = doc.querySelector('script[data-ga4-id]');
+        const ymIdEl = doc.querySelector('script[data-ym-id]');
+        const ga4Id = ga4IdEl ? ga4IdEl.getAttribute('data-ga4-id') : null;
+        const ymId = ymIdEl ? ymIdEl.getAttribute('data-ym-id') : null;
+        
+        // Google Analytics 4
+        if (ga4Id && typeof window !== 'undefined') {
+          try {
+            // Load gtag.js
+            const script = document.createElement('script');
+            script.async = true;
+            script.src = 'https://www.googletagmanager.com/gtag/js?id=' + ga4Id;
+            document.head.appendChild(script);
+            
+            // Initialize dataLayer
+            window.dataLayer = window.dataLayer || [];
+            window.gtag = function() {
+              if (window.dataLayer) {
+                window.dataLayer.push(arguments);
+              }
+            };
+            
+            window.gtag('js', new Date());
+            window.gtag('config', ga4Id, {
+              send_page_view: true,
+              page_location: window.location.href,
+              page_title: document.title,
+            });
+            
+            // Track initial page view with UTM (GA4 automatically captures UTM from URL)
+            setTimeout(() => {
+              const utmParams = getStoredUTM();
+              const urlParams = new URLSearchParams(window.location.search);
+              
+              // UTM уже передаются автоматически через page_location, но можно явно указать
+              if (window.gtag) {
+                window.gtag('event', 'page_view', {
+                  page_path: window.location.pathname + window.location.search,
+                  page_title: document.title,
+                });
+              }
+            }, 100);
+          } catch (e) {
+            console.warn('[Analytics] GA4 init failed:', e);
+          }
+        }
+        
+        // Яндекс.Метрика
+        if (ymId && typeof window !== 'undefined') {
+          try {
+            const counterId = Number(ymId);
+            
+            // Create ym function
+            (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+            m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+            (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+            
+            // Initialize counter
+            if (window.ym) {
+              window.ym(counterId, "init", {
+                clickmap: true,
+                trackLinks: true,
+                accurateTrackBounce: true,
+                webvisor: true
+              });
+            }
+            
+            // Create noscript fallback
+            const noscript = document.createElement('noscript');
+            noscript.innerHTML = '<div><img src="https://mc.yandex.ru/watch/' + counterId + '" style="position:absolute; left:-9999px;" alt="" /></div>';
+            document.body.appendChild(noscript);
+          } catch (e) {
+            console.warn('[Analytics] Yandex Metrika init failed:', e);
+          }
+        }
+      }
+
       // Main initialization - fast and simple
       function init() {
         console.log('[Init] Running initialization...');
         initTelegramWebApp();
+        initAnalytics();
         setupCTALinks();
         updateLinksOnLoad();
         console.log('[Init] Initialization complete');
