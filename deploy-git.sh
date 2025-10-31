@@ -189,6 +189,12 @@ configure_nginx() {
         DOMAIN="illariooo.ru"
         DEPLOY_PATH="/var/www/${DOMAIN}"
         
+        echo "🔒 Creating temporary self-signed certificate..."
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+            -keyout /etc/ssl/private/nginx-selfsigned.key \
+            -out /etc/ssl/certs/nginx-selfsigned.crt \
+            -subj "/C=RU/ST=Moscow/L=Moscow/O=Dev/CN=illariooo.ru"
+        
         echo "📝 Creating Nginx configuration..."
         cat > /etc/nginx/sites-available/${DOMAIN} << 'EOF'
 # AI Model 2.0 Landing - Production Configuration
@@ -232,9 +238,10 @@ server {
     root /var/www/illariooo.ru/dist;
     index index.html;
     
-    # SSL Configuration (will be updated by certbot)
-    ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
-    ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
+    # SSL Configuration (will be added by certbot)
+    # Temporary self-signed cert for initial config
+    ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
+    ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
     
     # SSL Security - Modern Configuration
     ssl_protocols TLSv1.2 TLSv1.3;
@@ -349,8 +356,8 @@ server {
     listen [::]:443 ssl http2;
     server_name www.illariooo.ru;
     
-    ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
-    ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
+    ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
+    ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
     
     return 301 https://illariooo.ru$request_uri;
 }
