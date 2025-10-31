@@ -654,13 +654,11 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             el.setAttribute('data-haptic-attached', 'true');
             
             // Light haptic on touchstart
-            el.addEventListener('touchstart', function(e) {
+            el.addEventListener('touchstart', function() {
               try {
-                // Prevent event bubbling issues
-                e.stopPropagation();
                 haptics.impactOccurred('light');
               } catch (e) {}
-            }, { passive: true, capture: true });
+            }, { passive: true });
           }
           
           // Function to setup haptics for elements (with retry for dynamic content)
@@ -705,6 +703,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           setTimeout(setupHapticsForElements, 2000);
           
           // Event delegation as fallback (catches any missed elements)
+          // Use capture phase to catch events early
           doc.addEventListener('touchstart', function(e) {
             if (!haptics) return;
             
@@ -715,15 +714,20 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             const isInteractive = target.closest('.proof-item, .proof-image-placeholder, .student-photo, .student-circle, .banner-photo, .models-banner > div, .step-card, .benefit-item, .timeline-step, .founder-avatar, .photo-circle, .earning-corner');
             
             if (isInteractive) {
+              // Skip if already has direct listener (avoid double haptic)
+              if (isInteractive.hasAttribute('data-haptic-attached')) {
+                return; // Direct listener will handle it
+              }
+              
               // Add to element if not already added
               addHapticToElement(isInteractive);
               
-              // Trigger haptic immediately via delegation
+              // Trigger haptic immediately via delegation (only for elements without direct listener)
               try {
                 haptics.impactOccurred('light');
               } catch (err) {}
             }
-          }, { passive: true, capture: true });
+          }, { passive: true, capture: false });
           
           // Medium haptic on click for buttons (non-CTA)
           doc.querySelectorAll('button:not([data-cta]):not(.btn-capsule), [role="button"]:not([data-cta])').forEach(el => {
