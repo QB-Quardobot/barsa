@@ -67,8 +67,8 @@
         console.log('[EarningsTicker] Initialized successfully');
       }
       
-      // Run main logic (returns ticker state object)
-      const tickerState = startTicker(ticker, amountEl, btn);
+      // Run main logic
+      startTicker(ticker, amountEl, btn);
       
       // Force check initial scroll position after delays (in case page loads scrolled)
       setTimeout(() => {
@@ -90,9 +90,15 @@
       
       // Test: Force show ticker after 3 seconds regardless of scroll (for debugging)
       setTimeout(() => {
-        if (tickerState && !tickerState.isVisible && typeof console !== 'undefined') {
+        const tickerEl = document.getElementById('earnings-ticker');
+        if (tickerEl && !tickerEl.classList.contains('is-visible') && typeof console !== 'undefined') {
           console.warn('[EarningsTicker] Force showing after 3s (debug mode)');
-          showTicker();
+          // Access showTicker from startTicker's scope or call directly
+          const btn = tickerEl.querySelector('.earnings-ticker-btn');
+          if (btn) {
+            tickerEl.classList.add('is-visible');
+            console.log('[EarningsTicker] Manually added is-visible class');
+          }
         }
       }, 3000);
     }
@@ -103,9 +109,6 @@
       let isVisible = false;
       let scrollStartTime = null;
       let hasStarted = false;
-      
-      // Return state object so parent can access isVisible
-      const tickerState = { isVisible: false };
     
     // Scroll threshold to show ticker
     const SCROLL_THRESHOLD = 300;
@@ -180,10 +183,9 @@
     function showTicker() {
       if (isVisible) return;
       isVisible = true;
-      tickerState.isVisible = true;
       ticker.classList.add('is-visible');
       if (typeof console !== 'undefined' && console.log) {
-        console.log('[EarningsTicker] Showing ticker');
+        console.log('[EarningsTicker] Showing ticker, class added:', ticker.classList.contains('is-visible'));
       }
       startCounting();
     }
@@ -192,7 +194,6 @@
     function hideTicker() {
       if (!isVisible) return;
       isVisible = false;
-      tickerState.isVisible = false;
       ticker.classList.remove('is-visible');
       
       // Stop counting when hidden
@@ -399,9 +400,6 @@
     };
     window.addEventListener('beforeunload', unloadHandler);
     registerCleanup(() => window.removeEventListener('beforeunload', unloadHandler));
-    
-    // Return state object for external access
-    return tickerState;
     
     // Start initialization - multiple strategies to ensure it runs
     function startInit() {
