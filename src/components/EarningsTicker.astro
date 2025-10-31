@@ -67,8 +67,8 @@
         console.log('[EarningsTicker] Initialized successfully');
       }
       
-      // Run main logic
-      startTicker(ticker, amountEl, btn);
+      // Run main logic (returns ticker state object)
+      const tickerState = startTicker(ticker, amountEl, btn);
       
       // Force check initial scroll position after delays (in case page loads scrolled)
       setTimeout(() => {
@@ -90,7 +90,7 @@
       
       // Test: Force show ticker after 3 seconds regardless of scroll (for debugging)
       setTimeout(() => {
-        if (!isVisible && typeof console !== 'undefined') {
+        if (tickerState && !tickerState.isVisible && typeof console !== 'undefined') {
           console.warn('[EarningsTicker] Force showing after 3s (debug mode)');
           showTicker();
         }
@@ -103,6 +103,9 @@
       let isVisible = false;
       let scrollStartTime = null;
       let hasStarted = false;
+      
+      // Return state object so parent can access isVisible
+      const tickerState = { isVisible: false };
     
     // Scroll threshold to show ticker
     const SCROLL_THRESHOLD = 300;
@@ -177,6 +180,7 @@
     function showTicker() {
       if (isVisible) return;
       isVisible = true;
+      tickerState.isVisible = true;
       ticker.classList.add('is-visible');
       if (typeof console !== 'undefined' && console.log) {
         console.log('[EarningsTicker] Showing ticker');
@@ -188,6 +192,7 @@
     function hideTicker() {
       if (!isVisible) return;
       isVisible = false;
+      tickerState.isVisible = false;
       ticker.classList.remove('is-visible');
       
       // Stop counting when hidden
@@ -387,6 +392,9 @@
     } catch (e) {
       // Silently fail
     }
+    
+    // Return state object for external access
+    return tickerState;
     
     // Cleanup on page unload
     const unloadHandler = () => {

@@ -781,6 +781,13 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           tg.disableVerticalSwipes();
         }
         
+        // Ensure logger is available for this scope (BEFORE using it)
+        const hapticLogger = logger || win.logger || {
+          log: function() {},
+          warn: function() {},
+          error: function() { console.error(...arguments); }
+        };
+        
         // Bot API 8.0+: Request fullscreen
         if (typeof tg.requestFullscreen === 'function') {
           try {
@@ -793,13 +800,6 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         // Setup haptics for interactive elements (excluding CTA links - handled separately)
         const haptics = tg.HapticFeedback;
         const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        
-        // Ensure logger is available for this scope
-        const hapticLogger = logger || win.logger || {
-          log: function() {},
-          warn: function() {},
-          error: function() { console.error(...arguments); }
-        };
         
         // Always setup haptics if available (even if not touch device - for desktop Telegram)
         if (haptics) {

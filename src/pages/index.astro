@@ -1009,13 +1009,23 @@ const DEBUG_MODE = false;
   }
   
   // Initialize reveal animations (non-blocking, after DOM ready)
+  // Note: Using setTimeout to avoid blocking, import will be handled by Astro's module system
   (function() {
     function initRevealAnimations() {
       try {
-        // Use dynamic import (non-blocking, async)
-        import('../lib/reveal-init.js').catch(function(err) {
-          console.warn('[Reveal] Failed to load:', err);
-        });
+        // Check if reveal is already initialized
+        if (window.revealInstance) {
+          return; // Already initialized
+        }
+        
+        // Try to access reveal instance from global
+        if (typeof window.initReveal === 'function') {
+          window.initReveal();
+        } else {
+          // Fallback: reveal-init.js will auto-initialize when loaded
+          // Just ensure the script is loaded (Astro handles this)
+          console.log('[Reveal] Waiting for reveal-init.js to load...');
+        }
       } catch (e) {
         console.warn('[Reveal] Init error:', e);
       }
