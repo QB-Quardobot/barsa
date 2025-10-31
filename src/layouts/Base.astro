@@ -743,6 +743,13 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       
       // Wait for Telegram WebApp to be available
       function initTelegramApp() {
+        // Ensure logger is available (use closure logger or win.logger as fallback)
+        const log = logger || win.logger || {
+          log: function() {},
+          warn: function() {},
+          error: function() { console.error(...arguments); }
+        };
+        
         if (!win.Telegram?.WebApp) {
           // Retry for up to 5 seconds
           if (typeof initTelegramApp.retries === 'undefined') {
@@ -756,7 +763,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         }
         
         const tg = win.Telegram.WebApp;
-        logger.log('[TG] Initializing v' + tg.version + ' on ' + tg.platform);
+        log.log('[TG] Initializing v' + tg.version + ' on ' + tg.platform);
         
         // Ensure class is added (double-check)
         if (!doc.body.classList.contains('tg-webapp')) {
