@@ -957,47 +957,58 @@ const DEBUG_MODE = false;
   } else {
     domReadyHandler();
   }
-    
-    // Optimize lazy-loaded images to prevent white flash
-    const lazyImages = document.querySelectorAll('img[loading="lazy"]');
-    
-    if ('IntersectionObserver' in window) {
-      const imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target as HTMLImageElement;
-            
-            // If image is already loaded, show it immediately
-            if (img.complete && img.naturalHeight !== 0) {
-              img.classList.add('loaded');
-              observer.unobserve(img);
-            } else {
-              // Wait for image to load
-              img.addEventListener('load', () => {
-                img.classList.add('loaded');
-              }, { once: true });
-              
-              img.addEventListener('error', () => {
-                // Handle error - still show image to prevent white space
-                img.classList.add('loaded');
-              }, { once: true });
-            }
-            
-            observer.unobserve(img);
-          }
-        });
-      }, {
-        rootMargin: '50px' // Start loading images 50px before they enter viewport
-      });
+  
+  // Optimize lazy-loaded images to prevent white flash
+  function initLazyImages() {
+    try {
+      const lazyImages = document.querySelectorAll('img[loading="lazy"]');
       
-      lazyImages.forEach(img => imageObserver.observe(img));
-    } else {
-      // Fallback: show all images immediately
-      lazyImages.forEach(img => {
-        (img as HTMLImageElement).classList.add('loaded');
-      });
+      if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const img = entry.target as HTMLImageElement;
+              
+              // If image is already loaded, show it immediately
+              if (img.complete && img.naturalHeight !== 0) {
+                img.classList.add('loaded');
+                observer.unobserve(img);
+              } else {
+                // Wait for image to load
+                img.addEventListener('load', () => {
+                  img.classList.add('loaded');
+                }, { once: true });
+                
+                img.addEventListener('error', () => {
+                  // Handle error - still show image to prevent white space
+                  img.classList.add('loaded');
+                }, { once: true });
+              }
+              
+              observer.unobserve(img);
+            }
+          });
+        }, {
+          rootMargin: '50px' // Start loading images 50px before they enter viewport
+        });
+        
+        lazyImages.forEach(img => imageObserver.observe(img));
+      } else {
+        // Fallback: show all images immediately
+        lazyImages.forEach(img => {
+          (img as HTMLImageElement).classList.add('loaded');
+        });
+      }
+    } catch (e) {
+      // Silently fail
     }
-  });
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initLazyImages, { once: true });
+  } else {
+    initLazyImages();
+  }
 </script>
 
 <style>
