@@ -59,12 +59,17 @@
         return;
       }
       
+      // Mark as initialized
+      ticker.classList.add('is-initialized');
+      
       // Run main logic
       startTicker(ticker, amountEl, btn);
       
-      // Force check initial scroll position after a delay (in case page loads scrolled)
+      // Force check initial scroll position after delays (in case page loads scrolled)
+      setTimeout(checkInitialScroll, 100);
       setTimeout(checkInitialScroll, 500);
       setTimeout(checkInitialScroll, 1000);
+      setTimeout(checkInitialScroll, 2000);
     }
     
     function startTicker(ticker, amountEl, btn) {
@@ -353,24 +358,46 @@
     window.addEventListener('beforeunload', unloadHandler);
     registerCleanup(() => window.removeEventListener('beforeunload', unloadHandler));
     
-    // Start initialization
+    // Start initialization - multiple strategies to ensure it runs
+    function startInit() {
+      try {
+        init();
+      } catch (e) {
+        console.warn('[EarningsTicker] Init error:', e);
+      }
+    }
+    
+    // Strategy 1: If DOM is loading, wait for DOMContentLoaded
     if (document.readyState === 'loading') {
       const domReadyHandler = () => {
-        init();
+        startInit();
       };
       document.addEventListener('DOMContentLoaded', domReadyHandler);
       registerCleanup(() => document.removeEventListener('DOMContentLoaded', domReadyHandler));
     } else {
-      // DOM already ready, but wait a tick for Astro hydration
-      const initTimeout = setTimeout(() => {
-        try {
-          init();
-        } catch (e) {
-          // Silently fail
-        }
-      }, 50);
-      registerCleanup(() => clearTimeout(initTimeout));
+      // Strategy 2: DOM already ready - try immediately
+      startInit();
     }
+    
+    // Strategy 3: Also try after window load (backup)
+    const loadHandler = () => {
+      // Double-check if ticker wasn't initialized (elements might not have been ready)
+      const ticker = document.getElementById('earnings-ticker');
+      if (ticker && !ticker.classList.contains('is-initialized')) {
+        startInit();
+      }
+    };
+    window.addEventListener('load', loadHandler);
+    registerCleanup(() => window.removeEventListener('load', loadHandler));
+    
+    // Strategy 4: Fallback timeout (ensure it runs even if events fail)
+    const fallbackTimeout = setTimeout(() => {
+      const ticker = document.getElementById('earnings-ticker');
+      if (ticker && !ticker.classList.contains('is-initialized')) {
+        startInit();
+      }
+    }, 1000);
+    registerCleanup(() => clearTimeout(fallbackTimeout));
   })();
 </script>
 
@@ -417,6 +444,12 @@
     pointer-events: all !important;
     visibility: visible !important;
     display: block !important;
+  }
+  
+  /* Ensure ticker is visible during initialization */
+  .earnings-ticker.is-initialized {
+    /* Keep default hidden state, but ensure it can become visible */
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
   }
   
   .earnings-ticker-btn {
