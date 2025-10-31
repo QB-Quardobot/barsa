@@ -186,6 +186,31 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       const doc = document;
       let tg = null; // Telegram WebApp instance
       
+      // Production-safe logger
+      const isDev = win.location.hostname === 'localhost' || win.location.hostname === '127.0.0.1' || win.location.hostname.includes('.ngrok.io') || win.location.hostname.includes('.trycloudflare.com');
+      const logger = {
+        log: function(...args) { if (isDev) console.log(...args); },
+        warn: function(...args) { if (isDev) console.warn(...args); },
+        error: function(...args) { console.error(...args); }
+      };
+      
+      // Cleanup registry
+      const cleanupFunctions = [];
+      function registerCleanup(fn) {
+        cleanupFunctions.push(fn);
+        return function() {
+          const index = cleanupFunctions.indexOf(fn);
+          if (index > -1) cleanupFunctions.splice(index, 1);
+        };
+      }
+      
+      // Cleanup on unload
+      const unloadCleanup = function() {
+        cleanupFunctions.forEach(function(fn) { try { fn(); } catch (e) {} });
+        cleanupFunctions.length = 0;
+      };
+      win.addEventListener('beforeunload', unloadCleanup);
+      
       // UTM helpers
       const storedUtmKey = 'utm_params';
       const utm = (win.utmParams && typeof win.utmParams === 'object') ? win.utmParams : {};
@@ -211,46 +236,50 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
 
       // Initialize Telegram WebApp
       function initTelegramWebApp() {
-        console.log('[TG-Init] Function called');
+        try {
+          logger.log('[TG-Init] Function called');
         tg = win.Telegram?.WebApp;
         if (!tg) {
-          console.log('[TG-Init] WebApp not available - running in browser');
+            logger.log('[TG-Init] WebApp not available - running in browser');
           return false;
         }
         
-        console.log('[TG-Init] Found WebApp v' + tg.version + ' on ' + tg.platform);
-        console.log('[TG-Init] Current state: isExpanded=' + tg.isExpanded + ', isFullscreen=' + tg.isFullscreen);
-        
-        // Initialize app
-        console.log('[TG-Init] Calling ready()...');
-        tg.ready();
-        
-        console.log('[TG-Init] Calling expand()...');
-        tg.expand();
-        
-        console.log('[TG-Init] Calling enableClosingConfirmation()...');
-        tg.enableClosingConfirmation();
-        
-        // Bot API 7.7+: Disable vertical swipes to prevent accidental closing
-        if (typeof tg.disableVerticalSwipes === 'function') {
-          console.log('[TG-Init] Calling disableVerticalSwipes()...');
-          tg.disableVerticalSwipes();
-          console.log('[TG-Init] After disableVerticalSwipes: isVerticalSwipesEnabled=' + tg.isVerticalSwipesEnabled);
-        } else {
-          console.warn('[TG-Init] disableVerticalSwipes not available');
-        }
-        
-        // Bot API 8.0+: Request fullscreen mode
-        if (typeof tg.requestFullscreen === 'function') {
-          console.log('[TG-Init] Calling requestFullscreen()...');
-          try {
-            tg.requestFullscreen();
-            console.log('[TG-Init] After requestFullscreen: isFullscreen=' + tg.isFullscreen);
-          } catch (err) {
-            console.error('[TG-Init] Fullscreen error:', err);
+          logger.log('[TG-Init] Found WebApp v' + tg.version + ' on ' + tg.platform);
+          logger.log('[TG-Init] Current state: isExpanded=' + tg.isExpanded + ', isFullscreen=' + tg.isFullscreen);
+          
+          // Initialize app
+          logger.log('[TG-Init] Calling ready()...');
+          tg.ready();
+          
+          logger.log('[TG-Init] Calling expand()...');
+          tg.expand();
+          
+          logger.log('[TG-Init] Calling enableClosingConfirmation()...');
+          tg.enableClosingConfirmation();
+          
+          // Bot API 7.7+: Disable vertical swipes to prevent accidental closing
+          if (typeof tg.disableVerticalSwipes === 'function') {
+            logger.log('[TG-Init] Calling disableVerticalSwipes()...');
+            tg.disableVerticalSwipes();
+            logger.log('[TG-Init] After disableVerticalSwipes: isVerticalSwipesEnabled=' + tg.isVerticalSwipesEnabled);
+          } else {
+            logger.warn('[TG-Init] disableVerticalSwipes not available');
           }
-        } else {
-          console.warn('[TG-Init] requestFullscreen not available');
+          
+          // Bot API 8.0+: Request fullscreen mode
+          if (typeof tg.requestFullscreen === 'function') {
+            logger.log('[TG-Init] Calling requestFullscreen()...');
+            try {
+              tg.requestFullscreen();
+              logger.log('[TG-Init] After requestFullscreen: isFullscreen=' + tg.isFullscreen);
+            } catch (err) {
+              logger.warn('[TG-Init] Fullscreen error:', err);
+            }
+          } else {
+            logger.warn('[TG-Init] requestFullscreen not available');
+          }
+        } catch (error) {
+          logger.error('[TG-Init] Error:', error);
         }
         
         // Apply theme
@@ -266,7 +295,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         
         // Event handlers
         tg.onEvent('themeChanged', () => location.reload());
-        tg.onEvent('fullscreenFailed', (err) => console.warn('[Telegram] Fullscreen failed:', err));
+        tg.onEvent('fullscreenFailed', function(err) { logger.warn('[Telegram] Fullscreen failed:', err); });
         
         // Hide Telegram banner if shown
         const banner = doc.getElementById('telegram-banner');
@@ -275,14 +304,14 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         // Expose global helpers
         win.requestAppFullscreen = function() {
           if (typeof tg.requestFullscreen === 'function') {
-            try { tg.requestFullscreen(); return true; } catch (e) { console.warn(e); }
+            try { tg.requestFullscreen(); return true; } catch (e) { logger.warn(e); }
           }
           return false;
         };
         
         win.exitAppFullscreen = function() {
           if (typeof tg.exitFullscreen === 'function') {
-            try { tg.exitFullscreen(); return true; } catch (e) { console.warn(e); }
+            try { tg.exitFullscreen(); return true; } catch (e) { logger.warn(e); }
           }
           return false;
         };
@@ -512,8 +541,11 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                 });
               }
             }, 100);
+            const timeoutCleanup = registerCleanup(function() {
+              clearTimeout(timeout);
+            });
           } catch (e) {
-            console.warn('[Analytics] GA4 init failed:', e);
+            logger.warn('[Analytics] GA4 init failed:', e);
           }
         }
         
@@ -542,26 +574,36 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             noscript.innerHTML = '<div><img src="https://mc.yandex.ru/watch/' + counterId + '" style="position:absolute; left:-9999px;" alt="" /></div>';
             document.body.appendChild(noscript);
           } catch (e) {
-            console.warn('[Analytics] Yandex Metrika init failed:', e);
+            logger.warn('[Analytics] Yandex Metrika init failed:', e);
           }
         }
       }
 
       // Main initialization - fast and simple
       function init() {
-        console.log('[Init] Running initialization...');
-        initTelegramWebApp();
-        initAnalytics();
-        setupCTALinks();
-        updateLinksOnLoad();
-        console.log('[Init] Initialization complete');
+        try {
+          logger.log('[Init] Running initialization...');
+          initTelegramWebApp();
+          initAnalytics();
+          setupCTALinks();
+          updateLinksOnLoad();
+          logger.log('[Init] Initialization complete');
+        } catch (error) {
+          logger.error('[Init] Initialization error:', error);
+        }
       }
 
       // ALWAYS use window.load to ensure everything is ready (like test page)
-      win.addEventListener('load', () => {
-        console.log('[Init] window.load event - starting init');
-        init();
-      });
+      const loadHandler = function() {
+        logger.log('[Init] window.load event - starting init');
+        try {
+          init();
+        } catch (error) {
+          logger.error('[Init] Load handler error:', error);
+        }
+      };
+      win.addEventListener('load', loadHandler);
+      registerCleanup(function() { win.removeEventListener('load', loadHandler); });
     })();
   </script>
 </head>
@@ -592,7 +634,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         }
         
         const tg = win.Telegram.WebApp;
-        console.log('[TG] Initializing v' + tg.version + ' on ' + tg.platform);
+        logger.log('[TG] Initializing v' + tg.version + ' on ' + tg.platform);
         
         // Add class to body to enable Telegram-specific styles
         doc.body.classList.add('tg-webapp');
@@ -638,7 +680,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           try {
             tg.requestFullscreen();
           } catch (err) {
-            console.warn('[TG] Fullscreen error:', err);
+            logger.warn('[TG] Fullscreen error:', err);
           }
         }
         
@@ -689,7 +731,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                   addHapticToElement(el);
                 });
               } catch (e) {
-                console.warn('[TG] Haptic setup error for selector:', selector, e);
+                logger.warn('[TG] Haptic setup error for selector:', selector, e);
               }
             });
           }
@@ -698,13 +740,17 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           setupHapticsForElements();
           
           // Retry after delays (for dynamic content that loads later)
-          setTimeout(setupHapticsForElements, 300);
-          setTimeout(setupHapticsForElements, 1000);
-          setTimeout(setupHapticsForElements, 2000);
+          const timeout1 = setTimeout(setupHapticsForElements, 300);
+          const timeout2 = setTimeout(setupHapticsForElements, 1000);
+          const timeout3 = setTimeout(setupHapticsForElements, 2000);
+          registerCleanup(function() {
+            clearTimeout(timeout1);
+            clearTimeout(timeout2);
+            clearTimeout(timeout3);
+          });
           
           // Event delegation as fallback (catches any missed elements)
-          // Use capture phase to catch events early
-          doc.addEventListener('touchstart', function(e) {
+          const delegationHandler = function(e) {
             if (!haptics) return;
             
             const target = e.target;
@@ -727,14 +773,24 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                 haptics.impactOccurred('light');
               } catch (err) {}
             }
-          }, { passive: true, capture: false });
+          };
+          const delegationOpts = { passive: true, capture: false };
+          doc.addEventListener('touchstart', delegationHandler, delegationOpts);
+          registerCleanup(function() {
+            doc.removeEventListener('touchstart', delegationHandler, delegationOpts);
+          });
           
           // Medium haptic on click for buttons (non-CTA)
-          doc.querySelectorAll('button:not([data-cta]):not(.btn-capsule), [role="button"]:not([data-cta])').forEach(el => {
-            el.addEventListener('click', function() {
+          const buttonElements = doc.querySelectorAll('button:not([data-cta]):not(.btn-capsule), [role="button"]:not([data-cta])');
+          buttonElements.forEach(function(el) {
+            const clickHandler = function() {
               try {
                 haptics.impactOccurred('medium');
               } catch (e) {}
+            };
+            el.addEventListener('click', clickHandler);
+            registerCleanup(function() {
+              el.removeEventListener('click', clickHandler);
             });
           });
         }
@@ -752,26 +808,38 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           };
         }
         
-        console.log('[TG] ✅ Ready');
+        logger.log('[TG] ✅ Ready');
         
         // Setup touch events for interactive elements (replace hover)
         // Visual feedback for touch interactions
         if (isTouchDevice) {
-          doc.querySelectorAll('.reveal-up, .proof-item, .proof-image-placeholder, .student-photo, .student-circle, .banner-photo, .models-banner > div, .step-card, .cta-section, button, a[data-cta], .btn-capsule, .timeline-step').forEach(el => {
-            el.addEventListener('touchstart', function() {
+          const touchElements = doc.querySelectorAll('.reveal-up, .proof-item, .proof-image-placeholder, .student-photo, .student-circle, .banner-photo, .models-banner > div, .step-card, .cta-section, button, a[data-cta], .btn-capsule, .timeline-step');
+          const touchOpts = { passive: true };
+          
+          touchElements.forEach(function(el) {
+            const touchStartHandler = function() {
               this.classList.add('touch-active');
-            }, { passive: true });
-            
-            el.addEventListener('touchend', function() {
+            };
+            const touchEndHandler = function() {
               const self = this;
-              setTimeout(() => {
+              const timeout = setTimeout(function() {
                 self.classList.remove('touch-active');
               }, 150);
-            }, { passive: true });
-            
-            el.addEventListener('touchcancel', function() {
+              registerCleanup(function() { clearTimeout(timeout); });
+            };
+            const touchCancelHandler = function() {
               this.classList.remove('touch-active');
-            }, { passive: true });
+            };
+            
+            el.addEventListener('touchstart', touchStartHandler, touchOpts);
+            el.addEventListener('touchend', touchEndHandler, touchOpts);
+            el.addEventListener('touchcancel', touchCancelHandler, touchOpts);
+            
+            registerCleanup(function() {
+              el.removeEventListener('touchstart', touchStartHandler, touchOpts);
+              el.removeEventListener('touchend', touchEndHandler, touchOpts);
+              el.removeEventListener('touchcancel', touchCancelHandler, touchOpts);
+            });
           });
         }
       }

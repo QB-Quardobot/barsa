@@ -18,8 +18,26 @@
 </div>
 
 <script is:inline>
-  // Earnings Ticker Logic
+  // Earnings Ticker Logic with proper cleanup
   (function() {
+    // Cleanup registry
+    const cleanupFunctions = [];
+    
+    function registerCleanup(fn) {
+      cleanupFunctions.push(fn);
+      return () => {
+        const index = cleanupFunctions.indexOf(fn);
+        if (index > -1) cleanupFunctions.splice(index, 1);
+      };
+    }
+    
+    function cleanup() {
+      cleanupFunctions.forEach(fn => {
+        try { fn(); } catch (e) {}
+      });
+      cleanupFunctions.length = 0;
+    }
+    
     // Wait for DOM to be ready
     function init() {
       const ticker = document.getElementById('earnings-ticker');
@@ -29,7 +47,13 @@
       if (!ticker || !amountEl || !btn) {
         // Retry if DOM not ready yet
         if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', init);
+          const cleanupListener = registerCleanup(() => {
+            document.removeEventListener('DOMContentLoaded', init);
+          });
+          document.addEventListener('DOMContentLoaded', () => {
+            cleanupListener();
+            init();
+          });
           return;
         }
         return;
@@ -60,13 +84,20 @@
     
     // Update display
     function updateDisplay() {
-      amountEl.textContent = formatAmount(currentAmount);
-      
-      // Pulse animation
-      amountEl.classList.add('amount-pulse');
-      setTimeout(() => {
-        amountEl.classList.remove('amount-pulse');
-      }, 600);
+      if (!amountEl) return;
+      try {
+        amountEl.textContent = formatAmount(currentAmount);
+        
+        // Pulse animation
+        amountEl.classList.add('amount-pulse');
+        const pulseTimeout = setTimeout(() => {
+          if (amountEl) amountEl.classList.remove('amount-pulse');
+        }, 600);
+        
+        registerCleanup(() => clearTimeout(pulseTimeout));
+      } catch (e) {
+        // Silently fail if element is gone
+      }
     }
     
     // Start counting
@@ -81,13 +112,23 @@
       updateDisplay();
       
       // Then every 2 seconds
-      tickInterval = window.setInterval(function() {
+      const intervalFn = function() {
         // Check if tab is visible (pause when hidden)
         if (document.hidden) return;
         
         currentAmount += AMOUNT_INCREMENT;
         updateDisplay();
-      }, TICK_INTERVAL);
+      };
+      
+      tickInterval = window.setInterval(intervalFn, TICK_INTERVAL);
+      
+      // Register cleanup for interval
+      registerCleanup(() => {
+        if (tickInterval) {
+          clearInterval(tickInterval);
+          tickInterval = null;
+        }
+      });
     }
     
     // Stop counting
@@ -250,46 +291,77 @@
     
     // Event listeners - listen to scroll on window AND main content (Telegram compatibility)
     let scrollTimeout = null;
-    let scrollEventCount = 0;
     
     function onScrollEvent() {
       if (scrollTimeout) {
         window.cancelAnimationFrame(scrollTimeout);
       }
       scrollTimeout = window.requestAnimationFrame(function() {
-        handleScroll();
+        try {
+          handleScroll();
+        } catch (e) {
+          // Silently fail on scroll errors
+        }
       });
     }
     
-    // Listen to window scroll (regular browsers)
-    window.addEventListener('scroll', onScrollEvent, { passive: true });
+    // Register scroll listeners with cleanup
+    const scrollOpts = { passive: true };
+    window.addEventListener('scroll', onScrollEvent, scrollOpts);
+    registerCleanup(() => window.removeEventListener('scroll', onScrollEvent, scrollOpts));
     
     // ALSO listen to main content scroll (Telegram Mini App - PRIMARY source)
     if (mainContentEl) {
-      mainContentEl.addEventListener('scroll', onScrollEvent, { passive: true });
+      mainContentEl.addEventListener('scroll', onScrollEvent, scrollOpts);
+      registerCleanup(() => mainContentEl.removeEventListener('scroll', onScrollEvent, scrollOpts));
     }
     
+    // Register visibility change listener
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    btn.addEventListener('click', scrollToCTA);
+    registerCleanup(() => document.removeEventListener('visibilitychange', handleVisibilityChange));
     
-      // Initial check
+    // Register button click listener
+    btn.addEventListener('click', scrollToCTA);
+    registerCleanup(() => btn.removeEventListener('click', scrollToCTA));
+    
+    // Initial check
+    try {
       handleScroll();
       // Double check after a short delay to catch any layout shifts
-      setTimeout(checkInitialScroll, 100);
-      setTimeout(checkInitialScroll, 500);
-      
-      // Cleanup on page unload
-      window.addEventListener('beforeunload', () => {
-        stopCounting();
+      const timeout1 = setTimeout(checkInitialScroll, 100);
+      const timeout2 = setTimeout(checkInitialScroll, 500);
+      registerCleanup(() => {
+        clearTimeout(timeout1);
+        clearTimeout(timeout2);
       });
+    } catch (e) {
+      // Silently fail
     }
+    
+    // Cleanup on page unload
+    const unloadHandler = () => {
+      cleanup();
+    };
+    window.addEventListener('beforeunload', unloadHandler);
+    registerCleanup(() => window.removeEventListener('beforeunload', unloadHandler));
     
     // Start initialization
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
+      const domReadyHandler = () => {
+        init();
+      };
+      document.addEventListener('DOMContentLoaded', domReadyHandler);
+      registerCleanup(() => document.removeEventListener('DOMContentLoaded', domReadyHandler));
     } else {
       // DOM already ready, but wait a tick for Astro hydration
-      setTimeout(init, 50);
+      const initTimeout = setTimeout(() => {
+        try {
+          init();
+        } catch (e) {
+          // Silently fail
+        }
+      }, 50);
+      registerCleanup(() => clearTimeout(initTimeout));
     }
   })();
 </script>
