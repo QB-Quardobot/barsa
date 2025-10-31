@@ -919,9 +919,10 @@ const DEBUG_MODE = false;
 <script>
   import '../lib/reveal-init.js';
   
-  // Центрируем среднюю карточку при загрузке
+  // Центрируем среднюю карточку при загрузке (с кэшированием DOM)
   const domReadyHandler = () => {
     try {
+      // Cache DOM query
       const proofRow = document.querySelector('.proof-row');
       if (proofRow) {
         const proofItems = proofRow.querySelectorAll('.proof-item');

@@ -158,7 +158,11 @@
     }
     
     // Get scroll position from multiple sources (for Telegram Mini App compatibility)
-    const mainContentEl = document.getElementById('main-content') || document.querySelector('main');
+    // Cache DOM queries
+    let mainContentEl = document.getElementById('main-content');
+    if (!mainContentEl) {
+      mainContentEl = document.querySelector('main');
+    }
     
     function getScrollPosition() {
       // In Telegram Mini App, scroll happens on main-content, not window

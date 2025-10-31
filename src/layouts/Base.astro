@@ -710,13 +710,48 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             
             el.setAttribute('data-haptic-attached', 'true');
             
-            // Light haptic on touchstart
+            // Light haptic on touchstart (with rate limiting)
             el.addEventListener('touchstart', function() {
               try {
-                haptics.impactOccurred('light');
+                if (rateLimiter.isAllowed()) {
+                  haptics.impactOccurred('light');
+                }
               } catch (e) {}
             }, { passive: true });
           }
+          
+          // Rate limiter for haptics (prevents spam)
+          const rateLimiter = (function() {
+            const requests = new Map();
+            const maxRequests = 100;
+            const windowMs = 1000;
+            
+            function isAllowed() {
+              const now = Date.now();
+              const key = 'haptics';
+              let record = requests.get(key);
+              
+              if (!record) {
+                record = { timestamps: [] };
+                requests.set(key, record);
+              }
+              
+              // Remove old timestamps
+              record.timestamps = record.timestamps.filter(ts => now - ts < windowMs);
+              
+              if (record.timestamps.length < maxRequests) {
+                record.timestamps.push(now);
+                return true;
+              }
+              
+              return false;
+            }
+            
+            return { isAllowed };
+          })();
+          
+          // DOM cache for haptic elements (optimize repeated queries)
+          const hapticCache = new Map();
           
           // Function to setup haptics for elements (with retry for dynamic content)
           function setupHapticsForElements() {
@@ -742,7 +777,19 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             
             clickableSelectors.forEach(selector => {
               try {
-                doc.querySelectorAll(selector).forEach(el => {
+                // Use cache if available
+                let elements = hapticCache.get(selector);
+                const cacheTime = hapticCache.get(selector + ':time') || 0;
+                const now = Date.now();
+                
+                // Cache for 2 seconds
+                if (!elements || (now - cacheTime) > 2000) {
+                  elements = doc.querySelectorAll(selector);
+                  hapticCache.set(selector, elements);
+                  hapticCache.set(selector + ':time', now);
+                }
+                
+                elements.forEach(el => {
                   addHapticToElement(el);
                 });
               } catch (e) {
@@ -785,7 +832,9 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               
               // Trigger haptic immediately via delegation (only for elements without direct listener)
               try {
-                haptics.impactOccurred('light');
+                if (rateLimiter.isAllowed()) {
+                  haptics.impactOccurred('light');
+                }
               } catch (err) {}
             }
           };
@@ -795,12 +844,18 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             doc.removeEventListener('touchstart', delegationHandler, delegationOpts);
           });
           
-          // Medium haptic on click for buttons (non-CTA)
-          const buttonElements = doc.querySelectorAll('button:not([data-cta]):not(.btn-capsule), [role="button"]:not([data-cta])');
+          // Medium haptic on click for buttons (non-CTA) - use cached query
+          let buttonElements = hapticCache.get('button:not([data-cta]):not(.btn-capsule), [role="button"]:not([data-cta])');
+          if (!buttonElements) {
+            buttonElements = doc.querySelectorAll('button:not([data-cta]):not(.btn-capsule), [role="button"]:not([data-cta])');
+            hapticCache.set('button:not([data-cta]):not(.btn-capsule), [role="button"]:not([data-cta])', buttonElements);
+          }
           buttonElements.forEach(function(el) {
             const clickHandler = function() {
               try {
-                haptics.impactOccurred('medium');
+                if (rateLimiter.isAllowed()) {
+                  haptics.impactOccurred('medium');
+                }
               } catch (e) {}
             };
             el.addEventListener('click', clickHandler);
@@ -828,7 +883,13 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         // Setup touch events for interactive elements (replace hover)
         // Visual feedback for touch interactions
         if (isTouchDevice) {
-          const touchElements = doc.querySelectorAll('.reveal-up, .proof-item, .proof-image-placeholder, .student-photo, .student-circle, .banner-photo, .models-banner > div, .step-card, .cta-section, button, a[data-cta], .btn-capsule, .timeline-step');
+          // Use cached query if available
+          const touchSelector = '.reveal-up, .proof-item, .proof-image-placeholder, .student-photo, .student-circle, .banner-photo, .models-banner > div, .step-card, .cta-section, button, a[data-cta], .btn-capsule, .timeline-step';
+          let touchElements = hapticCache.get(touchSelector);
+          if (!touchElements) {
+            touchElements = doc.querySelectorAll(touchSelector);
+            hapticCache.set(touchSelector, touchElements);
+          }
           const touchOpts = { passive: true };
           
           touchElements.forEach(function(el) {

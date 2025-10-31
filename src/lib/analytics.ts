@@ -242,7 +242,8 @@ class AnalyticsTracker {
     }
 
     try {
-      // Send compact version to reduce payload
+      // Send compact version to reduce payload (use first event if multiple)
+      const event = events[0] || events;
       const payload = {
         event: 'click',
         type: event.type,
