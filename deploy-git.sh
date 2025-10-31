@@ -22,7 +22,7 @@ DOMAIN="illariooo.ru"
 APP_NAME="ai-model-landing"
 DEPLOY_PATH="/var/www/${DOMAIN}"
 REPO_URL="https://github.com/coolpac/barsa.git"
-BRANCH="main"
+BRANCH="master"
 NODE_VERSION="20"
 
 # Logging
