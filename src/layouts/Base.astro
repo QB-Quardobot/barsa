@@ -375,15 +375,29 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       // CTA links + haptics + proper Telegram link handling
       function setupCTALinks() {
         const isTelegram = !!tg;
+        const haptics = isTelegram ? tg.HapticFeedback : null;
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        
         doc.querySelectorAll('a[data-cta]').forEach(link => {
           const href = link.getAttribute('href') || '';
           const buttonText = link.textContent.trim();
           const isTelegramLink = href.includes('t.me/') || href.startsWith('https://t.me/');
           
-          if (isTelegram) {
-            link.addEventListener('mouseenter', () => { 
-              try { tg.HapticFeedback?.selectionChanged(); } catch {} 
-            });
+          // Haptic feedback for touch devices (Telegram only)
+          if (isTelegram && haptics && isTouchDevice) {
+            // Light haptic on touch start
+            link.addEventListener('touchstart', function() {
+              try {
+                haptics.impactOccurred('light');
+              } catch (e) {}
+            }, { passive: true, once: false });
+            
+            // Selection haptic on hover (desktop Telegram or pointer devices)
+            link.addEventListener('pointerenter', function() {
+              try {
+                haptics.selectionChanged();
+              } catch (e) {}
+            }, { passive: true });
           }
           
           link.addEventListener('click', function(e) {
@@ -394,6 +408,13 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             // Track click
             trackClick(urlWithUtm, buttonText);
             
+            // Medium haptic on click (Telegram only)
+            if (isTelegram && haptics) {
+              try {
+                haptics.impactOccurred('medium');
+              } catch (e) {}
+            }
+            
             if (isTelegram) {
               e.preventDefault();
               
@@ -402,7 +423,6 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               if (isTelegramLink && typeof tg.openTelegramLink === 'function') {
                 try {
                   tg.openTelegramLink(urlWithUtm);
-                  try { tg.HapticFeedback?.impactOccurred('medium'); } catch {}
                 } catch (err) {
                   // Fallback to openLink if openTelegramLink fails
                   try { tg.openLink(urlWithUtm); } catch {}
@@ -411,7 +431,6 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                 // External link - open in browser
                 try {
                   tg.openLink(urlWithUtm);
-                  try { tg.HapticFeedback?.impactOccurred('medium'); } catch {}
                 } catch {}
               }
             } else {
@@ -623,38 +642,43 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           }
         }
         
-        // Setup haptics for interactive elements
+        // Setup haptics for interactive elements (excluding CTA links - handled separately)
         const haptics = tg.HapticFeedback;
-        if (haptics) {
-          // Light haptic on all clickable elements
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        
+        if (haptics && isTouchDevice) {
+          // Light haptic on touch for non-CTA interactive elements
           const clickableSelectors = [
-            'button',
-            'a[href]',
-            'a[data-cta]',
-            '[role="button"]',
-            '.btn-capsule',
+            'button:not([data-cta]):not(.btn-capsule)',
+            'a[href]:not([data-cta])',
+            '[role="button"]:not([data-cta])',
             '.proof-item',
-            '.step-card'
+            '.step-card',
+            '.system-step',
+            '.benefit-item'
           ].join(', ');
           
           doc.querySelectorAll(clickableSelectors).forEach(el => {
-            el.addEventListener('touchstart', () => {
+            // Use touchstart for immediate feedback on touch
+            el.addEventListener('touchstart', function() {
               try {
                 haptics.impactOccurred('light');
               } catch (e) {}
             }, { passive: true });
           });
           
-          // Medium haptic on CTA buttons (on click)
-          doc.querySelectorAll('a[data-cta], .btn-capsule').forEach(el => {
-            el.addEventListener('click', () => {
+          // Medium haptic on click for buttons (non-CTA)
+          doc.querySelectorAll('button:not([data-cta]):not(.btn-capsule), [role="button"]:not([data-cta])').forEach(el => {
+            el.addEventListener('click', function() {
               try {
                 haptics.impactOccurred('medium');
               } catch (e) {}
             });
           });
-          
-          // Expose global haptics helper
+        }
+        
+        // Expose global haptics helper (always available)
+        if (haptics) {
           win.triggerHaptic = (type = 'medium') => {
             try {
               if (type === 'selection') haptics.selectionChanged();
