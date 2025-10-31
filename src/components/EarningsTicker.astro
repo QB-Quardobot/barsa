@@ -62,14 +62,39 @@
       // Mark as initialized
       ticker.classList.add('is-initialized');
       
+      // Debug logging
+      if (typeof console !== 'undefined' && console.log) {
+        console.log('[EarningsTicker] Initialized successfully');
+      }
+      
       // Run main logic
       startTicker(ticker, amountEl, btn);
       
       // Force check initial scroll position after delays (in case page loads scrolled)
-      setTimeout(checkInitialScroll, 100);
-      setTimeout(checkInitialScroll, 500);
-      setTimeout(checkInitialScroll, 1000);
-      setTimeout(checkInitialScroll, 2000);
+      setTimeout(() => {
+        checkInitialScroll();
+        handleScroll(); // Also call handleScroll directly
+      }, 100);
+      setTimeout(() => {
+        checkInitialScroll();
+        handleScroll();
+      }, 500);
+      setTimeout(() => {
+        checkInitialScroll();
+        handleScroll();
+      }, 1000);
+      setTimeout(() => {
+        checkInitialScroll();
+        handleScroll();
+      }, 2000);
+      
+      // Test: Force show ticker after 3 seconds regardless of scroll (for debugging)
+      setTimeout(() => {
+        if (!isVisible && typeof console !== 'undefined') {
+          console.warn('[EarningsTicker] Force showing after 3s (debug mode)');
+          showTicker();
+        }
+      }, 3000);
     }
     
     function startTicker(ticker, amountEl, btn) {
@@ -153,6 +178,9 @@
       if (isVisible) return;
       isVisible = true;
       ticker.classList.add('is-visible');
+      if (typeof console !== 'undefined' && console.log) {
+        console.log('[EarningsTicker] Showing ticker');
+      }
       startCounting();
     }
     
@@ -196,20 +224,29 @@
     
     // Scroll handler - hide ticker near bottom buttons
     function handleScroll() {
-      const scrollY = getScrollPosition();
-      
-      // Check if we're near the bottom (where CTA buttons are)
-      const scrollContainer = mainContentEl || document.documentElement;
-      const maxScroll = mainContentEl 
-        ? mainContentEl.scrollHeight - mainContentEl.clientHeight 
-        : document.documentElement.scrollHeight - window.innerHeight;
-      const distanceFromBottom = maxScroll - scrollY;
-      const HIDE_THRESHOLD = 400; // Hide ticker when within 400px of bottom
-      
-      if (scrollY >= SCROLL_THRESHOLD && distanceFromBottom > HIDE_THRESHOLD) {
-        showTicker();
-      } else {
-        hideTicker();
+      try {
+        const scrollY = getScrollPosition();
+        
+        // Check if we're near the bottom (where CTA buttons are)
+        const scrollContainer = mainContentEl || document.documentElement;
+        const maxScroll = mainContentEl 
+          ? mainContentEl.scrollHeight - mainContentEl.clientHeight 
+          : document.documentElement.scrollHeight - window.innerHeight;
+        const distanceFromBottom = maxScroll - scrollY;
+        const HIDE_THRESHOLD = 400; // Hide ticker when within 400px of bottom
+        
+        // Debug logging
+        if (typeof console !== 'undefined' && console.log) {
+          console.log('[EarningsTicker] Scroll:', scrollY, 'threshold:', SCROLL_THRESHOLD, 'distanceFromBottom:', distanceFromBottom);
+        }
+        
+        if (scrollY >= SCROLL_THRESHOLD && distanceFromBottom > HIDE_THRESHOLD) {
+          showTicker();
+        } else {
+          hideTicker();
+        }
+      } catch (e) {
+        console.error('[EarningsTicker] handleScroll error:', e);
       }
     }
     
@@ -361,9 +398,14 @@
     // Start initialization - multiple strategies to ensure it runs
     function startInit() {
       try {
+        if (typeof console !== 'undefined' && console.log) {
+          console.log('[EarningsTicker] Starting init...');
+        }
         init();
       } catch (e) {
-        console.warn('[EarningsTicker] Init error:', e);
+        if (typeof console !== 'undefined') {
+          console.error('[EarningsTicker] Init error:', e);
+        }
       }
     }
     
