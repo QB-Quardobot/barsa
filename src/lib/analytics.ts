@@ -86,6 +86,35 @@ class AnalyticsTracker {
   private flushTimer: number | null = null;
   private sessionId: string;
   private telegramWebApp: any = null;
+  
+  // Rate limiter for analytics (prevents spam)
+  private rateLimiter = (function() {
+    const requests = new Map();
+    const maxRequests = 30; // 30 events per minute
+    const windowMs = 60000;
+    
+    function isAllowed() {
+      const now = Date.now();
+      const key = 'analytics';
+      let record = requests.get(key);
+      
+      if (!record) {
+        record = { timestamps: [] };
+        requests.set(key, record);
+      }
+      
+      record.timestamps = record.timestamps.filter(ts => now - ts < windowMs);
+      
+      if (record.timestamps.length < maxRequests) {
+        record.timestamps.push(now);
+        return true;
+      }
+      
+      return false;
+    }
+    
+    return { isAllowed };
+  })();
 
   constructor(config: Partial<AnalyticsConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -241,9 +270,14 @@ class AnalyticsTracker {
       return;
     }
 
+    // Apply rate limiting
+    if (!this.rateLimiter.isAllowed()) {
+      // Silently drop if rate limited (events are still stored locally)
+      return;
+    }
+
     try {
-      // Send compact version to reduce payload (use first event if multiple)
-      const event = events[0] || events;
+      // Send compact version to reduce payload
       const payload = {
         event: 'click',
         type: event.type,
