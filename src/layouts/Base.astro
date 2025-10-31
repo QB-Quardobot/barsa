@@ -90,8 +90,8 @@ const utmParams = parseUTMFromURL(url);
       --tg-viewport-stable-height: 100vh;
     }
     
-    /* Prevent overscroll/bounce on iOS */
-    body {
+    /* Telegram WebApp specific styles */
+    body.tg-webapp {
       overscroll-behavior: none;
       -webkit-overflow-scrolling: touch;
       position: fixed;
@@ -107,13 +107,21 @@ const utmParams = parseUTMFromURL(url);
       -webkit-touch-callout: none;
     }
     
-    /* Main content scrollable area */
-    #main-content {
+    /* Main content scrollable area (only in Telegram) */
+    body.tg-webapp #main-content {
       width: 100%;
       height: 100vh;
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
+      padding-top: var(--tg-safe-area-inset-top);
+      padding-bottom: var(--tg-safe-area-inset-bottom);
+      padding-left: var(--tg-safe-area-inset-left);
+      padding-right: var(--tg-safe-area-inset-right);
+    }
+    
+    /* Safe area padding for non-Telegram */
+    body:not(.tg-webapp) #main-content {
       padding-top: var(--tg-safe-area-inset-top);
       padding-bottom: var(--tg-safe-area-inset-bottom);
       padding-left: var(--tg-safe-area-inset-left);
@@ -397,6 +405,9 @@ const utmParams = parseUTMFromURL(url);
         const tg = win.Telegram.WebApp;
         console.log('[TG] Initializing v' + tg.version + ' on ' + tg.platform);
         
+        // Add class to body to enable Telegram-specific styles
+        doc.body.classList.add('tg-webapp');
+        
         // Initialize
         tg.ready();
         tg.expand();
@@ -506,46 +517,42 @@ const utmParams = parseUTMFromURL(url);
   
   <!-- Touch interaction styles for Telegram -->
   <style>
-    /* Touch feedback for all interactive elements */
-    .touch-active {
+    /* Touch feedback for all interactive elements (Telegram only) */
+    body.tg-webapp .touch-active {
       transform: scale(0.97);
       opacity: 0.85;
       transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
-    /* Enhanced touch feedback for buttons */
-    button.touch-active,
-    .btn-capsule.touch-active,
-    a[data-cta].touch-active {
+    /* Enhanced touch feedback for buttons (Telegram only) */
+    body.tg-webapp button.touch-active,
+    body.tg-webapp .btn-capsule.touch-active,
+    body.tg-webapp a[data-cta].touch-active {
       transform: scale(0.95);
       opacity: 0.9;
     }
     
     /* Disable hover effects in Telegram (they don't work) */
-    @media (hover: none) {
-      *:hover {
-        transform: none !important;
-      }
-      
-      .reveal-up:hover,
-      .proof-item:hover,
-      .step-card:hover,
-      .btn-capsule:hover,
-      button:hover,
-      a:hover {
-        transform: none !important;
-        box-shadow: none !important;
-      }
+    body.tg-webapp *:hover {
+      transform: none !important;
+    }
+    
+    body.tg-webapp .reveal-up:hover,
+    body.tg-webapp .proof-item:hover,
+    body.tg-webapp .step-card:hover,
+    body.tg-webapp .btn-capsule:hover,
+    body.tg-webapp button:hover,
+    body.tg-webapp a:hover {
+      transform: none !important;
+      box-shadow: none !important;
     }
     
     /* Better touch targets for Telegram */
-    @media (hover: none) and (pointer: coarse) {
-      button,
-      a[href],
-      .btn-capsule {
-        min-height: 44px;
-        min-width: 44px;
-      }
+    body.tg-webapp button,
+    body.tg-webapp a[href],
+    body.tg-webapp .btn-capsule {
+      min-height: 44px;
+      min-width: 44px;
     }
   </style>
 </body>
