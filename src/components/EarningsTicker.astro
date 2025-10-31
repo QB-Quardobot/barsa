@@ -106,9 +106,15 @@
     
     // Show ticker
     function showTicker() {
-      if (isVisible) return;
+      if (isVisible) {
+        console.log('[EarningsTicker] Already visible, skipping');
+        return;
+      }
+      console.log('[EarningsTicker] showTicker() called - adding is-visible class');
       isVisible = true;
       ticker.classList.add('is-visible');
+      console.log('[EarningsTicker] Ticker element classes:', ticker.className);
+      console.log('[EarningsTicker] Ticker computed style:', window.getComputedStyle(ticker).opacity, window.getComputedStyle(ticker).transform);
       
       // Start counting when shown
       startCounting();
@@ -218,21 +224,54 @@
     
     // Event listeners
     let scrollTimeout = null;
+    let scrollEventCount = 0;
     window.addEventListener('scroll', function() {
+      scrollEventCount++;
+      if (scrollEventCount <= 3 || scrollEventCount % 10 === 0) {
+        const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+        console.log('[EarningsTicker] Scroll event #' + scrollEventCount + ', scrollY:', scrollY);
+      }
       if (scrollTimeout) {
         window.cancelAnimationFrame(scrollTimeout);
       }
-      scrollTimeout = window.requestAnimationFrame(handleScroll);
+      scrollTimeout = window.requestAnimationFrame(function() {
+        handleScroll();
+      });
     }, { passive: true });
+    
+    // Force initial scroll check with manual trigger
+    console.log('[EarningsTicker] Setting up manual scroll test');
+    setTimeout(function() {
+      console.log('[EarningsTicker] Manual scroll trigger test');
+      window.dispatchEvent(new Event('scroll'));
+    }, 2000);
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     btn.addEventListener('click', scrollToCTA);
     
       // Initial check
+      console.log('[EarningsTicker] Running initial scroll check');
       handleScroll();
       // Double check after a short delay to catch any layout shifts
-      setTimeout(checkInitialScroll, 100);
-      setTimeout(checkInitialScroll, 500);
+      setTimeout(function() {
+        console.log('[EarningsTicker] Delayed check 1 (100ms)');
+        checkInitialScroll();
+      }, 100);
+      setTimeout(function() {
+        console.log('[EarningsTicker] Delayed check 2 (500ms)');
+        checkInitialScroll();
+      }, 500);
+      
+      // Debug: Log scroll position periodically
+      let debugCount = 0;
+      const debugInterval = setInterval(function() {
+        if (debugCount++ >= 10) {
+          clearInterval(debugInterval);
+          return;
+        }
+        const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+        console.log('[EarningsTicker] Debug scroll check #' + debugCount + ', scrollY:', scrollY, 'threshold:', SCROLL_THRESHOLD, 'visible:', isVisible);
+      }, 1000);
       
       // Cleanup on page unload
       window.addEventListener('beforeunload', () => {
@@ -271,9 +310,11 @@
   }
   
   .earnings-ticker.is-visible {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    pointer-events: all;
+    opacity: 1 !important;
+    transform: translateY(0) scale(1) !important;
+    pointer-events: all !important;
+    visibility: visible !important;
+    display: block !important;
   }
   
   .earnings-ticker-btn {
