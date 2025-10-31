@@ -34,8 +34,7 @@ const DEBUG_MODE = false;
   
   <!-- Hero: ЛИД-МАГНИТ -->
   <section class="hero-section">
-    <div class="container mx-auto px-4 py-20">
-      <div class="max-w-5xl mx-auto" id="hero-container">
+    <div class="container" id="hero-container">
         
         <!-- Animated Dot Badge - Centered -->
         <div class="text-center mb-8 reveal-up">
@@ -168,8 +167,7 @@ const DEBUG_MODE = false;
   
   <!-- About Ilya -->
   <section class="about-section">
-    <div class="container mx-auto px-4 py-16">
-      <div class="max-w-5xl mx-auto">
+    <div class="container">
         
         <!-- Founder Header -->
         <div class="founder-header reveal-scale">
@@ -259,8 +257,7 @@ const DEBUG_MODE = false;
   
   <!-- What You Get -->
   <section class="what-section">
-    <div class="container mx-auto px-4 py-16">
-      <div class="max-w-5xl mx-auto">
+    <div class="container">
         
         <!-- Models Banner -->
         <div class="models-banner reveal-scale">
@@ -358,8 +355,7 @@ const DEBUG_MODE = false;
   
   <!-- System -->
   <section class="system-section">
-    <div class="container mx-auto px-4 py-16">
-      <div class="max-w-5xl mx-auto">
+    <div class="container">
         
         <!-- Students Banner -->
         <div class="students-banner reveal-scale">
@@ -469,8 +465,7 @@ const DEBUG_MODE = false;
   
   <!-- Why Now -->
   <section class="why-now-section">
-    <div class="container mx-auto px-4 py-16">
-      <div class="max-w-5xl mx-auto">
+    <div class="container">
         
         <!-- Intro -->
         <div class="why-intro reveal-fade">
@@ -567,8 +562,7 @@ const DEBUG_MODE = false;
   
   <!-- Final CTA -->
   <section class="final-cta-section">
-    <div class="container mx-auto px-4 py-20">
-      <div class="max-w-5xl mx-auto">
+    <div class="container">
         
         <!-- TG Preview -->
         <div class="final-tg-preview reveal-scale">
@@ -1091,9 +1085,15 @@ const DEBUG_MODE = false;
   /* === ANIMATED GRADIENT BACKGROUND === */
   .hero-section {
     background: transparent;
-    padding: 3rem 1rem;
+    padding: 3rem 0;
     position: relative;
     overflow: hidden;
+  }
+  
+  @media (min-width: 1024px) {
+    .hero-section {
+      padding: 5rem 0;
+    }
   }
   
   .hero-section::before {
@@ -1698,12 +1698,12 @@ const DEBUG_MODE = false;
   
   /* === ABOUT SECTION === */
   .about-section {
-    padding: 3rem 1rem;
+    padding: 3rem 0;
   }
   
-  @media (min-width: 768px) {
+  @media (min-width: 1024px) {
     .about-section {
-      padding: 5rem 2rem;
+      padding: 5rem 0;
     }
   }
   
@@ -2064,12 +2064,12 @@ const DEBUG_MODE = false;
   
   /* === WHAT SECTION === */
   .what-section {
-    padding: 3rem 1rem;
+    padding: 3rem 0;
   }
   
-  @media (min-width: 768px) {
+  @media (min-width: 1024px) {
     .what-section {
-      padding: 5rem 2rem;
+      padding: 5rem 0;
     }
   }
   
@@ -2365,12 +2365,12 @@ const DEBUG_MODE = false;
   
   /* === SYSTEM SECTION === */
   .system-section {
-    padding: 3rem 1rem;
+    padding: 3rem 0;
   }
   
-  @media (min-width: 768px) {
+  @media (min-width: 1024px) {
     .system-section {
-      padding: 5rem 2rem;
+      padding: 5rem 0;
     }
   }
   
@@ -2684,12 +2684,12 @@ const DEBUG_MODE = false;
   
   /* === WHY NOW SECTION === */
   .why-now-section {
-    padding: 3rem 1rem;
+    padding: 3rem 0;
   }
   
-  @media (min-width: 768px) {
+  @media (min-width: 1024px) {
     .why-now-section {
-      padding: 5rem 2rem;
+      padding: 5rem 0;
     }
   }
   
@@ -3068,12 +3068,12 @@ const DEBUG_MODE = false;
   
   /* === FINAL CTA SECTION === */
   .final-cta-section {
-    padding: 3rem 1rem;
+    padding: 3rem 0;
   }
   
-  @media (min-width: 768px) {
+  @media (min-width: 1024px) {
     .final-cta-section {
-      padding: 5rem 2rem;
+      padding: 5rem 0;
     }
   }
   
