@@ -32,8 +32,8 @@
     let scrollStartTime = null;
     let hasStarted = false;
     
-    // Scroll threshold to show ticker (300px)
-    const SCROLL_THRESHOLD = 300;
+    // Scroll threshold to show ticker (lower for better visibility)
+    const SCROLL_THRESHOLD = 150;
     // Amount increment (per tick)
     const AMOUNT_INCREMENT = 50;
     // Tick interval (ms)
@@ -106,12 +106,20 @@
     
     // Scroll handler
     function handleScroll() {
-      const scrollY = window.scrollY || window.pageYOffset;
+      const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
       
       if (scrollY >= SCROLL_THRESHOLD) {
         showTicker();
       } else {
         hideTicker();
+      }
+    }
+    
+    // Also show on page load if already scrolled (e.g., direct link to section)
+    function checkInitialScroll() {
+      const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+      if (scrollY >= SCROLL_THRESHOLD) {
+        showTicker();
       }
     }
     
@@ -196,6 +204,9 @@
     
     // Initial check
     handleScroll();
+    // Double check after a short delay to catch any layout shifts
+    setTimeout(checkInitialScroll, 100);
+    setTimeout(checkInitialScroll, 500);
     
     // Cleanup on page unload
     window.addEventListener('beforeunload', () => {
@@ -209,12 +220,19 @@
     position: fixed;
     bottom: 2rem;
     right: 2rem;
-    z-index: 999;
+    z-index: 9999;
     opacity: 0;
     transform: translateY(20px) scale(0.9);
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     pointer-events: none;
     will-change: opacity, transform;
+  }
+  
+  @media (max-width: 768px) {
+    .earnings-ticker {
+      bottom: 1rem;
+      right: 1rem;
+    }
   }
   
   .earnings-ticker.is-visible {
