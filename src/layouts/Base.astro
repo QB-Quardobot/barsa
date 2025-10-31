@@ -594,6 +594,27 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         }
       }
       
+      // Initialize performance monitoring (async, non-blocking)
+      if (typeof window !== 'undefined') {
+        // Use setTimeout to defer initialization and not block page load
+        setTimeout(function() {
+          try {
+            // Dynamic import to avoid blocking initial load
+            import('../lib/performance-monitor').then(function(module) {
+              const perfMonitor = module.getPerformanceMonitor({
+                logToConsole: false,
+                sendToAnalytics: true
+              });
+              win.__performanceMonitor = perfMonitor;
+            }).catch(function() {
+              // Silently fail if module not available
+            });
+          } catch (e) {
+            // Silently fail
+          }
+        }, 1000); // Delay 1 second to not interfere with page load
+      }
+      
       // Main initialization - fast and simple
       function init() {
         try {

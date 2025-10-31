@@ -103,7 +103,7 @@ class AnalyticsTracker {
         requests.set(key, record);
       }
       
-      record.timestamps = record.timestamps.filter(ts => now - ts < windowMs);
+      record.timestamps = record.timestamps.filter((ts: number) => now - ts < windowMs);
       
       if (record.timestamps.length < maxRequests) {
         record.timestamps.push(now);
