@@ -101,6 +101,8 @@ export class CountdownTimer {
     this.isRunning = false;
   }
   
+  private visibilityHandler: (() => void) | null = null;
+  
   /**
    * Setup Page Visibility API listener
    * Pauses timer when tab is hidden
@@ -110,7 +112,7 @@ export class CountdownTimer {
     
     let wasRunningBeforeHidden = false;
     
-    document.addEventListener('visibilitychange', () => {
+    this.visibilityHandler = () => {
       if (document.hidden) {
         // Tab is hidden - remember state and stop
         wasRunningBeforeHidden = this.isRunning;
@@ -126,7 +128,9 @@ export class CountdownTimer {
           callback(state);
         });
       }
-    });
+    };
+    
+    document.addEventListener('visibilitychange', this.visibilityHandler);
   }
   
   /**
@@ -142,6 +146,12 @@ export class CountdownTimer {
   destroy(): void {
     this.stop();
     this.callbacks = [];
+    
+    // Remove visibility listener
+    if (this.visibilityHandler && typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.visibilityHandler);
+      this.visibilityHandler = null;
+    }
   }
 }
 

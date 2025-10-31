@@ -541,9 +541,6 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                 });
               }
             }, 100);
-            const timeoutCleanup = registerCleanup(function() {
-              clearTimeout(timeout);
-            });
           } catch (e) {
             logger.warn('[Analytics] GA4 init failed:', e);
           }

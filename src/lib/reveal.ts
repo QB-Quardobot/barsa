@@ -32,6 +32,8 @@ class RevealAnimations {
     this.init();
   }
   
+  private rafId: number | null = null;
+  
   private trackScrollVelocity() {
     let lastScrollY = window.scrollY;
     let lastTime = performance.now();
@@ -68,10 +70,10 @@ class RevealAnimations {
       lastScrollY = currentScrollY;
       lastTime = currentTime;
       
-      requestAnimationFrame(updateVelocity);
+      this.rafId = requestAnimationFrame(updateVelocity);
     };
     
-    requestAnimationFrame(updateVelocity);
+    this.rafId = requestAnimationFrame(updateVelocity);
   }
   
   private enablePrerenderMode() {
@@ -148,13 +150,18 @@ class RevealAnimations {
     }
 
     // Listen for reduced motion changes
-    window
-      .matchMedia('(prefers-reduced-motion: reduce)')
-      .addEventListener('change', (e) => {
-        if (e.matches) {
-          this.showAllImmediately();
-        }
-      });
+    const reducedMotionHandler = (e: MediaQueryListEvent) => {
+      if (e.matches) {
+        this.showAllImmediately();
+      }
+    };
+    
+    const reducedMotionMedia = window.matchMedia('(prefers-reduced-motion: reduce)');
+    reducedMotionMedia.addEventListener('change', reducedMotionHandler);
+    
+    // Store handler for cleanup
+    (this as any).reducedMotionHandler = reducedMotionHandler;
+    (this as any).reducedMotionMedia = reducedMotionMedia;
   }
 
   private handleIntersection(entries: IntersectionObserverEntry[]) {
@@ -272,6 +279,21 @@ class RevealAnimations {
     if (this.fastScrollTimeout) {
       clearTimeout(this.fastScrollTimeout);
       this.fastScrollTimeout = null;
+    }
+    
+    // Cancel animation frame
+    if (this.rafId !== null) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
+    
+    // Cleanup reduced motion listener
+    const reducedMotionMedia = (this as any).reducedMotionMedia;
+    const reducedMotionHandler = (this as any).reducedMotionHandler;
+    if (reducedMotionMedia && reducedMotionHandler) {
+      reducedMotionMedia.removeEventListener('change', reducedMotionHandler);
+      (this as any).reducedMotionHandler = null;
+      (this as any).reducedMotionMedia = null;
     }
   }
 }

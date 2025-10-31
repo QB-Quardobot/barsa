@@ -113,7 +113,7 @@ class AnalyticsTracker {
         }
       }
     } catch (e) {
-      console.warn('[Analytics] Failed to load stored events:', e);
+      logger.warn('[Analytics] Failed to load stored events:', e);
     }
   }
 
@@ -123,7 +123,7 @@ class AnalyticsTracker {
     try {
       sessionStorage.setItem(this.config.storageKey, JSON.stringify(this.events));
     } catch (e) {
-      console.warn('[Analytics] Failed to save events (storage full?)', e);
+      logger.warn('[Analytics] Failed to save events (storage full?)', e);
       // Remove oldest events if storage is full
       if (this.events.length > 10) {
         this.events = this.events.slice(-10);
@@ -242,9 +242,9 @@ class AnalyticsTracker {
       };
 
       this.telegramWebApp.sendData(JSON.stringify(payload));
-    } catch (e) {
-      console.warn('[Analytics] Failed to send to Telegram:', e);
-    }
+      } catch (e) {
+        logger.warn('[Analytics] Failed to send to Telegram:', e);
+      }
   }
 
   /**
@@ -269,9 +269,9 @@ class AnalyticsTracker {
           keepalive: true, // For reliability on page unload
         });
       }
-    } catch (e) {
-      console.warn('[Analytics] Failed to send to server:', e);
-    }
+      } catch (e) {
+        logger.warn('[Analytics] Failed to send to server:', e);
+      }
   }
 
   /**
