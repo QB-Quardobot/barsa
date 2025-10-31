@@ -18,7 +18,11 @@ declare global {
       targetId: string | Date,
       config?: Record<string, any>
     ) => void;
-    ym?: (counterId: number, action: string, target: string, params?: Record<string, any>) => void;
+    ym?: {
+      (counterId: number, action: string, target: string, params?: Record<string, any>): void;
+      a?: Array<[number, string, string, Record<string, any>?]>;
+      l?: number;
+    };
     dataLayer?: any[];
   }
 }
@@ -42,9 +46,13 @@ export function initGA4(measurementId: string): void {
   document.head.appendChild(script);
 
   // Initialize dataLayer
-  window.dataLayer = window.dataLayer || [];
+  if (!window.dataLayer) {
+    window.dataLayer = [];
+  }
   window.gtag = function() {
-    window.dataLayer.push(arguments);
+    if (window.dataLayer) {
+      window.dataLayer.push(arguments);
+    }
   };
 
   window.gtag('js', new Date());
@@ -63,12 +71,17 @@ export function initYandexMetrika(counterId: string | number): void {
 
   const id = Number(counterId);
 
-  // Create ym function
-  window.ym = function(id, action, target, params) {
-    if (!window.ym.a) window.ym.a = [];
-    window.ym.a.push([id, action, target, params]);
-  };
-  window.ym.l = Date.now();
+  // Create ym function (Yandex Metrika pattern)
+  const ymFunction = function(this: any, id: number, action: string, target: string, params?: Record<string, any>) {
+    if (!this.a) {
+      this.a = [];
+    }
+    this.a.push([id, action, target, params]);
+  } as Window['ym'];
+  
+  (ymFunction as any).a = [];
+  (ymFunction as any).l = Date.now();
+  window.ym = ymFunction;
 
   // Create and append script
   const script = document.createElement('script');
@@ -81,14 +94,16 @@ export function initYandexMetrika(counterId: string | number): void {
   noscript.innerHTML = `<div><img src="https://mc.yandex.ru/watch/${id}" style="position:absolute; left:-9999px;" alt="" /></div>`;
   document.body.appendChild(noscript);
 
-  // Initialize
-  window.ym(id, 'init', {
-    clickmap: true,
-    trackLinks: true,
-    accurateTrackBounce: true,
-    webvisor: true,
-    ecommerce: 'dataLayer',
-  });
+  // Initialize (Yandex Metrika accepts object as 4th parameter, not 3rd)
+  if (window.ym) {
+    window.ym(id, 'init', '', {
+      clickmap: true,
+      trackLinks: true,
+      accurateTrackBounce: true,
+      webvisor: true,
+      ecommerce: 'dataLayer',
+    });
+  }
 }
 
 /**
@@ -121,11 +136,13 @@ export function trackPageView(utmParams?: Record<string, string>): void {
   }
 
   // Яндекс.Метрика: Track page view (UTM automatically tracked from URL)
-  if (window.ym && window.ym.a?.[0]?.[0]) {
+  if (window.ym && window.ym.a && window.ym.a.length > 0 && window.ym.a[0] && window.ym.a[0][0]) {
     const ymId = window.ym.a[0][0];
-    window.ym(ymId, 'hit', window.location.href, {
-      title: document.title,
-    });
+    if (window.ym) {
+      window.ym(ymId, 'hit', window.location.href, {
+        title: document.title,
+      });
+    }
   }
 }
 
@@ -160,7 +177,7 @@ export function trackCTAClick(data: {
   }
 
   // Яндекс.Метрика: Track goal (replace 'cta_click' with your goal name)
-  if (window.ym && window.ym.a?.[0]?.[0]) {
+  if (window.ym && window.ym.a && window.ym.a.length > 0 && window.ym.a[0] && window.ym.a[0][0]) {
     const ymId = window.ym.a[0][0];
     window.ym(ymId, 'reachGoal', 'cta_click', {
       label: data.label,
