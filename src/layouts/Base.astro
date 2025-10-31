@@ -693,15 +693,25 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         console.log('[TG] ✅ Ready');
         
         // Setup touch events for interactive elements (replace hover)
-        doc.querySelectorAll('.reveal-up, .proof-item, .step-card, .cta-section').forEach(el => {
-          el.addEventListener('touchstart', () => {
-            el.classList.add('touch-active');
-          }, { passive: true });
-          
-          el.addEventListener('touchend', () => {
-            setTimeout(() => el.classList.remove('touch-active'), 150);
-          }, { passive: true });
-        });
+        // Visual feedback for touch interactions
+        if (isTouchDevice) {
+          doc.querySelectorAll('.reveal-up, .proof-item, .step-card, .cta-section, button, a[data-cta], .btn-capsule').forEach(el => {
+            el.addEventListener('touchstart', function() {
+              this.classList.add('touch-active');
+            }, { passive: true });
+            
+            el.addEventListener('touchend', function() {
+              const self = this;
+              setTimeout(() => {
+                self.classList.remove('touch-active');
+              }, 150);
+            }, { passive: true });
+            
+            el.addEventListener('touchcancel', function() {
+              this.classList.remove('touch-active');
+            }, { passive: true });
+          });
+        }
       }
       
       // Start initialization
