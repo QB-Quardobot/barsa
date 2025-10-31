@@ -282,6 +282,12 @@ const { showInBrowser = false } = Astro.props;
     const loadingScreen = document.getElementById('loading-screen');
     if (!loadingScreen) return;
     
+    // Cleanup registry
+    const cleanupFunctions = [];
+    function registerCleanup(fn) {
+      cleanupFunctions.push(fn);
+    }
+    
     // Check if should show in browser
     const showInBrowser = loadingScreen.getAttribute('data-show-in-browser') === 'true';
     const isTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
@@ -298,27 +304,37 @@ const { showInBrowser = false } = Astro.props;
         loadingScreen.classList.add('loaded');
         
         // Remove from DOM after animation
-        setTimeout(() => {
+        const removeTimeout = setTimeout(() => {
           if (loadingScreen && loadingScreen.parentNode) {
             loadingScreen.remove();
           }
+          // Cleanup all listeners
+          cleanupFunctions.forEach(fn => { try { fn(); } catch (e) {} });
         }, 500);
+        registerCleanup(() => clearTimeout(removeTimeout));
       }
     }
     
     // Hide on DOMContentLoaded (fast) or after max 2 seconds
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', hideLoader);
-    } else {
-      // Already loaded
-      setTimeout(hideLoader, 300);
-    }
+    const timeout1 = setTimeout(hideLoader, 300);
+    registerCleanup(() => clearTimeout(timeout1));
     
     // Fallback: hide after max 2.5 seconds (UX best practice)
-    setTimeout(hideLoader, 2500);
+    const timeout2 = setTimeout(hideLoader, 2500);
+    registerCleanup(() => clearTimeout(timeout2));
+    
+    if (document.readyState === 'loading') {
+      const domReadyHandler = hideLoader;
+      document.addEventListener('DOMContentLoaded', domReadyHandler);
+      registerCleanup(() => document.removeEventListener('DOMContentLoaded', domReadyHandler));
+    } else {
+      hideLoader();
+    }
     
     // Also hide on window load
-    window.addEventListener('load', hideLoader);
+    const loadHandler = hideLoader;
+    window.addEventListener('load', loadHandler);
+    registerCleanup(() => window.removeEventListener('load', loadHandler));
   })();
 </script>
 

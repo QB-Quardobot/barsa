@@ -42,7 +42,7 @@ export function storeUTM(utmParams: UTMParams): void {
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(utmParams));
   } catch (error) {
-    console.warn('Failed to store UTM params:', error);
+    logger.warn('Failed to store UTM params:', error);
   }
 }
 
@@ -56,7 +56,7 @@ export function getStoredUTM(): UTMParams {
     const stored = sessionStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : {};
   } catch (error) {
-    console.warn('Failed to retrieve UTM params:', error);
+    logger.warn('Failed to retrieve UTM params:', error);
     return {};
   }
 }
@@ -123,6 +123,6 @@ export function clearUTM(): void {
   try {
     sessionStorage.removeItem(STORAGE_KEY);
   } catch (error) {
-    console.warn('Failed to clear UTM params:', error);
+    logger.warn('Failed to clear UTM params:', error);
   }
 }

@@ -213,7 +213,7 @@ export function initAnalytics(config: AnalyticsConfig): void {
     try {
       initGA4(config.ga4Id);
     } catch (e) {
-      console.warn('[Analytics] Failed to init GA4:', e);
+      logger.warn('[Analytics] Failed to init GA4:', e);
     }
   }
 
@@ -222,7 +222,7 @@ export function initAnalytics(config: AnalyticsConfig): void {
     try {
       initYandexMetrika(config.ymId);
     } catch (e) {
-      console.warn('[Analytics] Failed to init Yandex Metrika:', e);
+      logger.warn('[Analytics] Failed to init Yandex Metrika:', e);
     }
   }
 
@@ -231,7 +231,7 @@ export function initAnalytics(config: AnalyticsConfig): void {
     try {
       trackPageView();
     } catch (e) {
-      console.warn('[Analytics] Failed to track page view:', e);
+      logger.warn('[Analytics] Failed to track page view:', e);
     }
   }, 100);
 }

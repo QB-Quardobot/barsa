@@ -576,6 +576,24 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         }
       }
 
+      // Initialize error handling (must be first)
+      if (typeof window !== 'undefined') {
+        try {
+          // Global error handler
+          window.onerror = function(message, source, lineno, colno, error) {
+            logger.error('[Global Error]', message, error || { source, lineno, colno });
+            return false; // Allow default handling
+          };
+          
+          // Unhandled promise rejections
+          window.addEventListener('unhandledrejection', function(event) {
+            logger.error('[Unhandled Promise]', event.reason);
+          });
+        } catch (e) {
+          logger.error('[Init] Error handler setup failed:', e);
+        }
+      }
+      
       // Main initialization - fast and simple
       function init() {
         try {

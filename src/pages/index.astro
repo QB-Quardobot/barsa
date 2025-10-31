@@ -920,22 +920,42 @@ const DEBUG_MODE = false;
   import '../lib/reveal-init.js';
   
   // Центрируем среднюю карточку при загрузке
-  document.addEventListener('DOMContentLoaded', () => {
-    const proofRow = document.querySelector('.proof-row');
-    if (proofRow) {
-      const proofItems = proofRow.querySelectorAll('.proof-item');
-      if (proofItems.length >= 2) {
-        // Скроллим ко второй карточке (центральная - AI модель)
-        const centerItem = proofItems[1];
-        setTimeout(() => {
-          centerItem.scrollIntoView({
-            behavior: 'auto',
-            block: 'nearest',
-            inline: 'center'
-          });
-        }, 100);
+  const domReadyHandler = () => {
+    try {
+      const proofRow = document.querySelector('.proof-row');
+      if (proofRow) {
+        const proofItems = proofRow.querySelectorAll('.proof-item');
+        if (proofItems.length >= 2) {
+          // Скроллим ко второй карточке (центральная - AI модель)
+          const centerItem = proofItems[1];
+          const scrollTimeout = setTimeout(() => {
+            try {
+              centerItem.scrollIntoView({
+                behavior: 'auto',
+                block: 'nearest',
+                inline: 'center'
+              });
+            } catch (e) {
+              // Silently fail
+            }
+          }, 100);
+          
+          // Cleanup on unload
+          window.addEventListener('beforeunload', () => {
+            clearTimeout(scrollTimeout);
+          }, { once: true });
+        }
       }
+    } catch (e) {
+      // Silently fail
     }
+  };
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', domReadyHandler, { once: true });
+  } else {
+    domReadyHandler();
+  }
     
     // Optimize lazy-loaded images to prevent white flash
     const lazyImages = document.querySelectorAll('img[loading="lazy"]');

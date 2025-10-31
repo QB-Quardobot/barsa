@@ -185,7 +185,11 @@ export function initTelegramWebApp(): void {
     try {
       webApp.requestFullscreen();
     } catch (e) {
-      console.warn('Fullscreen request failed:', e);
+      // Silently fail in production
+      if (typeof window !== 'undefined' && 
+          (window.location.hostname === 'localhost' || window.location.hostname.includes('.ngrok.io'))) {
+        console.warn('Fullscreen request failed:', e);
+      }
     }
   }
 }

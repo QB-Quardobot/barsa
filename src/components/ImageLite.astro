@@ -75,22 +75,36 @@ const aspect = (height / width) * 100;
     const img = root.querySelector('img');
     if (!img) return;
     const src = img.getAttribute('data-src');
-    function onLoad(){ img.classList.add('is-loaded'); root.style.background='transparent'; }
-    img.addEventListener('load', onLoad, { once: true });
-    if (!src) { if (img.complete) onLoad(); return; }
+    
+    function onLoad(){ 
+      if (img) {
+        img.classList.add('is-loaded'); 
+        if (root) root.style.background='transparent';
+      }
+    }
+    
+    const loadOpts = { once: true };
+    img.addEventListener('load', onLoad, loadOpts);
+    
+    if (!src) { 
+      if (img.complete) onLoad(); 
+      return; 
+    }
+    
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver((entries)=>{
         for (const e of entries){
           if (e.isIntersecting){
-            img.src = src;
+            if (img && src) img.src = src;
             io.disconnect();
           }
         }
       }, { rootMargin: '200px' });
       io.observe(img);
+      // Cleanup is handled by disconnect() when intersecting
     } else {
       // Fallback
-      img.src = src;
+      if (src) img.src = src;
     }
   })();
   </script>

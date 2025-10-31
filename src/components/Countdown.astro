@@ -44,7 +44,11 @@ const { deadline, title = 'Предложение актуально 24 часа
     const deadline = container.getAttribute('data-deadline');
     
     if (!deadline) {
-      console.error('Countdown: missing data-deadline attribute');
+      // Silently fail in production, log in dev
+      if (typeof window !== 'undefined' && 
+          (window.location.hostname === 'localhost' || window.location.hostname.includes('.ngrok.io'))) {
+        console.error('Countdown: missing data-deadline attribute');
+      }
       return;
     }
     
@@ -85,7 +89,10 @@ const { deadline, title = 'Предложение актуально 24 часа
       // Start the timer
       timer.start();
     } catch (error) {
-      console.error('Countdown error:', error);
+      // Always log errors (they're important)
+      if (typeof window !== 'undefined') {
+        console.error('Countdown error:', error);
+      }
     }
   });
 </script>
