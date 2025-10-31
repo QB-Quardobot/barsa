@@ -662,18 +662,97 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       const win = window;
       const doc = document;
       
+      // Production-safe logger (fallback if not defined in head)
+      if (!win.logger) {
+        const isDev = win.location.hostname === 'localhost' || win.location.hostname === '127.0.0.1' || win.location.hostname.includes('.ngrok.io') || win.location.hostname.includes('.trycloudflare.com');
+        win.logger = {
+          log: function(...args) { if (isDev) console.log(...args); },
+          warn: function(...args) { if (isDev) console.warn(...args); },
+          error: function(...args) { console.error(...args); }
+        };
+      }
+      const logger = win.logger;
+      
+      // Check if in Telegram (immediate check)
+      const isInTelegram = !!(win.Telegram && win.Telegram.WebApp);
+      
+      // Add class immediately if in Telegram (for CSS to work)
+      if (isInTelegram) {
+        doc.body.classList.add('tg-webapp');
+        
+        // Prevent text selection and copying immediately
+        function preventSelection(e) {
+          if (e.target && e.target.closest && e.target.closest('input, textarea')) {
+            return; // Allow selection in inputs
+          }
+          e.preventDefault();
+          return false;
+        }
+        
+        function preventCopy(e) {
+          if (e.target && e.target.closest && e.target.closest('input, textarea')) {
+            return; // Allow copy in inputs
+          }
+          e.preventDefault();
+          e.clipboardData.clearData();
+          return false;
+        }
+        
+        function preventContextMenu(e) {
+          if (e.target && e.target.closest && e.target.closest('input, textarea')) {
+            return; // Allow context menu in inputs
+          }
+          e.preventDefault();
+          return false;
+        }
+        
+        // Add event listeners to prevent selection/copy
+        doc.addEventListener('selectstart', preventSelection, { passive: false });
+        doc.addEventListener('copy', preventCopy, { passive: false });
+        doc.addEventListener('contextmenu', preventContextMenu, { passive: false });
+        
+        // CSS fallback for user-select (more robust)
+        const style = doc.createElement('style');
+        style.textContent = `
+          body.tg-webapp, body.tg-webapp * {
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+            -webkit-touch-callout: none !important;
+          }
+          body.tg-webapp input,
+          body.tg-webapp textarea {
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+          }
+        `;
+        doc.head.appendChild(style);
+      }
+      
       // Wait for Telegram WebApp to be available
       function initTelegramApp() {
         if (!win.Telegram?.WebApp) {
-          setTimeout(initTelegramApp, 50);
+          // Retry for up to 5 seconds
+          if (typeof initTelegramApp.retries === 'undefined') {
+            initTelegramApp.retries = 0;
+          }
+          if (initTelegramApp.retries < 100) {
+            initTelegramApp.retries++;
+            setTimeout(initTelegramApp, 50);
+          }
           return;
         }
         
         const tg = win.Telegram.WebApp;
         logger.log('[TG] Initializing v' + tg.version + ' on ' + tg.platform);
         
-        // Add class to body to enable Telegram-specific styles
-        doc.body.classList.add('tg-webapp');
+        // Ensure class is added (double-check)
+        if (!doc.body.classList.contains('tg-webapp')) {
+          doc.body.classList.add('tg-webapp');
+        }
         
         // Initialize
         tg.ready();
@@ -722,50 +801,72 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         
         // Setup haptics for interactive elements (excluding CTA links - handled separately)
         const haptics = tg.HapticFeedback;
-        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         
-        if (haptics && isTouchDevice) {
+        // Always setup haptics if available (even if not touch device - for desktop Telegram)
+        if (haptics) {
           // Function to add haptic to element
           function addHapticToElement(el) {
             if (!el || el.hasAttribute('data-haptic-attached')) return;
             
             el.setAttribute('data-haptic-attached', 'true');
             
-            // Light haptic on touchstart (with rate limiting)
-            el.addEventListener('touchstart', function() {
+            // Light haptic on touchstart (with rate limiting) - for touch devices
+            if (isTouchDevice) {
+              el.addEventListener('touchstart', function() {
+                try {
+                  if (rateLimiter.isAllowed() && haptics) {
+                    haptics.impactOccurred('light');
+                  }
+                } catch (e) {
+                  // Fallback: try without rate limiter if it fails
+                  try {
+                    if (haptics) haptics.impactOccurred('light');
+                  } catch (e2) {}
+                }
+              }, { passive: true });
+            }
+            
+            // Selection haptic on pointerenter (for desktop Telegram)
+            el.addEventListener('pointerenter', function() {
               try {
-                if (rateLimiter.isAllowed()) {
-                  haptics.impactOccurred('light');
+                if (haptics && !isTouchDevice) {
+                  haptics.selectionChanged();
                 }
               } catch (e) {}
             }, { passive: true });
           }
           
-          // Rate limiter for haptics (prevents spam)
+          // Rate limiter for haptics (prevents spam) - more lenient
           const rateLimiter = (function() {
             const requests = new Map();
-            const maxRequests = 100;
+            const maxRequests = 200; // Increased from 100
             const windowMs = 1000;
             
             function isAllowed() {
-              const now = Date.now();
-              const key = 'haptics';
-              let record = requests.get(key);
-              
-              if (!record) {
-                record = { timestamps: [] };
-                requests.set(key, record);
-              }
-              
-              // Remove old timestamps
-              record.timestamps = record.timestamps.filter(ts => now - ts < windowMs);
-              
-              if (record.timestamps.length < maxRequests) {
-                record.timestamps.push(now);
+              try {
+                const now = Date.now();
+                const key = 'haptics';
+                let record = requests.get(key);
+                
+                if (!record) {
+                  record = { timestamps: [] };
+                  requests.set(key, record);
+                }
+                
+                // Remove old timestamps
+                record.timestamps = record.timestamps.filter(ts => now - ts < windowMs);
+                
+                if (record.timestamps.length < maxRequests) {
+                  record.timestamps.push(now);
+                  return true;
+                }
+                
+                return false;
+              } catch (e) {
+                // If rate limiter fails, allow haptic anyway
                 return true;
               }
-              
-              return false;
             }
             
             return { isAllowed };
@@ -840,7 +941,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             if (!target) return;
             
             // Check if touched element is one of our interactive elements
-            const isInteractive = target.closest('.proof-item, .proof-image-placeholder, .student-photo, .student-circle, .banner-photo, .models-banner > div, .step-card, .benefit-item, .timeline-step, .founder-avatar, .photo-circle, .earning-corner');
+            const isInteractive = target.closest('.proof-item, .proof-image-placeholder, .student-photo, .student-circle, .banner-photo, .models-banner > div, .step-card, .benefit-item, .timeline-step, .founder-avatar, .photo-circle, .earning-corner, button, a[href], [role="button"]');
             
             if (isInteractive) {
               // Skip if already has direct listener (avoid double haptic)
@@ -853,16 +954,33 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               
               // Trigger haptic immediately via delegation (only for elements without direct listener)
               try {
-                if (rateLimiter.isAllowed()) {
+                if (isTouchDevice && rateLimiter.isAllowed()) {
                   haptics.impactOccurred('light');
+                } else if (!isTouchDevice) {
+                  haptics.selectionChanged();
                 }
-              } catch (err) {}
+              } catch (err) {
+                // Fallback: try without rate limiter
+                try {
+                  if (haptics) {
+                    if (isTouchDevice) {
+                      haptics.impactOccurred('light');
+                    } else {
+                      haptics.selectionChanged();
+                    }
+                  }
+                } catch (e2) {}
+              }
             }
           };
-          const delegationOpts = { passive: true, capture: false };
+          const delegationOpts = { passive: true, capture: true }; // Changed to capture phase
           doc.addEventListener('touchstart', delegationHandler, delegationOpts);
+          if (!isTouchDevice) {
+            doc.addEventListener('pointerenter', delegationHandler, delegationOpts);
+          }
           registerCleanup(function() {
             doc.removeEventListener('touchstart', delegationHandler, delegationOpts);
+            doc.removeEventListener('pointerenter', delegationHandler, delegationOpts);
           });
           
           // Medium haptic on click for buttons (non-CTA) - use cached query
