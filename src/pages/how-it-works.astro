@@ -635,79 +635,29 @@ import Base from '../layouts/Base.astro';
     }
   }
   
-  /* Fallback: Show content even if reveal animations don't initialize */
-  /* Force visibility immediately for this page (will be overridden by reveal animations if they work) */
-  .reveal-up,
-  .reveal-scale,
-  .reveal-fade {
-    /* Start visible - reveal will hide and show if JS loads */
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0) scale(1);
-  }
-  
-  /* But allow reveal animations to control visibility if they initialize */
-  .reveal-up:not(.is-revealed) {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  
-  .reveal-scale:not(.is-revealed) {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  
-  .reveal-fade:not(.is-revealed) {
-    opacity: 0;
-  }
-  
-  /* Ensure elements are visible when is-revealed class is added */
-  .reveal-up.is-revealed,
-  .reveal-scale.is-revealed,
-  .reveal-fade.is-revealed {
+  /* Override global reveal styles for this page - show content by default */
+  /* Reveal animations will work if JS loads, but content is visible even without JS */
+  section .reveal-up,
+  section .reveal-scale,
+  section .reveal-fade {
     opacity: 1 !important;
     visibility: visible !important;
     transform: translateY(0) scale(1) !important;
   }
   
-  /* Delayed reveal fallback - show all after 1 second if JS doesn't initialize */
-  @supports not (animation: force-reveal) {
-    .reveal-up,
-    .reveal-scale,
-    .reveal-fade {
-      animation: force-reveal 0.1s 1s forwards;
-    }
-  }
-  
-  @keyframes force-reveal {
-    to {
-      opacity: 1 !important;
-      visibility: visible !important;
-      transform: translateY(0) scale(1) !important;
-    }
+  /* Reveal animations will override these when they initialize */
+  section .reveal-up.is-revealed,
+  section .reveal-scale.is-revealed,
+  section .reveal-fade.is-revealed {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) scale(1) !important;
   }
 </style>
 
 <script>
-  // Initialize reveal animations for this page
+  // Initialize reveal animations for this page (optional - content is visible without them)
   (function() {
-    // First, ensure all elements are hidden initially (for reveal to work)
-    function hideElementsInitially() {
-      document.querySelectorAll('.reveal-up, .reveal-scale, .reveal-fade').forEach(el => {
-        if (!el.classList.contains('is-revealed')) {
-          el.style.opacity = '0';
-          if (el.classList.contains('reveal-up')) {
-            el.style.transform = 'translateY(30px)';
-          } else if (el.classList.contains('reveal-scale')) {
-            el.style.transform = 'scale(0.9)';
-          }
-        }
-      });
-    }
-    
-    // Hide elements immediately
-    hideElementsInitially();
-    
     function initRevealAnimations() {
       try {
         // Check if reveal is already initialized
@@ -723,44 +673,23 @@ import Base from '../layouts/Base.astro';
           import('/src/lib/reveal-init.js').then(() => {
             if (typeof window.initReveal === 'function') {
               window.initReveal();
-            } else {
-              // Final fallback: manually reveal all elements
-              setTimeout(() => {
-                document.querySelectorAll('.reveal-up, .reveal-scale, .reveal-fade').forEach(el => {
-                  el.classList.add('is-revealed');
-                  el.style.opacity = '1';
-                  el.style.transform = '';
-                });
-              }, 300);
             }
           }).catch(() => {
-            // If import fails, manually reveal all elements after delay
-            setTimeout(() => {
-              document.querySelectorAll('.reveal-up, .reveal-scale, .reveal-fade').forEach(el => {
-                el.classList.add('is-revealed');
-                el.style.opacity = '1';
-                el.style.transform = '';
-              });
-            }, 500);
+            // Silently fail - content is already visible
           });
         }
       } catch (e) {
-        // Final fallback: show all elements after 1 second
-        setTimeout(() => {
-          document.querySelectorAll('.reveal-up, .reveal-scale, .reveal-fade').forEach(el => {
-            el.classList.add('is-revealed');
-            el.style.opacity = '1';
-            el.style.transform = '';
-          });
-        }, 1000);
+        // Silently fail - content is already visible
       }
     }
     
+    // Initialize after a short delay (non-blocking)
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initRevealAnimations, { once: true });
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initRevealAnimations, 200);
+      }, { once: true });
     } else {
-      // Delay slightly to not block initial render
-      setTimeout(initRevealAnimations, 100);
+      setTimeout(initRevealAnimations, 200);
     }
   })();
 </script>
