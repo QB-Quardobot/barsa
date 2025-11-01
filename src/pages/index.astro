@@ -1238,16 +1238,19 @@ const DEBUG_MODE = false;
     display: flex;
     align-items: center;
     gap: 1rem;
-    transition: all 0.3s ease;
     text-align: left;
     box-shadow: 0 4px 12px rgba(168, 85, 247, 0.1);
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease;
   }
   
   .pain-card:hover {
     border-color: rgba(168, 85, 247, 0.4);
     background: rgba(168, 85, 247, 0.12);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(168, 85, 247, 0.2);
+    transform: translateY(-2px) translateZ(0);
+    box-shadow: 0 6px 20px rgba(168, 85, 247, 0.25);
   }
   
   .pain-card-icon {
