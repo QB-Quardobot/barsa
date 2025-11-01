@@ -1346,9 +1346,12 @@ const DEBUG_MODE = false;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease;
   }
   
   @media (min-width: 768px) {
@@ -1441,15 +1444,18 @@ const DEBUG_MODE = false;
     border-radius: var(--radius-lg);
     padding: 1rem 1.5rem;
     text-align: center;
-    transition: all 0.3s ease;
     min-width: 100px;
     opacity: 0.7;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, border-color 0.25s ease;
   }
   
   .old-attempt-item:hover {
     opacity: 1;
     border-color: rgba(239, 68, 68, 0.5);
-    transform: translateY(-2px);
+    transform: translateY(-2px) translateZ(0);
   }
   
   .old-icon {
@@ -1845,9 +1851,12 @@ const DEBUG_MODE = false;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.4s ease;
-    box-shadow: 0 8px 32px rgba(96, 165, 250, 0.15);
+    box-shadow: 0 6px 24px rgba(96, 165, 250, 0.2);
     position: relative;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
   }
   
   .photo-circle::before {
@@ -1908,13 +1917,13 @@ const DEBUG_MODE = false;
   }
   
   .founder-avatar:hover .photo-circle {
-    transform: scale(1.05);
-    box-shadow: 0 12px 40px rgba(96, 165, 250, 0.25);
+    transform: scale(1.05) translateZ(0); /* GPU acceleration */
+    box-shadow: 0 8px 28px rgba(96, 165, 250, 0.3); /* Reduced blur */
   }
   
   .founder-avatar:hover .earning-corner {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(96, 165, 250, 0.4);
+    transform: scale(1.05) translateZ(0); /* GPU acceleration */
+    box-shadow: 0 4px 16px rgba(96, 165, 250, 0.45); /* Reduced blur */
   }
   
   .photo-name {
