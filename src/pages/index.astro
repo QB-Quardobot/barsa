@@ -1116,12 +1116,20 @@ const DEBUG_MODE = false;
     }
   }
   
-  /* === SECTION STYLES === */
+  /* === SECTION STYLES === - Optimized for performance */
   section {
     position: relative;
     width: 100%;
     /* Ensure sections don't overflow */
     overflow-x: hidden;
+    /* Performance optimization - render off-screen sections lazily */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 600px;
+  }
+  
+  /* Final CTA section should always be rendered (it's visible on load) */
+  .final-cta-section {
+    content-visibility: visible;
   }
   
   /* Center all section content on desktop */
@@ -1496,6 +1504,9 @@ const DEBUG_MODE = false;
     /* Prevent card stretching */
     height: auto;
     min-height: 0;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform;
   }
   
   /* Small screens - fix stretching and line breaks */
@@ -1521,6 +1532,9 @@ const DEBUG_MODE = false;
     width: 200%;
     height: 200%;
     background: radial-gradient(circle, rgba(96, 165, 250, 0.1), transparent 60%);
+    /* GPU acceleration for animation */
+    transform: translateZ(0);
+    will-change: transform;
     animation: rotate 20s linear infinite;
   }
   
@@ -1634,6 +1648,8 @@ const DEBUG_MODE = false;
     /* Prevent card stretching */
     height: auto;
     min-height: 0;
+    /* GPU acceleration */
+    transform: translateZ(0);
   }
   
   /* Small screens - fix stretching */
@@ -1852,13 +1868,14 @@ const DEBUG_MODE = false;
     position: absolute;
     top: -5px;
     right: -5px;
-    background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(34, 211, 238, 0.15));
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.3), rgba(34, 211, 238, 0.25)); /* Increased opacity instead of blur */
     border: 2px solid rgba(96, 165, 250, 0.5);
     border-radius: 12px;
     padding: 0.5rem 0.75rem;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 16px rgba(96, 165, 250, 0.3);
+    box-shadow: 0 3px 12px rgba(96, 165, 250, 0.35); /* Reduced blur */
     z-index: 2;
+    /* GPU acceleration */
+    transform: translateZ(0);
   }
   
   .earning-corner .earning-amount {
@@ -1909,16 +1926,17 @@ const DEBUG_MODE = false;
     align-items: center;
     gap: 0.5rem;
     padding: 1.5rem 2rem;
-    background: rgba(15, 15, 20, 0.6);
+    background: rgba(15, 15, 20, 0.85); /* Increased opacity instead of blur */
     border: 1px solid rgba(96, 165, 250, 0.2);
     border-radius: 20px;
-    transition: all 0.4s ease;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.4); /* Reduced blur */
     position: relative;
     overflow: hidden;
     min-width: 160px;
-    transform: translateY(-30px);
+    transform: translateY(-30px) translateZ(0); /* GPU acceleration */
+    /* GPU acceleration - only animate transform */
+    will-change: transform;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
   }
   
   .earning-badge::before {
@@ -2078,17 +2096,19 @@ const DEBUG_MODE = false;
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem 2rem;
-    background: rgba(15, 15, 20, 0.5);
+    background: rgba(15, 15, 20, 0.75); /* Increased opacity instead of blur */
     border-radius: 16px;
     border: 1px solid rgba(96, 165, 250, 0.15);
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
   }
   
   .stat-line:hover {
     border-color: rgba(96, 165, 250, 0.3);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(96, 165, 250, 0.1);
+    transform: translateY(-2px) translateZ(0); /* GPU acceleration */
+    box-shadow: 0 6px 20px rgba(96, 165, 250, 0.15); /* Reduced blur */
   }
   
   .stat-line.featured {
@@ -2391,19 +2411,21 @@ const DEBUG_MODE = false;
   }
   
   .feature-box {
-    background: rgba(13, 13, 16, 0.6);
-    backdrop-filter: blur(10px);
+    background: rgba(13, 13, 16, 0.85); /* Increased opacity instead of blur */
     border: 1px solid rgba(96, 165, 250, 0.2);
     border-radius: var(--radius-2xl);
     padding: 2rem 1.5rem;
     text-align: center;
-    transition: all 0.3s ease;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
   }
   
   .feature-box:hover {
-    transform: translateY(-4px);
+    transform: translateY(-4px) translateZ(0); /* GPU acceleration */
     border-color: var(--primary);
-    box-shadow: 0 10px 40px rgba(96, 165, 250, 0.15);
+    box-shadow: 0 6px 24px rgba(96, 165, 250, 0.2); /* Reduced blur */
   }
   
   .feature-icon {
@@ -2942,26 +2964,28 @@ const DEBUG_MODE = false;
     color: var(--fg);
   }
   
-  /* Why Value */
+  /* Why Value - Optimized (no backdrop-filter) */
   .why-value {
     margin: 3rem 0;
     text-align: center;
     padding: 3rem 2rem;
     background: linear-gradient(135deg, 
-      rgba(96, 165, 250, 0.12) 0%, 
-      rgba(34, 211, 238, 0.08) 50%,
-      rgba(96, 165, 250, 0.12) 100%
+      rgba(96, 165, 250, 0.18) 0%, /* Increased opacity instead of blur */
+      rgba(34, 211, 238, 0.12) 50%,
+      rgba(96, 165, 250, 0.18) 100%
     );
     border-radius: var(--radius-2xl);
     border: 1px solid rgba(96, 165, 250, 0.2);
     box-shadow: 
-      0 8px 32px rgba(96, 165, 250, 0.1),
+      0 4px 16px rgba(96, 165, 250, 0.15), /* Reduced blur */
       inset 0 1px 0 rgba(255, 255, 255, 0.1),
       0 0 0 1px rgba(96, 165, 250, 0.05);
     position: relative;
     overflow: hidden;
-    backdrop-filter: blur(10px);
-    transition: all 0.4s ease;
+    /* GPU acceleration - only animate transform and opacity */
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
   }
   
   .why-value::before {
@@ -2989,10 +3013,10 @@ const DEBUG_MODE = false;
   .why-value:hover {
     border-color: rgba(96, 165, 250, 0.35);
     box-shadow: 
-      0 12px 48px rgba(96, 165, 250, 0.15),
+      0 6px 24px rgba(96, 165, 250, 0.2), /* Reduced blur */
       inset 0 1px 0 rgba(255, 255, 255, 0.15),
       0 0 0 1px rgba(96, 165, 250, 0.1);
-    transform: translateY(-2px);
+    transform: translateY(-2px) translateZ(0); /* GPU acceleration */
   }
   
   .value-text {
@@ -3013,26 +3037,28 @@ const DEBUG_MODE = false;
     filter: drop-shadow(0 0 20px rgba(96, 165, 250, 0.3));
   }
   
-  /* Why CTA Block */
+  /* Why CTA Block - Optimized (no backdrop-filter) */
   .why-cta-block {
     margin: 3rem 0;
     text-align: center;
     padding: 3rem 2rem;
     background: linear-gradient(135deg, 
-      rgba(249, 115, 22, 0.15) 0%,
-      rgba(234, 88, 12, 0.12) 50%,
-      rgba(249, 115, 22, 0.15) 100%
+      rgba(249, 115, 22, 0.22) 0%, /* Increased opacity instead of blur */
+      rgba(234, 88, 12, 0.18) 50%,
+      rgba(249, 115, 22, 0.22) 100%
     );
     border-radius: var(--radius-2xl);
     border: 1px solid rgba(249, 115, 22, 0.35);
     box-shadow: 
-      0 8px 32px rgba(249, 115, 22, 0.15),
+      0 4px 16px rgba(249, 115, 22, 0.2), /* Reduced blur */
       inset 0 1px 0 rgba(255, 255, 255, 0.1),
       0 0 0 1px rgba(249, 115, 22, 0.1);
     position: relative;
     overflow: hidden;
-    backdrop-filter: blur(10px);
-    transition: all 0.4s ease;
+    /* GPU acceleration - only animate transform and opacity */
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
   }
   
   .why-cta-block::before {
@@ -3059,10 +3085,10 @@ const DEBUG_MODE = false;
   .why-cta-block:hover {
     border-color: rgba(249, 115, 22, 0.5);
     box-shadow: 
-      0 12px 48px rgba(249, 115, 22, 0.2),
+      0 6px 24px rgba(249, 115, 22, 0.25), /* Reduced blur */
       inset 0 1px 0 rgba(255, 255, 255, 0.15),
       0 0 0 1px rgba(249, 115, 22, 0.15);
-    transform: translateY(-2px);
+    transform: translateY(-2px) translateZ(0); /* GPU acceleration */
   }
   
   .cta-question {
@@ -3096,10 +3122,9 @@ const DEBUG_MODE = false;
     }
   }
   
-  /* === STATS SECTION === */
+  /* === STATS SECTION === - Optimized (no backdrop-filter) */
   .stats-section {
-    background: rgba(13, 13, 16, 0.4);
-    backdrop-filter: blur(10px);
+    background: rgba(13, 13, 16, 0.7); /* Increased opacity instead of blur */
     padding: 3rem 1rem;
   }
   
@@ -3132,18 +3157,20 @@ const DEBUG_MODE = false;
   }
   
   .stats-card {
-    background: rgba(10, 10, 10, 0.6);
-    backdrop-filter: blur(10px);
+    background: rgba(10, 10, 10, 0.85); /* Increased opacity instead of blur */
     border: 1px solid var(--border);
     border-radius: var(--radius-2xl);
     padding: 2rem 1.5rem;
     text-align: center;
-    transition: all 0.3s ease;
+    /* GPU acceleration - only animate transform and opacity */
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
   }
   
   .stats-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 40px rgba(96, 165, 250, 0.1);
+    transform: translateY(-4px) translateZ(0); /* GPU acceleration */
+    box-shadow: 0 6px 24px rgba(96, 165, 250, 0.15); /* Reduced blur */
     border-color: rgba(96, 165, 250, 0.3);
   }
   
@@ -3163,9 +3190,14 @@ const DEBUG_MODE = false;
     font-size: 0.9375rem;
   }
   
-  /* === FINAL CTA SECTION === */
+  /* === FINAL CTA SECTION === - Optimized for fast rendering */
   .final-cta-section {
     padding: 3rem 0;
+    /* Ensure this section is always rendered (no lazy rendering) */
+    content-visibility: visible;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: contents;
   }
   
   @media (min-width: 1024px) {
@@ -3240,20 +3272,23 @@ const DEBUG_MODE = false;
     margin-bottom: 2rem;
   }
   
-  /* Steps Block */
+  /* Steps Block - Optimized (no backdrop-filter for performance) */
   .steps-block {
     margin: 2rem 0;
     padding: 2rem;
-    background: rgba(13, 13, 16, 0.6);
+    background: rgba(13, 13, 16, 0.85); /* Increased opacity instead of blur */
     border: 1px solid rgba(96, 165, 250, 0.15);
     border-radius: var(--radius-2xl);
-    backdrop-filter: blur(10px);
+    /* backdrop-filter removed - use solid background for better performance */
     box-shadow: 
-      0 4px 20px rgba(0, 0, 0, 0.3),
+      0 2px 12px rgba(0, 0, 0, 0.4), /* Reduced blur for performance */
       inset 0 1px 0 rgba(255, 255, 255, 0.05);
     max-width: 500px;
     margin-left: auto;
     margin-right: auto;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform;
   }
   
   .step-line {
@@ -3386,7 +3421,7 @@ const DEBUG_MODE = false;
     margin: 2.5rem 0;
   }
   
-  /* Beautiful Buttons with Shine - Full Width */
+  /* Beautiful Buttons with Shine - Optimized */
   .final-btn-group .btn-capsule {
     position: relative;
     overflow: hidden;
@@ -3401,8 +3436,11 @@ const DEBUG_MODE = false;
     border: none !important;
     text-decoration: none !important;
     text-align: center !important;
-    box-shadow: 0 8px 30px rgba(34, 197, 94, 0.4) !important;
-    transition: all 0.3s ease !important;
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4) !important; /* Reduced blur */
+    /* GPU acceleration - only animate transform */
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease !important;
   }
   
   .final-btn-group .btn-capsule::before {
@@ -3418,25 +3456,28 @@ const DEBUG_MODE = false;
       rgba(255, 255, 255, 0.8),
       rgba(255, 255, 255, 0) 70%
     );
+    /* GPU acceleration for animation */
+    transform: translateZ(0);
+    will-change: transform;
     animation: shine 3s infinite linear;
     z-index: 1;
   }
   
   @keyframes shine {
     0% {
-      left: -100px;
+      transform: translateX(-100px) translateZ(0); /* GPU acceleration */
     }
     20% {
-      left: 100%;
+      transform: translateX(calc(100vw + 100px)) translateZ(0);
     }
     100% {
-      left: 100%;
+      transform: translateX(calc(100vw + 100px)) translateZ(0);
     }
   }
   
   .final-btn-group .btn-capsule:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 12px 40px rgba(34, 197, 94, 0.5) !important;
+    transform: translateY(-2px) translateZ(0) !important; /* GPU acceleration */
+    box-shadow: 0 8px 28px rgba(34, 197, 94, 0.5) !important; /* Reduced blur */
   }
   
   .final-btn-group .btn-outline {
@@ -3507,14 +3548,16 @@ const DEBUG_MODE = false;
   }
   
   .cta-hero-box {
-    background: rgba(13, 13, 16, 0.6);
-    backdrop-filter: blur(20px);
+    background: rgba(13, 13, 16, 0.9); /* Increased opacity instead of blur(20px) */
     border: 1px solid rgba(96, 165, 250, 0.2);
     border-radius: var(--radius-2xl);
     padding: 3rem 2rem;
     text-align: center;
     position: relative;
     overflow: hidden;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform;
   }
   
   @media (min-width: 768px) {
@@ -3531,6 +3574,9 @@ const DEBUG_MODE = false;
     width: 200%;
     height: 200%;
     background: radial-gradient(circle, rgba(96, 165, 250, 0.1), transparent 60%);
+    /* GPU acceleration for animation */
+    transform: translateZ(0);
+    will-change: transform;
     animation: rotate 20s linear infinite;
   }
   

@@ -419,38 +419,44 @@
     background: transparent;
     cursor: pointer;
     outline: none;
-    transition: transform 0.3s ease;
+    /* GPU acceleration - only animate transform */
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .earnings-ticker-btn:hover {
-    transform: scale(1.05);
+    transform: scale(1.05) translateZ(0); /* GPU acceleration */
   }
   
   .earnings-ticker-btn:active {
-    transform: scale(0.98);
+    transform: scale(0.98) translateZ(0); /* GPU acceleration */
   }
   
   .earnings-ticker-content {
     position: relative;
     padding: 1.5rem 1.75rem;
-    background: linear-gradient(135deg, rgba(15, 15, 20, 0.95), rgba(25, 25, 35, 0.95));
-    backdrop-filter: blur(20px);
+    background: linear-gradient(135deg, rgba(15, 15, 20, 0.98), rgba(25, 25, 35, 0.98)); /* Solid background instead of blur(20px) */
     border: 1px solid rgba(96, 165, 250, 0.3);
     border-radius: 24px;
     box-shadow: 
-      0 10px 40px rgba(0, 0, 0, 0.4),
+      0 6px 24px rgba(0, 0, 0, 0.5), /* Reduced blur */
       0 0 0 1px rgba(96, 165, 250, 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
     min-width: 220px;
+    /* GPU acceleration - only animate transform, box-shadow, border-color */
+    transform: translateZ(0);
+    will-change: transform, box-shadow, border-color;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
   }
   
   .earnings-ticker-btn:hover .earnings-ticker-content {
     border-color: rgba(96, 165, 250, 0.5);
     box-shadow: 
-      0 15px 50px rgba(96, 165, 250, 0.3),
+      0 8px 32px rgba(96, 165, 250, 0.35), /* Reduced blur */
       0 0 0 1px rgba(96, 165, 250, 0.2),
       inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    transform: translateZ(0); /* GPU acceleration */
   }
   
   .earnings-ticker-content::before {
