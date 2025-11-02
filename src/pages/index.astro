@@ -2056,16 +2056,14 @@ const DEBUG_MODE = false;
     }
   }
   
-  /* Solution Videos - TikTok Style Vertical Scroll (Beautiful & Full Width) */
+  /* Solution Videos - TikTok Style Vertical Scroll (Beautiful & Centered) */
   .solution-videos-container {
-    margin: 4rem 0;
+    margin: 4rem auto;
     width: 100%;
-    max-width: 420px;
-    margin-left: auto;
-    margin-right: auto;
-    height: 85vh;
-    min-height: 600px;
-    max-height: 900px;
+    max-width: 360px; /* Smaller on desktop */
+    height: 75vh; /* Slightly smaller */
+    min-height: 500px;
+    max-height: 750px;
     border-radius: var(--radius-2xl);
     overflow: hidden;
     background: linear-gradient(135deg, rgba(96, 165, 250, 0.1), rgba(34, 211, 238, 0.05));
@@ -2075,6 +2073,9 @@ const DEBUG_MODE = false;
       0 0 60px rgba(96, 165, 250, 0.25),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
     position: relative;
+    /* Perfect centering */
+    margin-left: auto;
+    margin-right: auto;
     /* GPU acceleration */
     transform: translateZ(0);
     will-change: transform;
@@ -2097,25 +2098,62 @@ const DEBUG_MODE = false;
     opacity: 1;
   }
   
+  /* Tablet adjustments */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .solution-videos-container {
+      max-width: 380px;
+      height: 70vh;
+      max-height: 700px;
+    }
+  }
+  
+  /* Mobile optimizations */
   @media (max-width: 768px) {
     .solution-videos-container {
-      margin: 3rem 0;
-      max-width: 100%;
-      height: 90vh;
-      min-height: 500px;
-      border-radius: 0;
-      margin-left: -1rem;
-      margin-right: -1rem;
-      width: calc(100% + 2rem);
-      border-left: none;
-      border-right: none;
-      border-top: 2px solid rgba(96, 165, 250, 0.2);
-      border-bottom: 2px solid rgba(96, 165, 250, 0.2);
+      margin: 2rem auto;
+      max-width: 95%; /* Almost full width but with margins */
+      width: calc(100% - 1rem); /* Better margins */
+      height: 75vh; /* Optimized height for mobile */
+      min-height: 450px;
+      max-height: 600px;
+      border-radius: var(--radius-xl);
+      border: 2px solid rgba(96, 165, 250, 0.25);
+      /* Better shadow on mobile */
+      box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.8),
+        0 0 40px rgba(96, 165, 250, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
     
     .solution-videos-container::before {
-      border-radius: 0;
-      filter: blur(15px);
+      border-radius: var(--radius-xl);
+      filter: blur(12px);
+    }
+  }
+  
+  /* Small mobile phones */
+  @media (max-width: 480px) {
+    .solution-videos-container {
+      margin: 1.5rem auto;
+      max-width: 100%;
+      width: calc(100% - 0.5rem);
+      height: 70vh;
+      min-height: 400px;
+      max-height: 550px;
+      border-radius: var(--radius-lg);
+    }
+    
+    .solution-videos-container::before {
+      border-radius: var(--radius-lg);
+    }
+  }
+  
+  /* Very small screens */
+  @media (max-width: 360px) {
+    .solution-videos-container {
+      height: 65vh;
+      min-height: 350px;
+      max-height: 500px;
     }
   }
   
