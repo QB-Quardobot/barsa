@@ -361,11 +361,19 @@ const DEBUG_MODE = false;
     <div class="container">
         
         <!-- Models Banner -->
-        <div class="models-banner reveal-scale">
-          <div class="banner-photo">👩</div>
-          <div class="banner-photo">👱‍♀️</div>
-          <div class="banner-photo">👩‍🦰</div>
-        </div>
+        <figure class="models-banner reveal-scale">
+          <img 
+            src="/models-banner.webp"
+            srcset="/models-banner-800.webp 800w, /models-banner-1200.webp 1200w, /models-banner.webp 1920w"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+            alt="AI модели"
+            width="1200"
+            height="675"
+            loading="lazy"
+            decoding="async"
+            class="models-banner-img"
+          />
+        </figure>
         
         <!-- Intro -->
         <div class="what-intro reveal-fade">
@@ -2441,41 +2449,60 @@ const DEBUG_MODE = false;
   
   /* Models Banner */
   .models-banner {
-    display: flex;
-    gap: 1.5rem;
-    justify-content: center;
-    margin-bottom: 3rem;
-    padding: 2rem 1rem;
-    background: linear-gradient(135deg, rgba(96, 165, 250, 0.1), rgba(168, 85, 247, 0.08));
-    border-radius: var(--radius-2xl);
-    border: 1px solid rgba(96, 165, 250, 0.2);
+    margin: 4rem auto 3rem;
+    max-width: 1200px;
+    width: 100%;
+    padding: 0 1rem;
+    text-align: center;
+    position: relative;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform, opacity;
   }
   
-  .banner-photo {
-    width: 80px;
-    height: 80px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid rgba(168, 85, 247, 0.4);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.5rem;
-    transition: all 0.3s ease;
-  }
-  
-  @media (min-width: 640px) {
-    .banner-photo {
-      width: 100px;
-      height: 100px;
-      font-size: 3rem;
+  @media (min-width: 768px) {
+    .models-banner {
+      margin: 5rem auto 4rem;
+      padding: 0 2rem;
     }
   }
   
-  .banner-photo:hover {
-    transform: translateY(-4px) scale(1.05);
-    border-color: rgba(168, 85, 247, 0.6);
-    box-shadow: 0 10px 30px rgba(168, 85, 247, 0.3);
+  .models-banner-img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-2xl);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(96, 165, 250, 0.1);
+    display: block;
+    margin: 0 auto;
+    /* Smooth loading transition */
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: opacity;
+  }
+  
+  .models-banner-img.loaded {
+    opacity: 1;
+  }
+  
+  /* Subtle glow effect on hover */
+  @media (hover: hover) {
+    .models-banner:hover .models-banner-img {
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(96, 165, 250, 0.15);
+      transform: translateY(-2px) translateZ(0);
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
+    }
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .models-banner-img {
+      transition: none;
+    }
+    
+    .models-banner:hover .models-banner-img {
+      transform: none;
+    }
   }
   
   /* What Intro */
@@ -4441,3 +4468,4 @@ const DEBUG_MODE = false;
     }
   }
 </style>
+
