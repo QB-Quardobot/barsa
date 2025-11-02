@@ -466,21 +466,20 @@ const DEBUG_MODE = false;
   <section class="system-section">
     <div class="container">
         
-        <!-- Students Banner -->
-        <div class="students-banner reveal-scale">
-          <div class="student-photo">
-            <div class="student-circle">👩‍💼</div>
-            <span class="student-earn">$2.5K</span>
-          </div>
-          <div class="student-photo">
-            <div class="student-circle">👨‍💻</div>
-            <span class="student-earn">$8K</span>
-          </div>
-          <div class="student-photo">
-            <div class="student-circle">👩‍🎓</div>
-            <span class="student-earn">$5K</span>
-          </div>
-        </div>
+        <!-- System Showcase Image -->
+        <figure class="system-showcase reveal-scale">
+          <img 
+            src="/system-showcase.webp"
+            srcset="/system-showcase-800.webp 800w, /system-showcase-1200.webp 1200w, /system-showcase.webp 1920w"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+            alt="Вот так выглядит система с AI-Моделями"
+            width="1200"
+            height="675"
+            loading="lazy"
+            decoding="async"
+            class="system-showcase-img"
+          />
+        </figure>
         
         <!-- Header -->
         <div class="system-header reveal-fade">
@@ -2769,126 +2768,62 @@ const DEBUG_MODE = false;
     }
   }
   
-  /* Students Banner */
-  .students-banner {
-    display: flex;
-    gap: 1.5rem;
-    justify-content: flex-start;
-    margin-bottom: 3rem;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 1rem 0;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
-    scroll-snap-type: x mandatory;
-    scroll-padding: 0;
+  /* System Showcase */
+  .system-showcase {
+    margin: 4rem auto 3rem;
+    max-width: 1200px;
+    width: 100%;
+    padding: 0 1rem;
+    text-align: center;
+    position: relative;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform, opacity;
   }
   
-  .students-banner::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
-  }
-  
-  @media (max-width: 768px) {
-    .students-banner {
-      gap: 1rem;
-      margin: 0 -1rem 3rem;
-      padding: 1rem;
-      justify-content: center;
+  @media (min-width: 768px) {
+    .system-showcase {
+      margin: 5rem auto 4rem;
+      padding: 0 2rem;
     }
   }
   
-  .student-photo {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.5rem;
-    background: rgba(15, 15, 20, 0.4);
-    border: 1px solid rgba(34, 197, 94, 0.1);
-    border-radius: 20px;
-    transition: all 0.3s ease;
-    scroll-snap-align: center;
-    flex-shrink: 0;
-  }
-  
-  .student-photo:hover {
-    background: rgba(15, 15, 20, 0.6);
-    border-color: rgba(34, 197, 94, 0.2);
-    transform: translateY(-4px);
-  }
-  
-  .student-circle {
-    width: 100px;
-    height: 100px;
-    background: rgba(15, 15, 20, 0.6);
-    border: 2px solid rgba(34, 197, 94, 0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.1);
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .student-circle::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, rgba(34, 197, 94, 0.2), transparent 60%);
+  .system-showcase-img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-2xl);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(96, 165, 250, 0.1);
+    display: block;
+    margin: 0 auto;
+    /* Smooth loading transition */
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.6s ease;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: opacity;
   }
   
-  .student-circle:hover {
-    transform: scale(1.08) translateY(-2px);
-    border-color: rgba(34, 197, 94, 0.4);
-    box-shadow: 0 12px 40px rgba(34, 197, 94, 0.25);
-  }
-  
-  .student-circle:hover::before {
+  .system-showcase-img.loaded {
     opacity: 1;
   }
   
-  .student-earn {
-    font-size: clamp(1.75rem, 4.5vw, 2.25rem);
-    font-weight: 900;
-    background: linear-gradient(135deg, #22c55e, #10b981, #059669);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.03em;
-    margin-top: 0.5rem;
-    text-align: center;
-    position: relative;
-    /* Use system fonts for uniform rendering */
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-    font-variant-numeric: normal !important;
-    font-feature-settings: normal !important;
-    font-variant-ligatures: none !important;
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    animation: gradient-shift 3s ease infinite;
-    text-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
-  }
-  
-  @keyframes gradient-shift {
-    0%, 100% {
-      filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.4)) brightness(1);
-    }
-    50% {
-      filter: drop-shadow(0 0 20px rgba(34, 197, 94, 0.6)) brightness(1.1);
+  /* Subtle glow effect on hover */
+  @media (hover: hover) {
+    .system-showcase:hover .system-showcase-img {
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(96, 165, 250, 0.15);
+      transform: translateY(-2px) translateZ(0);
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
     }
   }
   
-  .student-photo:hover .student-earn {
-    animation-duration: 1.5s;
-    transform: scale(1.05);
+  @media (prefers-reduced-motion: reduce) {
+    .system-showcase-img {
+      transition: none;
+    }
+    
+    .system-showcase:hover .system-showcase-img {
+      transform: none;
+    }
   }
   
   /* System Header */
