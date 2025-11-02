@@ -201,6 +201,21 @@ const DEBUG_MODE = false;
           </div>
         </div>
         
+        <!-- Visual Transition Image -->
+        <figure class="transition-image reveal-scale">
+          <img 
+            src="/missed-opportunities.webp"
+            srcset="/missed-opportunities-800.webp 800w, /missed-opportunities-1200.webp 1200w, /missed-opportunities.webp 1920w"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+            alt="Упущенные возможности - профессия будущего"
+            width="1200"
+            height="675"
+            loading="lazy"
+            decoding="async"
+            class="transition-img"
+          />
+        </figure>
+        
         <!-- Solution Section -->
         <div class="solution-section">
           <div class="solution-intro-text reveal-up">
@@ -1608,6 +1623,64 @@ const DEBUG_MODE = false;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+  }
+  
+  /* === TRANSITION IMAGE === */
+  .transition-image {
+    margin: 4rem auto 3rem;
+    max-width: 1200px;
+    width: 100%;
+    padding: 0 1rem;
+    text-align: center;
+    position: relative;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform, opacity;
+  }
+  
+  @media (min-width: 768px) {
+    .transition-image {
+      margin: 5rem auto 4rem;
+      padding: 0 2rem;
+    }
+  }
+  
+  .transition-img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-2xl);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(96, 165, 250, 0.1);
+    display: block;
+    margin: 0 auto;
+    /* Smooth loading transition */
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: opacity;
+  }
+  
+  .transition-img.loaded {
+    opacity: 1;
+  }
+  
+  /* Subtle glow effect on hover */
+  @media (hover: hover) {
+    .transition-image:hover .transition-img {
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(96, 165, 250, 0.15);
+      transform: translateY(-2px) translateZ(0);
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
+    }
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .transition-img {
+      transition: none;
+    }
+    
+    .transition-image:hover .transition-img {
+      transform: none;
+    }
   }
   
   /* === SOLUTION SECTION === */
