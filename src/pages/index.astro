@@ -2205,10 +2205,13 @@ const DEBUG_MODE = false;
   }
   
   .solution-video {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Fill entire container without black bars */
-    object-position: center; /* Center the video */
+    object-fit: cover; /* Fill entire container, cropping if needed */
+    object-position: center center; /* Center the video content */
     display: block;
     background: #000;
     /* Smooth poster transition */
@@ -2217,6 +2220,9 @@ const DEBUG_MODE = false;
     /* GPU acceleration */
     transform: translateZ(0);
     will-change: opacity;
+    /* Ensure video fills entire wrapper */
+    min-width: 100%;
+    min-height: 100%;
   }
   
   .solution-video[data-loaded="true"] {
