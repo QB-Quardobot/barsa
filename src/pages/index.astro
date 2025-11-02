@@ -244,6 +244,40 @@ const DEBUG_MODE = false;
             </p>
           </div>
           
+          <!-- Videos Section -->
+          <div class="solution-videos reveal-scale">
+            <div class="video-wrapper">
+              <video 
+                class="solution-video"
+                controls
+                preload="none"
+                poster="/video1-poster.webp"
+                playsinline
+                width="1280"
+                height="720"
+                data-src="/video1.mp4"
+              >
+                <source data-src="/video1.mp4" type="video/mp4">
+                Ваш браузер не поддерживает воспроизведение видео.
+              </video>
+            </div>
+            <div class="video-wrapper">
+              <video 
+                class="solution-video"
+                controls
+                preload="none"
+                poster="/video2-poster.webp"
+                playsinline
+                width="1280"
+                height="720"
+                data-src="/video2.mp4"
+              >
+                <source data-src="/video2.mp4" type="video/mp4">
+                Ваш браузер не поддерживает воспроизведение видео.
+              </video>
+            </div>
+          </div>
+          
           <div class="solution-promise-card reveal-up">
             <div class="promise-label">💎 Что ты получишь</div>
             <p class="promise-text">
@@ -1124,10 +1158,67 @@ const DEBUG_MODE = false;
     }
   }
   
+  // Lazy load videos when they enter viewport
+  function initLazyVideos() {
+    try {
+      const lazyVideos = document.querySelectorAll('video[data-src]');
+      
+      if ('IntersectionObserver' in window && lazyVideos.length > 0) {
+        const videoObserver = new IntersectionObserver((entries, observer) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const video = entry.target as HTMLVideoElement;
+              const dataSrc = video.getAttribute('data-src');
+              
+              if (dataSrc && !video.hasAttribute('data-loaded')) {
+                // Load video source
+                const source = video.querySelector('source');
+                if (source) {
+                  source.src = dataSrc;
+                  video.load();
+                  video.setAttribute('data-loaded', 'true');
+                }
+                
+                // Mark video as loaded
+                video.setAttribute('data-loaded', 'true');
+                
+                // Remove data-src to prevent reloading
+                video.removeAttribute('data-src');
+                
+                observer.unobserve(video);
+              }
+            }
+          });
+        }, {
+          rootMargin: '200px' // Start loading videos 200px before they enter viewport
+        });
+        
+        lazyVideos.forEach(video => videoObserver.observe(video));
+      } else {
+        // Fallback: load all videos immediately
+        lazyVideos.forEach(video => {
+          const dataSrc = (video as HTMLVideoElement).getAttribute('data-src');
+          if (dataSrc) {
+            const source = video.querySelector('source');
+            if (source) {
+              source.src = dataSrc;
+              (video as HTMLVideoElement).load();
+            }
+            (video as HTMLVideoElement).setAttribute('data-loaded', 'true');
+            (video as HTMLVideoElement).removeAttribute('data-src');
+          }
+        });
+      }
+    } catch (e) {
+      // Silently fail
+    }
+  }
+  
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initLazyImages, { once: true });
   } else {
     initLazyImages();
+    initLazyVideos();
   }
   
   // Initialize reveal animations (non-blocking, after DOM ready)
@@ -1913,6 +2004,93 @@ const DEBUG_MODE = false;
   @media (min-width: 768px) {
     .solution-promise-card {
       padding: 2rem;
+    }
+  }
+  
+  /* Solution Videos */
+  .solution-videos {
+    margin: 4rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  @media (min-width: 768px) {
+    .solution-videos {
+      margin: 5rem 0;
+      gap: 3rem;
+    }
+  }
+  
+  .video-wrapper {
+    position: relative;
+    width: 100%;
+    border-radius: var(--radius-2xl);
+    overflow: hidden;
+    background: rgba(15, 15, 20, 0.6);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(96, 165, 250, 0.1);
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .video-wrapper:hover {
+    transform: translateY(-4px) translateZ(0);
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(96, 165, 250, 0.15);
+  }
+  
+  .solution-video {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: var(--radius-2xl);
+    background: #000;
+    /* Smooth poster transition */
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+  
+  .solution-video[data-loaded="true"] {
+    opacity: 1;
+  }
+  
+  /* Video controls styling */
+  .solution-video::-webkit-media-controls-panel {
+    background-color: rgba(0, 0, 0, 0.7);
+  }
+  
+  .solution-video::-webkit-media-controls-play-button {
+    background-color: rgba(96, 165, 250, 0.8);
+    border-radius: 50%;
+  }
+  
+  @media (max-width: 768px) {
+    .solution-videos {
+      margin: 3rem 0;
+      gap: 1.5rem;
+      padding: 0 1rem;
+    }
+    
+    .video-wrapper {
+      border-radius: var(--radius-xl);
+    }
+    
+    .solution-video {
+      border-radius: var(--radius-xl);
+    }
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .video-wrapper {
+      transition: none;
+    }
+    
+    .video-wrapper:hover {
+      transform: none;
     }
   }
   
