@@ -673,12 +673,19 @@ const DEBUG_MODE = false;
     <div class="container">
         
         <!-- TG Preview -->
-        <div class="final-tg-preview reveal-scale">
-          <div class="tg-photo-box">
-            <span class="tg-emoji">📱</span>
-          </div>
-          <p class="tg-label">Telegram канал</p>
-        </div>
+        <figure class="final-tg-preview reveal-scale">
+          <img 
+            src="/telegram-preview.webp"
+            srcset="/telegram-preview-800.webp 800w, /telegram-preview-1200.webp 1200w, /telegram-preview.webp 1920w"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+            alt="Telegram канал"
+            width="1200"
+            height="675"
+            loading="lazy"
+            decoding="async"
+            class="telegram-preview-img"
+          />
+        </figure>
         
         <div class="final-main reveal-fade">
           
@@ -3419,36 +3426,60 @@ const DEBUG_MODE = false;
   
   /* Final TG Preview */
   .final-tg-preview {
+    margin: 4rem auto 3rem;
+    max-width: 1200px;
+    width: 100%;
+    padding: 0 1rem;
     text-align: center;
-    margin-bottom: 3rem;
+    position: relative;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform, opacity;
   }
   
-  .tg-photo-box {
-    width: 180px;
-    height: 180px;
-    margin: 0 auto 1rem;
-    background: rgba(96, 165, 250, 0.05);
-    border: 2px dashed rgba(96, 165, 250, 0.4);
+  @media (min-width: 768px) {
+    .final-tg-preview {
+      margin: 5rem auto 4rem;
+      padding: 0 2rem;
+    }
+  }
+  
+  .telegram-preview-img {
+    width: 100%;
+    height: auto;
     border-radius: var(--radius-2xl);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(96, 165, 250, 0.1);
+    display: block;
+    margin: 0 auto;
+    /* Smooth loading transition */
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: opacity;
   }
   
-  .tg-photo-box:hover {
-    border-color: rgba(96, 165, 250, 0.6);
-    transform: translateY(-4px);
+  .telegram-preview-img.loaded {
+    opacity: 1;
   }
   
-  .tg-emoji {
-    font-size: clamp(4.5rem, 10vw, 6rem);
+  /* Subtle glow effect on hover */
+  @media (hover: hover) {
+    .final-tg-preview:hover .telegram-preview-img {
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(96, 165, 250, 0.15);
+      transform: translateY(-2px) translateZ(0);
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
+    }
   }
   
-  .tg-label {
-    font-size: clamp(1rem, 2.5vw, 1.125rem);
-    color: var(--primary);
-    font-weight: 700;
+  @media (prefers-reduced-motion: reduce) {
+    .telegram-preview-img {
+      transition: none;
+    }
+    
+    .final-tg-preview:hover .telegram-preview-img {
+      transform: none;
+    }
   }
   
   /* Final Main */
