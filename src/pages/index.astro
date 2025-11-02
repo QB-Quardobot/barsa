@@ -2181,13 +2181,12 @@ const DEBUG_MODE = false;
     min-height: 100%;
     scroll-snap-align: start;
     scroll-snap-stop: always;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
     background: #000;
     /* GPU acceleration */
     transform: translateZ(0);
     will-change: transform;
+    overflow: hidden;
   }
   
   /* Subtle gradient overlay on video wrapper */
