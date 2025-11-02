@@ -2061,7 +2061,8 @@ const DEBUG_MODE = false;
     margin: 4rem auto;
     width: 100%;
     max-width: 360px; /* Smaller on desktop */
-    height: 75vh; /* Slightly smaller */
+    /* Aspect ratio 9:16 for vertical videos (portrait) */
+    aspect-ratio: 9 / 16;
     min-height: 500px;
     max-height: 750px;
     border-radius: var(--radius-2xl);
@@ -2102,7 +2103,6 @@ const DEBUG_MODE = false;
   @media (min-width: 769px) and (max-width: 1024px) {
     .solution-videos-container {
       max-width: 380px;
-      height: 70vh;
       max-height: 700px;
     }
   }
@@ -2113,9 +2113,8 @@ const DEBUG_MODE = false;
       margin: 2rem auto;
       max-width: 95%; /* Almost full width but with margins */
       width: calc(100% - 1rem); /* Better margins */
-      height: 75vh; /* Optimized height for mobile */
       min-height: 450px;
-      max-height: 600px;
+      max-height: 85vh; /* Use viewport height on mobile */
       border-radius: var(--radius-xl);
       border: 2px solid rgba(96, 165, 250, 0.25);
       /* Better shadow on mobile */
@@ -2137,9 +2136,8 @@ const DEBUG_MODE = false;
       margin: 1.5rem auto;
       max-width: 100%;
       width: calc(100% - 0.5rem);
-      height: 70vh;
       min-height: 400px;
-      max-height: 550px;
+      max-height: 85vh;
       border-radius: var(--radius-lg);
     }
     
@@ -2151,9 +2149,8 @@ const DEBUG_MODE = false;
   /* Very small screens */
   @media (max-width: 360px) {
     .solution-videos-container {
-      height: 65vh;
       min-height: 350px;
-      max-height: 500px;
+      max-height: 85vh;
     }
   }
   
@@ -2211,7 +2208,8 @@ const DEBUG_MODE = false;
   .solution-video {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Changed from contain to cover for full width */
+    object-fit: cover; /* Fill entire container without black bars */
+    object-position: center; /* Center the video */
     display: block;
     background: #000;
     /* Smooth poster transition */
