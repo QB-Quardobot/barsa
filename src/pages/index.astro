@@ -1035,6 +1035,18 @@ const DEBUG_MODE = false;
           };
         }
       }
+      
+      // Founder photo lazy loading
+      const founderPhoto = document.querySelector('.founder-photo');
+      if (founderPhoto && !founderPhoto.classList.contains('loaded')) {
+        if (founderPhoto.complete && founderPhoto.naturalHeight !== 0) {
+          founderPhoto.classList.add('loaded');
+        } else {
+          founderPhoto.onload = () => {
+            founderPhoto.classList.add('loaded');
+          };
+        }
+      }
     } catch (e) {
       // Silently fail
     }
