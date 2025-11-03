@@ -671,7 +671,7 @@ const DEBUG_MODE = false;
         <div class="final-main reveal-fade">
           
           <h2 class="final-title-blue gradient-text">
-            Прямо сейчас открыта регистрация на&nbsp;обучение AI Model 2.0.
+            Прямо&nbsp;сейчас открыта регистрация на&nbsp;обучение <span class="no-break">AI&nbsp;Model&nbsp;2.0.</span>
           </h2>
           
           <p class="final-description">
@@ -679,7 +679,7 @@ const DEBUG_MODE = false;
           </p>
           
           <div class="final-btn-group">
-            <a href="/how-it-works" class="btn-video-review" data-cta aria-label="Перейти к видео-обзору системы AI Model 2.0">
+            <a href="/how-it-works" class="btn-video-review" data-cta aria-label="Перейти к видео-обзору системы AI Model 2.0" target="_self">
               ПЕРЕЙТИ К ВИДЕО-ОБЗОРУ
             </a>
           </div>
@@ -706,12 +706,12 @@ const DEBUG_MODE = false;
           <div class="final-insight-block reveal-up">
             <div class="insight-icon">💡</div>
             <p class="insight-text">
-              Это следующий шаг, если ты хочешь понять,<br/>
-              как превратить идею в живой источник&nbsp;дохода.
+              Это следующий шаг, если ты хочешь&nbsp;понять,<br/>
+              как превратить идею в живой&nbsp;источник дохода.
             </p>
             <p class="insight-subtext">
-              Там ты увидишь, как реально выглядит профессия будущего&nbsp;—<br/>
-              и почему люди уже зарабатывают на ней тысячи долларов в&nbsp;месяц.
+              Там ты увидишь, как реально выглядит профессия&nbsp;будущего&nbsp;—<br/>
+              и почему люди уже зарабатывают на&nbsp;ней тысячи долларов&nbsp;в месяц.
             </p>
           </div>
           
@@ -722,12 +722,12 @@ const DEBUG_MODE = false;
           </div>
           
           <p class="final-action-text">
-            Переходи на сайт, посмотри систему своими глазами&nbsp;—<br/>
-            и реши, хочешь ли быть среди первых, кто делает деньги с&nbsp;AI.
+            Переходи на сайт, посмотри систему своими&nbsp;глазами&nbsp;—<br/>
+            и реши, хочешь ли быть среди&nbsp;первых, кто делает деньги&nbsp;с AI.
           </p>
           
           <div class="final-btn-group">
-            <a href="/how-it-works" class="btn-see-inside" data-cta aria-label="Увидеть всё внутри системы AI Model 2.0">
+            <a href="/how-it-works" class="btn-see-inside" data-cta aria-label="Увидеть всё внутри системы AI Model 2.0" target="_self">
               УВИДЕТЬ ВСЁ ВНУТРИ
             </a>
           </div>
@@ -3733,11 +3733,15 @@ const DEBUG_MODE = false;
   
   .final-title-blue {
     font-size: clamp(1.75rem, 6vw, 3.5rem);
-    font-weight: 800;
+    font-weight: 900;
     line-height: 1.15;
     margin-bottom: 1.5rem;
     /* Same font styling as hero-title */
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    /* Better mobile line breaks */
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: none;
   }
   
   /* Gradient already applied via gradient-text class */
@@ -3917,6 +3921,10 @@ const DEBUG_MODE = false;
     font-weight: 600;
     line-height: 1.7;
     margin-bottom: 1rem;
+    /* Better mobile line breaks */
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: none;
   }
   
   .insight-subtext {
@@ -3924,6 +3932,10 @@ const DEBUG_MODE = false;
     color: var(--muted);
     line-height: 1.7;
     margin-top: 1rem;
+    /* Better mobile line breaks */
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: none;
   }
   
   /* Click Sticker */
@@ -3978,6 +3990,10 @@ const DEBUG_MODE = false;
     max-width: 700px;
     margin-left: auto;
     margin-right: auto;
+    /* Better mobile line breaks */
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: none;
   }
   
   /* Video Review Button */
