@@ -4,6 +4,9 @@ import Base from '../layouts/Base.astro';
 ---
 <Base title="Как это работает - AI Model 2.0" description="Пошаговая система создания AI-модели и заработка $300–$1 000 в первый месяц.">
   
+  <!-- Swiper CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" slot="head" />
+  
   <!-- Hero Section -->
   <section class="hero-section">
     <div class="container">
@@ -12,8 +15,8 @@ import Base from '../layouts/Base.astro';
       </h1>
       
       <div class="hero-subtitle reveal-up">
-        <p class="hero-subtitle-line">Без своего лица. Без рекламы. Без опыта.</p>
-        <p class="hero-subtitle-line">По моей пошаговой системе с платформой, кейсами и гарантией первых оплат</p>
+        <p class="hero-subtitle-line">Без своего лица. Без рекламы.<br>Без опыта.</p>
+        <p class="hero-subtitle-line">По моей пошаговой системе<br>с платформой, кейсами и гарантией<br>первых оплат</p>
       </div>
       
       <!-- Video Player -->
@@ -112,8 +115,8 @@ import Base from '../layouts/Base.astro';
             </div>
             <div class="step-image-container">
               <img 
-                src="/images/steps/step-2-600.webp"
-                srcset="/images/steps/step-2-600.webp 600w, /images/steps/step-2-900.webp 900w, /images/steps/step-2-1200.webp 1200w, /images/steps/step-2.webp 1920w"
+                src="/images/steps/step-5-600.webp"
+                srcset="/images/steps/step-5-600.webp 600w, /images/steps/step-5-900.webp 900w, /images/steps/step-5-1200.webp 1200w, /images/steps/step-5.webp 1920w"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 800px"
                 alt="Запуск контента в соцсетях"
                 loading="lazy"
@@ -138,8 +141,8 @@ import Base from '../layouts/Base.astro';
             </div>
             <div class="step-image-container">
               <img 
-                src="/images/steps/step-3-600.webp"
-                srcset="/images/steps/step-3-600.webp 600w, /images/steps/step-3-900.webp 900w, /images/steps/step-3-1200.webp 1200w, /images/steps/step-3.webp 1920w"
+                src="/images/steps/step-4-600.webp"
+                srcset="/images/steps/step-4-600.webp 600w, /images/steps/step-4-900.webp 900w, /images/steps/step-4-1200.webp 1200w, /images/steps/step-4.webp 1920w"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 800px"
                 alt="Монетизация через платформу Fanvue"
                 loading="lazy"
@@ -164,8 +167,8 @@ import Base from '../layouts/Base.astro';
             </div>
             <div class="step-image-container">
               <img 
-                src="/images/steps/step-4-600.webp"
-                srcset="/images/steps/step-4-600.webp 600w, /images/steps/step-4-900.webp 900w, /images/steps/step-4-1200.webp 1200w, /images/steps/step-4.webp 1920w"
+                src="/images/steps/step-3-600.webp"
+                srcset="/images/steps/step-3-600.webp 600w, /images/steps/step-3-900.webp 900w, /images/steps/step-3-1200.webp 1200w, /images/steps/step-3.webp 1920w"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 800px"
                 alt="Вывод средств на карту или крипту"
                 loading="lazy"
@@ -189,8 +192,8 @@ import Base from '../layouts/Base.astro';
             </div>
             <div class="step-image-container">
               <img 
-                src="/images/steps/step-5-600.webp"
-                srcset="/images/steps/step-5-600.webp 600w, /images/steps/step-5-900.webp 900w, /images/steps/step-5-1200.webp 1200w, /images/steps/step-5.webp 1920w"
+                src="/images/steps/step-2-600.webp"
+                srcset="/images/steps/step-2-600.webp 600w, /images/steps/step-2-900.webp 900w, /images/steps/step-2-1200.webp 1200w, /images/steps/step-2.webp 1920w"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 800px"
                 alt="Масштабирование бизнеса с несколькими моделями"
                 loading="lazy"
@@ -225,6 +228,19 @@ import Base from '../layouts/Base.astro';
         <p class="alt-content-subtitle">
           Без проблем.
         </p>
+        
+        <div class="alt-content-photo-wrapper">
+          <img 
+            src="/images/alt-content.png"
+            alt="Альтернативный контент"
+            class="alt-content-photo"
+            width="3840"
+            height="2160"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        
         <p class="alt-content-description">
           Можешь создать AI-блогера, который будет рекламировать бренды, вести сторис и делать лайфстайл-контент за тебя.
         </p>
@@ -261,8 +277,8 @@ import Base from '../layouts/Base.astro';
   <!-- About Ilya Section -->
   <section class="about-ilya-section">
     <div class="container">
-      <div class="about-ilya-content reveal-fade">
-        <div class="ilya-story reveal-up">
+      <div class="about-ilya-content">
+        <div class="ilya-story">
           <h2 class="ilya-title">Кто я такой</h2>
           
           <div class="ilya-photo-wrapper">
@@ -270,6 +286,8 @@ import Base from '../layouts/Base.astro';
               src="/images/ilya-photo.png"
               alt="Ilya Che"
               class="ilya-photo"
+              width="3072"
+              height="4096"
               loading="lazy"
               decoding="async"
             />
@@ -310,19 +328,17 @@ import Base from '../layouts/Base.astro';
     <div class="container">
       <div class="before-after-grid reveal-scale">
         <!-- Before -->
-        <div class="before-after-card before-card reveal-up">
+        <div class="before-after-card before-card">
           <div class="card-header">
             <span class="card-badge card-badge-before">🔴 Раньше</span>
           </div>
           <div class="before-photo-container">
             <img 
-              src="/placeholder-before.svg"
+              src="/images/before.jpg"
               alt="Раньше - старая фотография"
-              width="600"
-              height="800"
               loading="lazy"
               decoding="async"
-              class="before-photo"
+              class="before-after-photo"
             />
           </div>
           <div class="card-content">
@@ -335,16 +351,14 @@ import Base from '../layouts/Base.astro';
         </div>
         
         <!-- After -->
-        <div class="before-after-card after-card reveal-up">
+        <div class="before-after-card after-card">
           <div class="card-header">
             <span class="card-badge card-badge-after">🟢 Сейчас</span>
           </div>
           <div class="after-photo-container">
             <img 
-              src="/placeholder-now.svg"
+              src="/images/now.png"
               alt="Сейчас - новая фотография с машиной"
-              width="600"
-              height="800"
               loading="lazy"
               decoding="async"
               class="after-photo"
@@ -426,9 +440,14 @@ import Base from '../layouts/Base.astro';
         <!-- Live Model -->
         <div class="comparison-card live-model-card reveal-up">
           <div class="comparison-header">
-            <div class="comparison-photo-placeholder">
-              <span class="placeholder-icon">👤</span>
-              <span class="placeholder-text">Живая модель</span>
+            <div class="comparison-photo-container">
+              <img 
+                src="/images/real-model.png"
+                alt="Живая модель"
+                class="comparison-photo"
+                loading="lazy"
+                decoding="async"
+              />
             </div>
             <h3 class="comparison-title">Живая модель</h3>
           </div>
@@ -465,11 +484,16 @@ import Base from '../layouts/Base.astro';
         </div>
         
         <!-- AI Model -->
-        <div class="comparison-card ai-model-card reveal-up">
+        <div class="comparison-card ai-model-card">
           <div class="comparison-header">
-            <div class="comparison-photo-placeholder">
-              <span class="placeholder-icon">🤖</span>
-              <span class="placeholder-text">AI-модель</span>
+            <div class="comparison-photo-container">
+              <img 
+                src="/images/ai-model.jpg"
+                alt="AI-модель"
+                class="comparison-photo"
+                loading="lazy"
+                decoding="async"
+              />
             </div>
             <h3 class="comparison-title">AI-модель</h3>
           </div>
@@ -686,43 +710,249 @@ import Base from '../layouts/Base.astro';
         </p>
       </div>
       
-      <!-- Results Carousel -->
-      <div class="results-carousel reveal-scale">
-        <div class="carousel-track">
-          <!-- Placeholder for income proof images - will scroll horizontally -->
-          <div class="carousel-item">
-            <img 
-              src="/income-proof.webp"
-              srcset="/income-proof-600.webp 600w, /income-proof-900.webp 900w, /income-proof-1200.webp 1200w, /income-proof.webp 1920w"
-              sizes="(max-width: 768px) 90vw, 600px"
-              alt="Доход за октябрь"
-              width="600"
-              height="400"
-              loading="lazy"
-              decoding="async"
-              class="result-image"
-            />
-          </div>
-          <!-- Add more result images here as needed -->
+      <!-- Testimonials Carousel -->
+      <div class="testimonials-carousel-wrapper">
+        <div class="testimonials-header">
+          <p class="testimonials-subtitle">Реальные результаты моих учеников</p>
         </div>
-      </div>
-      
-      <!-- AI Models Section -->
-      <div class="ai-models-section reveal-fade">
-        <h3 class="models-subtitle">AI-модели учеников</h3>
-        <p class="models-description">Заработок учеников</p>
         
-        <!-- Student Results Carousel -->
-        <div class="student-results-carousel reveal-scale">
-          <div class="carousel-track">
-            <!-- Placeholder for student earnings screenshots -->
-            <div class="carousel-item">
-              <div class="student-result-placeholder">
-                <span class="placeholder-icon">📸</span>
-                <span class="placeholder-text">Скрин заработка ученика</span>
+        <div class="swiper testimonials-swiper">
+          <div class="swiper-wrapper">
+            
+            <!-- Testimonial 1 -->
+            <div class="swiper-slide">
+              <div class="testimonial-card">
+                <div class="testimonial-student-info">
+                  <div class="student-avatar">👤</div>
+                  <div class="student-details">
+                    <h4 class="student-name">Ученик #1</h4>
+                    <p class="student-result">Первые продажи за 2 недели</p>
+                  </div>
+                </div>
+                
+                <div class="testimonial-images">
+                  <div class="testimonial-image-wrapper">
+                    <div class="image-label">💬 Отзыв</div>
+                    <div class="testimonial-image-container">
+                      <div class="image-overlay">
+                        <span class="image-icon">🔍</span>
+                      </div>
+                      <img 
+                        src="/images/testimonials/review-1.jpg"
+                        alt="Отзыв ученика 1"
+                        class="testimonial-photo"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                  </div>
+                  <div class="testimonial-image-wrapper">
+                    <div class="image-label">💰 Результат</div>
+                    <div class="testimonial-image-container">
+                      <div class="image-overlay">
+                        <span class="image-icon">🔍</span>
+                      </div>
+                      <img 
+                        src="/images/testimonials/income-1.jpg"
+                        alt="Доход ученика 1"
+                        class="testimonial-photo"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
+            
+            <!-- Testimonial 2 -->
+            <div class="swiper-slide">
+              <div class="testimonial-card">
+                <div class="testimonial-student-info">
+                  <div class="student-avatar">👤</div>
+                  <div class="student-details">
+                    <h4 class="student-name">Ученик #2</h4>
+                    <p class="student-result">Стабильный доход за месяц</p>
+                  </div>
+                </div>
+                <div class="testimonial-images">
+                  <div class="testimonial-image-wrapper">
+                    <div class="image-label">💬 Отзыв</div>
+                    <div class="testimonial-image-container">
+                      <div class="image-overlay">
+                        <span class="image-icon">🔍</span>
+                      </div>
+                      <img 
+                        src="/images/testimonials/review-2.jpg"
+                        alt="Отзыв ученика 2"
+                        class="testimonial-photo"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                  </div>
+                  <div class="testimonial-image-wrapper">
+                    <div class="image-label">💰 Результат</div>
+                    <div class="testimonial-image-container">
+                      <div class="image-overlay">
+                        <span class="image-icon">🔍</span>
+                      </div>
+                      <img 
+                        src="/images/testimonials/income-2.jpg"
+                        alt="Доход ученика 2"
+                        class="testimonial-photo"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Testimonial 3 -->
+            <div class="swiper-slide">
+              <div class="testimonial-card">
+                <div class="testimonial-student-info">
+                  <div class="student-avatar">👤</div>
+                  <div class="student-details">
+                    <h4 class="student-name">Ученик #3</h4>
+                    <p class="student-result">Первая выплата через 3 недели</p>
+                  </div>
+                </div>
+                <div class="testimonial-images">
+                  <div class="testimonial-image-wrapper">
+                    <div class="image-label">💬 Отзыв</div>
+                    <div class="testimonial-image-container">
+                      <div class="image-overlay">
+                        <span class="image-icon">🔍</span>
+                      </div>
+                      <img 
+                        src="/images/testimonials/review-3.jpg"
+                        alt="Отзыв ученика 3"
+                        class="testimonial-photo"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                  </div>
+                  <div class="testimonial-image-wrapper">
+                    <div class="image-label">💰 Результат</div>
+                    <div class="testimonial-image-container">
+                      <div class="image-overlay">
+                        <span class="image-icon">🔍</span>
+                      </div>
+                      <img 
+                        src="/images/testimonials/income-3.jpg"
+                        alt="Доход ученика 3"
+                        class="testimonial-photo"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Testimonial 4 -->
+            <div class="swiper-slide">
+              <div class="testimonial-card">
+                <div class="testimonial-student-info">
+                  <div class="student-avatar">👤</div>
+                  <div class="student-details">
+                    <h4 class="student-name">Ученик #4</h4>
+                    <p class="student-result">Вышел на $500+ в первый месяц</p>
+                  </div>
+                </div>
+                <div class="testimonial-images">
+                  <div class="testimonial-image-wrapper">
+                    <div class="image-label">💬 Отзыв</div>
+                    <div class="testimonial-image-container">
+                      <div class="image-overlay">
+                        <span class="image-icon">🔍</span>
+                      </div>
+                      <img 
+                        src="/images/testimonials/review-4.jpg"
+                        alt="Отзыв ученика 4"
+                        class="testimonial-photo"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                  </div>
+                  <div class="testimonial-image-wrapper">
+                    <div class="image-label">💰 Результат</div>
+                    <div class="testimonial-image-container">
+                      <div class="image-overlay">
+                        <span class="image-icon">🔍</span>
+                      </div>
+                      <img 
+                        src="/images/testimonials/income-4.jpg"
+                        alt="Доход ученика 4"
+                        class="testimonial-photo"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Testimonial 5 -->
+            <div class="swiper-slide">
+              <div class="testimonial-card">
+                <div class="testimonial-student-info">
+                  <div class="student-avatar">👤</div>
+                  <div class="student-details">
+                    <h4 class="student-name">Ученик #5</h4>
+                    <p class="student-result">Запустил 2 модели параллельно</p>
+                  </div>
+                </div>
+                <div class="testimonial-images">
+                  <div class="testimonial-image-wrapper">
+                    <div class="image-label">💬 Отзыв</div>
+                    <div class="testimonial-image-container">
+                      <div class="image-overlay">
+                        <span class="image-icon">🔍</span>
+                      </div>
+                      <img 
+                        src="/images/testimonials/review-5.jpg"
+                        alt="Отзыв ученика 5"
+                        class="testimonial-photo"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                  </div>
+                  <div class="testimonial-image-wrapper">
+                    <div class="image-label">💰 Результат</div>
+                    <div class="testimonial-image-container">
+                      <div class="image-overlay">
+                        <span class="image-icon">🔍</span>
+                      </div>
+                      <img 
+                        src="/images/testimonials/income-5.jpg"
+                        alt="Доход ученика 5"
+                        class="testimonial-photo"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
           </div>
+          
+          <!-- Navigation -->
+          <div class="swiper-button-prev testimonial-nav-btn"></div>
+          <div class="swiper-button-next testimonial-nav-btn"></div>
+          
+          <!-- Pagination -->
+          <div class="swiper-pagination testimonial-pagination"></div>
         </div>
       </div>
       
@@ -766,22 +996,20 @@ import Base from '../layouts/Base.astro';
           </blockquote>
         </div>
         
-        <div class="ilya-generated-photo reveal-scale">
+        <div class="ilya-real-photo reveal-scale">
           <img 
-            src="/ilya-photo.webp"
-            srcset="/ilya-photo-600.webp 600w, /ilya-photo-900.webp 900w, /ilya-photo-1200.webp 1200w, /ilya-photo.webp 1280w"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 800px"
-            alt="Илья - сгенерированное фото"
+            src="/images/ilya-real.jpg"
+            alt="Реальное фото Ильи"
             width="800"
             height="600"
             loading="lazy"
             decoding="async"
-            class="generated-photo"
+            class="real-photo"
           />
-          <p class="photo-note">
+          <p class="era-note">
             Даже если ты не хочешь создавать моделей — используй обучение, чтобы делать фото и видео для себя, которые не отличить от реальных.
           </p>
-          <p class="photo-note">
+          <p class="era-note">
             Повышай охваты, просмотры и количество своих подписчиков без запары.
           </p>
         </div>
@@ -950,7 +1178,13 @@ import Base from '../layouts/Base.astro';
       </div>
     </div>
   </section>
-  
+
+  <!-- Photo Modal -->
+  <div id="photoModal" class="photo-modal">
+    <button class="modal-close" aria-label="Закрыть">×</button>
+    <img src="" alt="" class="modal-image" />
+  </div>
+
 </Base>
 
 <style>
@@ -1472,14 +1706,13 @@ import Base from '../layouts/Base.astro';
   
   .step-header {
     display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
   }
   
   @media (min-width: 768px) {
     .step-header {
-      align-items: center;
       gap: 1rem;
       margin-bottom: 1.5rem;
     }
@@ -1687,6 +1920,49 @@ import Base from '../layouts/Base.astro';
     font-weight: 700;
     color: var(--primary);
     margin-bottom: 1.5rem;
+    line-height: 1.3;
+  }
+  
+  .alt-content-photo-wrapper {
+    margin: 2rem auto;
+    max-width: 300px;
+    position: relative;
+  }
+  
+  .alt-content-photo {
+    width: 100%;
+    height: auto;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    border-radius: 24px;
+    border: 2px solid rgba(96, 165, 250, 0.3);
+    box-shadow: 
+      0 20px 60px rgba(96, 165, 250, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    transition: all 0.4s ease;
+  }
+  
+  .alt-content-photo:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+      0 25px 70px rgba(96, 165, 250, 0.35),
+      0 0 0 1px rgba(96, 165, 250, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  
+  @media (min-width: 640px) {
+    .alt-content-photo-wrapper {
+      max-width: 350px;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .alt-content-photo-wrapper {
+      max-width: 400px;
+      margin: 2.5rem auto;
+    }
   }
   
   .alt-content-description {
@@ -1719,14 +1995,14 @@ import Base from '../layouts/Base.astro';
       radial-gradient(circle at center, rgba(96, 165, 250, 0.05), transparent);
     border: 2px solid rgba(96, 165, 250, 0.2);
     border-radius: var(--radius-2xl);
-    padding: 1.25rem 0.875rem;
-    aspect-ratio: 1;
+    padding: 1.25rem 1rem;
+    text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    text-align: center;
+    gap: 0.75rem;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     position: relative;
     overflow: hidden;
     backdrop-filter: blur(20px);
@@ -1787,20 +2063,20 @@ import Base from '../layouts/Base.astro';
   }
   
   .format-title {
-    font-size: clamp(0.6875rem, 2vw, 0.8125rem);
+    font-size: clamp(0.6875rem, 1.8vw, 0.8125rem);
     font-weight: 700;
     color: var(--fg);
     margin: 0;
-    line-height: 1.2;
-    position: relative;
-    z-index: 1;
-    word-wrap: break-word;
+    text-align: center;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    word-break: break-word;
     hyphens: auto;
   }
   
   @media (min-width: 640px) {
     .format-title {
-      font-size: clamp(0.8125rem, 2.5vw, 0.9375rem);
+      font-size: clamp(0.875rem, 2.5vw, 1rem);
       line-height: 1.25;
     }
   }
@@ -1864,36 +2140,63 @@ import Base from '../layouts/Base.astro';
   }
   
   .about-ilya-content {
-    max-width: 1000px;
+    max-width: 900px;
     margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    align-items: center;
+    position: relative;
+    z-index: 1;
   }
   
-  @media (min-width: 640px) {
+  @media (min-width: 1024px) {
     .about-ilya-content {
-      gap: 2rem;
+      max-width: 1200px;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 4rem;
+      align-items: start;
     }
+  }
+  
+  .ilya-photo-container {
+    position: relative;
+    border-radius: var(--radius-2xl);
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    order: -1;
   }
   
   @media (min-width: 768px) {
-    .about-ilya-content {
-      grid-template-columns: 400px 1fr;
-      gap: 4rem;
+    .ilya-photo-container {
+      order: 0;
     }
   }
   
+  .ilya-best-photo {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: var(--radius-2xl);
+  }
+  
   .ilya-photo-wrapper {
-    margin: 1rem auto 0.5rem;
+    margin: 2rem auto;
     max-width: 300px;
     position: relative;
+  }
+  
+  @media (min-width: 1024px) {
+    .ilya-photo-wrapper {
+      margin: 0;
+      max-width: 400px;
+      order: 2;
+    }
   }
   
   .ilya-photo {
     width: 100%;
     height: auto;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
     border-radius: 24px;
     border: 2px solid rgba(96, 165, 250, 0.3);
     box-shadow: 
@@ -1914,14 +2217,13 @@ import Base from '../layouts/Base.astro';
   @media (min-width: 640px) {
     .ilya-photo-wrapper {
       max-width: 350px;
-      margin: 1.5rem auto 1rem;
     }
   }
   
   @media (min-width: 768px) {
     .ilya-photo-wrapper {
       max-width: 400px;
-      margin: 2rem auto 1.5rem;
+      margin: 2.5rem auto;
     }
   }
   
@@ -2175,15 +2477,19 @@ import Base from '../layouts/Base.astro';
     border-radius: var(--radius-xl);
     overflow: hidden;
     margin-bottom: 1.5rem;
-    background: rgba(0, 0, 0, 0.3);
+    position: relative;
   }
   
-  .before-photo,
+  .before-after-photo,
   .after-photo {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
+    object-position: center;
+    border-radius: var(--radius-xl);
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
   
   .card-content {
@@ -2466,26 +2772,69 @@ import Base from '../layouts/Base.astro';
     margin-bottom: 2rem;
   }
   
-  .comparison-photo-placeholder {
-    width: 120px;
-    height: 160px;
-    margin: 0 auto 1rem;
-    background: rgba(0, 0, 0, 0.3);
-    border: 2px dashed rgba(96, 165, 250, 0.3);
+  .comparison-photo-container {
+    width: 160px;
+    height: 200px;
+    margin: 0 auto 1.5rem;
     border-radius: var(--radius-xl);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
+    overflow: hidden;
+    position: relative;
   }
   
-  .live-model-card .comparison-photo-placeholder {
-    border-color: rgba(239, 68, 68, 0.3);
+  .before-photo,
+  .comparison-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border-radius: var(--radius-xl);
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    border: 2px solid rgba(96, 165, 250, 0.3);
+    box-shadow: 
+      0 20px 60px rgba(96, 165, 250, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    transition: all 0.4s ease;
   }
   
-  .ai-model-card .comparison-photo-placeholder {
-    border-color: rgba(34, 197, 94, 0.3);
+  .comparison-photo:hover {
+    transform: scale(1.05);
+    box-shadow: 
+      0 25px 70px rgba(96, 165, 250, 0.35),
+      0 0 0 1px rgba(96, 165, 250, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  
+  .live-model-card .comparison-photo {
+    border-color: rgba(239, 68, 68, 0.4);
+    box-shadow: 
+      0 20px 60px rgba(239, 68, 68, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+  
+  .live-model-card .comparison-photo:hover {
+    box-shadow: 
+      0 25px 70px rgba(239, 68, 68, 0.35),
+      0 0 0 1px rgba(239, 68, 68, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  
+  .ai-model-card .comparison-photo {
+    border-color: rgba(34, 197, 94, 0.4);
+    box-shadow: 
+      0 20px 60px rgba(34, 197, 94, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+  
+  .ai-model-card .comparison-photo:hover {
+    box-shadow: 
+      0 25px 70px rgba(34, 197, 94, 0.35),
+      0 0 0 1px rgba(34, 197, 94, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
   
   .comparison-title {
@@ -2965,92 +3314,389 @@ import Base from '../layouts/Base.astro';
     line-height: 1.5;
   }
   
-  .results-carousel,
-  .student-results-carousel {
-    margin: 2rem auto;
-    max-width: 1200px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding: 1rem 0;
-  }
-  
-  .results-carousel::-webkit-scrollbar,
-  .student-results-carousel::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .carousel-track {
-    display: flex;
-    gap: 1.5rem;
+  /* Testimonials Carousel with Swiper */
+  .testimonials-carousel-wrapper {
+    margin: 3rem auto;
+    max-width: 1400px;
     padding: 0 1rem;
+    position: relative;
   }
   
   @media (min-width: 768px) {
-    .carousel-track {
-      padding: 0 2rem;
-      gap: 2rem;
+    .testimonials-carousel-wrapper {
+      padding: 0 3rem;
     }
   }
   
-  .carousel-item {
-    flex-shrink: 0;
-    width: calc(90vw - 2rem);
-    max-width: 600px;
-    scroll-snap-align: start;
-    border-radius: var(--radius-xl);
-    overflow: hidden;
-    background: rgba(0, 0, 0, 0.3);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  .testimonials-header {
+    text-align: center;
+    margin-bottom: 2rem;
   }
   
-  @media (min-width: 768px) {
-    .carousel-item {
-      width: 600px;
-    }
+  .testimonials-subtitle {
+    font-size: clamp(1.125rem, 3vw, 1.5rem);
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.02em;
   }
   
-  .result-image {
+  .testimonials-swiper {
     width: 100%;
+    padding: 2rem 0 3rem;
+    overflow: visible;
+    position: relative;
+  }
+  
+  .testimonials-swiper .swiper-wrapper {
+    display: flex;
+    align-items: stretch;
+  }
+  
+  .testimonials-swiper .swiper-slide {
     height: auto;
-    display: block;
-    border-radius: var(--radius-xl);
+    display: flex;
+    align-items: stretch;
+    flex-shrink: 0;
   }
   
-  .student-result-placeholder {
+  .testimonial-card {
     width: 100%;
-    aspect-ratio: 16 / 9;
-    background: rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, rgba(13, 13, 16, 0.8), rgba(20, 20, 24, 0.9));
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    border-radius: var(--radius-2xl);
+    padding: 2rem 1.5rem;
+    box-shadow: 
+      0 20px 60px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.4s ease;
+    backdrop-filter: blur(10px);
+  }
+  
+  .testimonial-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 
+      0 30px 80px rgba(96, 165, 250, 0.3),
+      0 0 40px rgba(96, 165, 250, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border-color: rgba(96, 165, 250, 0.4);
+  }
+  
+  /* Student Info */
+  .testimonial-student-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(96, 165, 250, 0.1);
+  }
+  
+  .student-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(59, 130, 246, 0.3));
+    border: 2px solid rgba(96, 165, 250, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
+  }
+  
+  .student-details {
+    flex: 1;
+  }
+  
+  .student-name {
+    font-size: clamp(1.125rem, 2.5vw, 1.25rem);
+    font-weight: 700;
+    color: var(--fg);
+    margin: 0 0 0.25rem 0;
+    letter-spacing: 0.01em;
+  }
+  
+  .student-result {
+    font-size: clamp(0.875rem, 2vw, 1rem);
+    color: var(--muted);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .student-result::before {
+    content: '✨';
+    font-size: 0.875em;
+  }
+  
+  .testimonial-images {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  
+  @media (min-width: 768px) {
+    .testimonial-images {
+      gap: 1.5rem;
+    }
+  }
+  
+  .testimonial-image-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .testimonial-image-container {
+    position: relative;
+    aspect-ratio: 3/4;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(96, 165, 250, 0.25);
+    box-shadow: 
+      0 10px 40px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(96, 165, 250, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+  }
+  
+  @media (min-width: 768px) {
+    .testimonial-image-container {
+      aspect-ratio: 9/16;
+      border-radius: var(--radius-xl);
+    }
+  }
+  
+  .testimonial-image-container:hover {
+    transform: scale(1.05);
+    border-color: rgba(96, 165, 250, 0.5);
+    box-shadow: 
+      0 20px 60px rgba(96, 165, 250, 0.25),
+      0 0 30px rgba(96, 165, 250, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    z-index: 10;
+  }
+  
+  .testimonial-image-container:active {
+    transform: scale(0.98);
+  }
+  
+  .testimonial-image-container:hover .image-overlay {
+    opacity: 1;
+  }
+  
+  .testimonial-photo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: 1;
+  }
+  
+  .image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.15), rgba(59, 130, 246, 0.1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 2;
+  }
+  
+  .image-icon {
+    font-size: 3rem;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  
+  .testimonial-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
     border: 2px dashed rgba(96, 165, 250, 0.3);
-    border-radius: var(--radius-xl);
+  }
+  
+  .placeholder-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
+    gap: 1rem;
     padding: 2rem;
   }
   
-  .ai-models-section {
-    margin-top: 4rem;
-    text-align: center;
+  .placeholder-icon {
+    font-size: 3rem;
+    opacity: 0.6;
   }
   
-  .models-subtitle {
-    font-size: clamp(1.5rem, 4vw, 2rem);
-    font-weight: 800;
-    color: var(--fg);
-    margin-bottom: 0.5rem;
-  }
-  
-  .models-description {
-    font-size: clamp(1rem, 2.5vw, 1.125rem);
+  .placeholder-text {
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
     color: var(--muted);
-    margin-bottom: 2rem;
+    font-weight: 600;
+  }
+  
+  .image-label {
+    padding: 0.375rem 0.75rem;
+    background: rgba(96, 165, 250, 0.15);
+    color: var(--fg);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    backdrop-filter: blur(8px);
+  }
+  
+  @media (min-width: 768px) {
+    .image-label {
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+    }
+  }
+  
+  /* Swiper Navigation Buttons */
+  .testimonial-nav-btn {
+    width: 50px;
+    height: 50px;
+    background: rgba(96, 165, 250, 0.15);
+    border: 2px solid rgba(96, 165, 250, 0.3);
+    border-radius: 50%;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+  
+  .testimonial-nav-btn:hover {
+    background: rgba(96, 165, 250, 0.25);
+    border-color: rgba(96, 165, 250, 0.5);
+    transform: scale(1.1);
+  }
+  
+  .testimonial-nav-btn::after {
+    font-size: 1.25rem;
+    color: #fff;
+    font-weight: 900;
+  }
+  
+  .swiper-button-disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  
+  @media (max-width: 767px) {
+    .testimonial-nav-btn {
+      display: none;
+    }
+  }
+  
+  /* Swiper Pagination */
+  .testimonial-pagination {
+    bottom: 0 !important;
+  }
+  
+  .testimonial-pagination .swiper-pagination-bullet {
+    width: 12px;
+    height: 12px;
+    background: rgba(96, 165, 250, 0.3);
+    opacity: 1;
+    transition: all 0.3s ease;
+  }
+  
+  .testimonial-pagination .swiper-pagination-bullet-active {
+    background: rgba(96, 165, 250, 0.9);
+    transform: scale(1.2);
+  }
+  
+  /* Photo Modal */
+  .photo-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .photo-modal.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .modal-image {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    border-radius: var(--radius-xl);
+    box-shadow: 0 25px 100px rgba(0, 0, 0, 0.7);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .photo-modal.active .modal-image {
+    transform: scale(1);
+  }
+  
+  .modal-close {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: rotate(90deg) scale(1.1);
+  }
+  
+  .modal-close:active {
+    transform: rotate(90deg) scale(0.95);
   }
   
   .stats-block {
@@ -3121,12 +3767,11 @@ import Base from '../layouts/Base.astro';
   }
   
   .nvidia-quote {
-    margin: 3rem 0;
+    margin: 3rem 0 2rem 0;
     padding: 2rem;
     background: rgba(96, 165, 250, 0.1);
-    border-left: 4px solid var(--primary);
-    border-radius: var(--radius-lg);
-    text-align: left;
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius-xl);
   }
   
   .quote-text {
@@ -3155,6 +3800,28 @@ import Base from '../layouts/Base.astro';
     line-height: 0;
     vertical-align: -0.4em;
     margin-left: 0.1em;
+  }
+  
+  .ilya-real-photo {
+    margin: 2rem auto;
+    text-align: center;
+  }
+  
+  .real-photo {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    border-radius: var(--radius-2xl);
+    border: 2px solid rgba(96, 165, 250, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s ease;
+    opacity: 1 !important;
+    display: block !important;
+    margin-bottom: 2rem;
+  }
+  
+  .real-photo:hover {
+    transform: scale(1.02);
   }
   
   .ilya-generated-photo {
@@ -3609,5 +4276,165 @@ import Base from '../layouts/Base.astro';
       initFAQ();
     }
   })();
+  
+  // Testimonials Swiper Carousel
+  (function() {
+    function initTestimonialsSwiper() {
+      // Load Swiper library if not already loaded
+      if (typeof Swiper === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
+        script.onload = function() {
+          createSwiper();
+        };
+        document.head.appendChild(script);
+      } else {
+        createSwiper();
+      }
+    }
+    
+    function createSwiper() {
+      const swiperContainer = document.querySelector('.testimonials-swiper');
+      if (!swiperContainer) return;
+      
+      new Swiper('.testimonials-swiper', {
+        // Основные настройки
+        slidesPerView: 1,
+        spaceBetween: 20,
+        grabCursor: true,
+        loop: true,
+        centeredSlides: false,
+        
+        // Эффект перехода
+        effect: 'slide',
+        speed: 600,
+        
+        // Автопроигрывание
+        autoplay: {
+          delay: 8000,
+          disableOnInteraction: false,
+          pauseOnMouseEnter: true,
+        },
+        
+        // Пагинация
+        pagination: {
+          el: '.testimonial-pagination',
+          clickable: true,
+          dynamicBullets: true,
+          dynamicMainBullets: 3,
+        },
+        
+        // Навигация
+        navigation: {
+          nextEl: '.swiper-button-next',
+          prevEl: '.swiper-button-prev',
+        },
+        
+        // Keyboard control
+        keyboard: {
+          enabled: true,
+          onlyInViewport: true,
+        },
+        
+        // Mousewheel
+        mousewheel: {
+          enabled: false,
+        },
+        
+        // Адаптивные настройки
+        breakpoints: {
+          // Mobile
+          320: {
+            slidesPerView: 1,
+            spaceBetween: 20,
+          },
+          // Tablet
+          768: {
+            slidesPerView: 1,
+            spaceBetween: 30,
+          },
+          // Desktop
+          1024: {
+            slidesPerView: 1.15,
+            spaceBetween: 40,
+            centeredSlides: true,
+          },
+          // Large desktop
+          1440: {
+            slidesPerView: 1.25,
+            spaceBetween: 50,
+            centeredSlides: true,
+          },
+        },
+        
+        // События
+        on: {
+          init: function() {
+            console.log('✅ Testimonials Swiper initialized successfully');
+          },
+          slideChange: function() {
+            // Можно добавить аналитику или другие действия
+          },
+        },
+      });
+    }
+    
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initTestimonialsSwiper);
+    } else {
+      initTestimonialsSwiper();
+    }
+  })();
+  
+  // Photo Modal
+  (function() {
+    function initPhotoModal() {
+      const modal = document.getElementById('photoModal');
+      if (!modal) return;
+      
+      const modalImg = modal.querySelector('.modal-image');
+      const closeBtn = modal.querySelector('.modal-close');
+      
+      // Открытие модала при клике на фото
+      document.querySelectorAll('.testimonial-image-container').forEach(container => {
+        container.addEventListener('click', (e) => {
+          const img = container.querySelector('.testimonial-photo');
+          if (img && img.src) {
+            modalImg.src = img.src;
+            modalImg.alt = img.alt || 'Фото отзыва';
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+          }
+        });
+      });
+      
+      // Закрытие модала по кнопке
+      closeBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      });
+      
+      // Закрытие модала по клику на фон
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      });
+      
+      // Закрытие по ESC
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+          modal.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      });
+    }
+    
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initPhotoModal);
+    } else {
+      initPhotoModal();
+    }
+  })();
 </script>
-
