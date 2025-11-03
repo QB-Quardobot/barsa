@@ -3003,27 +3003,52 @@ import Base from '../layouts/Base.astro';
   // Horizontal scroll animation for steps
   (function() {
     function initStepsScroll() {
+      const section = document.querySelector('.how-it-works-section');
       const stepsWrapper = document.querySelector('.steps-scroll-wrapper');
       const stepsInner = document.querySelector('.steps-inner');
       const steps = document.querySelectorAll('.work-step');
       
-      if (!stepsWrapper || !stepsInner || steps.length === 0) return;
+      if (!section || !stepsWrapper || !stepsInner || steps.length === 0) return;
       
+      let isActive = false;
       let currentStep = 0;
-      const stepWidth = steps[0].offsetWidth + parseInt(getComputedStyle(stepsInner).gap);
       
       function updateSteps() {
-        const wrapperRect = stepsWrapper.getBoundingClientRect();
-        const scrollProgress = Math.max(0, Math.min(1, 
-          (window.innerHeight - wrapperRect.top) / window.innerHeight
-        ));
+        const sectionRect = section.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        
+        // Check if section is in viewport
+        const sectionTop = sectionRect.top;
+        const sectionBottom = sectionRect.bottom;
+        const sectionHeight = sectionRect.height;
+        
+        // Only activate when section enters viewport from top
+        if (sectionTop > windowHeight || sectionBottom < 0) {
+          isActive = false;
+          return;
+        }
+        
+        isActive = true;
+        
+        // Calculate scroll progress within the section
+        // Progress goes from 0 to 1 as we scroll through the section
+        const scrollStart = sectionTop;
+        const scrollEnd = sectionTop - windowHeight + sectionHeight;
+        const scrollRange = scrollEnd - scrollStart;
+        
+        let scrollProgress = 0;
+        if (scrollRange > 0) {
+          scrollProgress = Math.max(0, Math.min(1, 
+            (scrollStart - windowHeight) / -scrollRange
+          ));
+        }
         
         // Calculate which step should be active
         const totalSteps = steps.length;
         const stepProgress = scrollProgress * (totalSteps - 1);
-        const activeStepIndex = Math.min(Math.floor(stepProgress), totalSteps - 1);
+        const activeStepIndex = Math.min(Math.max(0, Math.floor(stepProgress + 0.5)), totalSteps - 1);
         
-        // Update active step
+        // Update active step classes
         steps.forEach((step, index) => {
           step.classList.remove('active', 'passed');
           if (index < activeStepIndex) {
@@ -3033,9 +3058,18 @@ import Base from '../layouts/Base.astro';
           }
         });
         
-        // Calculate horizontal offset
-        const offset = -activeStepIndex * stepWidth * 0.5;
-        stepsInner.style.transform = `translateX(${offset}px)`;
+        // Calculate horizontal offset to center active card
+        const gap = parseInt(getComputedStyle(stepsInner).gap) || 32;
+        const activeCard = steps[activeStepIndex];
+        if (activeCard) {
+          const cardWidth = activeCard.offsetWidth;
+          const cardPosition = activeCard.offsetLeft;
+          const wrapperWidth = stepsWrapper.offsetWidth;
+          
+          // Center the active card
+          const offset = (wrapperWidth / 2) - (cardPosition + cardWidth / 2);
+          stepsInner.style.transform = `translateX(${offset}px)`;
+        }
         
         currentStep = activeStepIndex;
       }
@@ -3052,8 +3086,22 @@ import Base from '../layouts/Base.astro';
         }
       }
       
+      // Also listen to resize to recalculate
+      let resizeTimer;
+      function onResize() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          updateSteps();
+        }, 100);
+      }
+      
       window.addEventListener('scroll', onScroll, { passive: true });
-      updateSteps(); // Initial call
+      window.addEventListener('resize', onResize, { passive: true });
+      
+      // Initial call after a short delay to ensure DOM is ready
+      setTimeout(() => {
+        updateSteps();
+      }, 100);
     }
     
     // Initialize reveal animations for this page
