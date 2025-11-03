@@ -3732,27 +3732,42 @@ const DEBUG_MODE = false;
   }
   
   .final-title-blue {
-    display: block;
-    font-size: clamp(1.5rem, 4vw, 2rem);
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    line-height: 1.3;
+    display: block !important;
+    font-size: clamp(1.5rem, 4vw, 2rem) !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.3 !important;
     margin: 1.5rem auto;
     text-align: center;
     max-width: 900px;
     /* Exact same styling as value-text strong.gradient-text */
     filter: drop-shadow(0 0 20px rgba(96, 165, 250, 0.3));
+    /* Override gradient-text default styles */
+    vertical-align: baseline !important;
     /* Better mobile line breaks */
     word-break: normal;
     overflow-wrap: break-word;
     hyphens: none;
+    /* Force same font rendering as value-text */
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-synthesis: none !important;
+    font-variant-numeric: normal !important;
+    font-variant-ligatures: none !important;
+    font-feature-settings: normal !important;
   }
   
-  /* Gradient already applied via gradient-text class */
+  /* Override gradient-text class defaults for final-title-blue */
+  .final-title-blue.gradient-text {
+    display: block !important;
+    font-weight: 800 !important;
+  }
   
   @media (max-width: 768px) {
     .final-title-blue {
-      font-size: clamp(1.375rem, 5vw, 1.75rem);
+      font-size: clamp(1.375rem, 5vw, 1.75rem) !important;
     }
   }
   
