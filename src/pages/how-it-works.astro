@@ -262,22 +262,18 @@ import Base from '../layouts/Base.astro';
   <section class="about-ilya-section">
     <div class="container">
       <div class="about-ilya-content reveal-fade">
-        <div class="ilya-photo-container reveal-scale">
-          <img 
-            src="/ilya-photo.webp"
-            srcset="/ilya-photo-600.webp 600w, /ilya-photo-900.webp 900w, /ilya-photo-1200.webp 1200w, /ilya-photo.webp 1280w"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 600px"
-            alt="Илья - AI-продюсер"
-            width="600"
-            height="800"
-            loading="lazy"
-            decoding="async"
-            class="ilya-best-photo"
-          />
-        </div>
-        
         <div class="ilya-story reveal-up">
           <h2 class="ilya-title">Кто я такой</h2>
+          
+          <div class="ilya-photo-wrapper">
+            <img 
+              src="/images/ilya-photo.png"
+              alt="Ilya Che"
+              class="ilya-photo"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
           
           <p class="ilya-intro">
             Меня зовут <strong>Ilya Che</strong>.
@@ -1889,25 +1885,44 @@ import Base from '../layouts/Base.astro';
     }
   }
   
-  .ilya-photo-container {
+  .ilya-photo-wrapper {
+    margin: 1rem auto 0.5rem;
+    max-width: 300px;
     position: relative;
-    border-radius: var(--radius-2xl);
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-    order: -1;
   }
   
-  @media (min-width: 768px) {
-    .ilya-photo-container {
-      order: 0;
+  .ilya-photo {
+    width: 100%;
+    height: auto;
+    border-radius: 24px;
+    border: 2px solid rgba(96, 165, 250, 0.3);
+    box-shadow: 
+      0 20px 60px rgba(96, 165, 250, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    transition: all 0.4s ease;
+  }
+  
+  .ilya-photo:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+      0 25px 70px rgba(96, 165, 250, 0.35),
+      0 0 0 1px rgba(96, 165, 250, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  
+  @media (min-width: 640px) {
+    .ilya-photo-wrapper {
+      max-width: 350px;
+      margin: 1.5rem auto 1rem;
     }
   }
   
-  .ilya-best-photo {
-    width: 100%;
-    height: auto;
-    display: block;
-    border-radius: var(--radius-2xl);
+  @media (min-width: 768px) {
+    .ilya-photo-wrapper {
+      max-width: 400px;
+      margin: 2rem auto 1.5rem;
+    }
   }
   
   .ilya-story {
