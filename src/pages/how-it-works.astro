@@ -2546,10 +2546,21 @@ import Base from '../layouts/Base.astro';
     color: #fff;
     font-size: clamp(1.125rem, 3vw, 1.25rem);
     font-weight: 700;
-    border-radius: 9999px;
     text-decoration: none;
-    box-shadow: 0 8px 24px rgba(96, 165, 250, 0.25);
+    border-radius: 100px;
     transition: all 0.3s ease;
+    box-shadow: 0 8px 24px rgba(96, 165, 250, 0.3);
+    margin-top: 2rem;
+  }
+  
+  @media (max-width: 767px) {
+    .btn-want-same {
+      display: block;
+      text-align: center;
+      margin-left: auto;
+      margin-right: auto;
+      max-width: 300px;
+    }
   }
   
   .btn-want-same:hover {
@@ -3356,17 +3367,18 @@ import Base from '../layouts/Base.astro';
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
-    padding: 2rem 0 4rem;
+    padding: 2rem 0 5rem;
     overflow: visible;
     position: relative;
-    touch-action: pan-y pinch-zoom;
+    min-height: 600px;
   }
   
   /* Mobile fixes */
   @media (max-width: 767px) {
     .testimonials-swiper {
-      padding: 1rem 0 3rem;
-      overflow: hidden;
+      padding: 1rem 0 4rem;
+      overflow: visible;
+      min-height: auto;
     }
   }
   
@@ -4433,112 +4445,74 @@ import Base from '../layouts/Base.astro';
       const swiperContainer = document.querySelector('.testimonials-swiper');
       if (!swiperContainer) return;
       
-      new Swiper('.testimonials-swiper', {
-        // Основные настройки
+      const swiper = new Swiper('.testimonials-swiper', {
+        // Core
+        direction: 'horizontal',
+        loop: true,
+        speed: 800,
+        
+        // Slides
         slidesPerView: 1,
         spaceBetween: 20,
-        loop: true,
-        speed: 600,
-        effect: 'slide',
-        grabCursor: true,
-        watchOverflow: true,
+        centeredSlides: false,
         
-        // Touch настройки для мобильных устройств
-        touchEventsTarget: 'container',
-        simulateTouch: true,
+        // Touch
         touchRatio: 1,
         touchAngle: 45,
-        shortSwipes: true,
-        longSwipes: true,
-        longSwipesRatio: 0.5,
-        longSwipesMs: 300,
-        followFinger: true,
-        allowTouchMove: true,
-        threshold: 5,
-        touchMoveStopPropagation: false,
-        touchStartPreventDefault: false,
-        touchStartForcePreventDefault: false,
-        touchReleaseOnEdges: false,
+        grabCursor: true,
         
-        // Resistance для более естественного свайпа
-        resistance: true,
-        resistanceRatio: 0.85,
-        
-        // Автопроигрывание
+        // Autoplay
         autoplay: {
           delay: 8000,
           disableOnInteraction: false,
           pauseOnMouseEnter: true,
-          waitForTransition: true,
         },
         
-        // Пагинация
+        // Pagination
         pagination: {
           el: '.testimonial-pagination',
           clickable: true,
           dynamicBullets: true,
-          dynamicMainBullets: 3,
         },
         
-        // Навигация
+        // Navigation
         navigation: {
           nextEl: '.swiper-button-next',
           prevEl: '.swiper-button-prev',
         },
         
-        // Keyboard control
-        keyboard: {
-          enabled: true,
-          onlyInViewport: true,
-        },
-        
-        // Mousewheel
-        mousewheel: {
-          enabled: false,
-        },
-        
-        // Адаптивные настройки
+        // Breakpoints
         breakpoints: {
-          // Mobile
           320: {
             slidesPerView: 1,
             spaceBetween: 16,
           },
-          // Tablet
           768: {
             slidesPerView: 1,
             spaceBetween: 24,
           },
-          // Desktop
           1024: {
-            slidesPerView: 1.15,
+            slidesPerView: 1.2,
             spaceBetween: 32,
-            centeredSlides: true,
-          },
-          // Large desktop
-          1440: {
-            slidesPerView: 1.25,
-            spaceBetween: 40,
             centeredSlides: true,
           },
         },
         
-        // События
+        // Events
         on: {
           init: function() {
-            console.log('✅ Testimonials Swiper initialized successfully');
-          },
-          slideChange: function() {
-            console.log('Slide changed to:', this.activeIndex);
-          },
-          touchStart: function() {
-            console.log('Touch started');
-          },
-          touchEnd: function() {
-            console.log('Touch ended');
+            console.log('✅ Swiper готов');
           },
         },
       });
+      
+      // Force enable touch on mobile
+      if (window.innerWidth < 768) {
+        swiper.params.simulateTouch = true;
+        swiper.params.allowTouchMove = true;
+        swiper.update();
+        console.log('📱 Mobile touch enabled');
+      }
     }
     
     if (document.readyState === 'loading') {
