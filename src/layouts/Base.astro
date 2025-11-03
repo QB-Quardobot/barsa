@@ -443,6 +443,9 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             
             const urlWithUtm = withUTM(href);
             
+            // Check if internal link
+            const isInternalLink = href.startsWith('/') || href.startsWith(window.location.origin) || (!href.includes('://') && !href.includes('t.me/'));
+            
             // Track click
             trackClick(urlWithUtm, buttonText);
             
@@ -454,35 +457,46 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             }
             
             if (isTelegram) {
-              e.preventDefault();
-              
-              // For Telegram links, use openTelegramLink (stays in app)
-              // For external links, use openLink (opens in browser)
-              if (isTelegramLink && typeof tg.openTelegramLink === 'function') {
-                try {
-                  tg.openTelegramLink(urlWithUtm);
-                } catch (err) {
-                  // Fallback to openLink if openTelegramLink fails
-                  try { tg.openLink(urlWithUtm); } catch {}
-                }
+              if (isInternalLink) {
+                // Internal link in Telegram - allow normal navigation (stay in WebApp)
+                this.href = urlWithUtm;
+                // Don't prevent default - let browser handle internal navigation
+                return;
               } else {
-                // External link - open in browser
-                try {
-                  tg.openLink(urlWithUtm);
-                } catch {}
+                // External link in Telegram
+                e.preventDefault();
+                
+                // For Telegram links, use openTelegramLink (stays in app)
+                // For other external links, use openLink (opens in browser)
+                if (isTelegramLink && typeof tg.openTelegramLink === 'function') {
+                  try {
+                    tg.openTelegramLink(urlWithUtm);
+                  } catch (err) {
+                    // Fallback to openLink if openTelegramLink fails
+                    try { tg.openLink(urlWithUtm); } catch {}
+                  }
+                } else {
+                  // External link - open in browser
+                  try {
+                    tg.openLink(urlWithUtm);
+                  } catch {}
+                }
               }
             } else {
-              // Not in Telegram - check if internal link
-              const isInternalLink = href.startsWith('/') || href.startsWith(window.location.origin) || !href.includes('://');
+              // Not in Telegram
               if (isInternalLink) {
-                // Internal link - open in same tab
-                this.target = '_self';
+                // Internal link - open in same tab (normal navigation)
                 this.href = urlWithUtm;
+                this.target = '_self';
+                // Don't prevent default - let browser handle navigation normally
               } else {
                 // External link - open in new tab
+                e.preventDefault();
                 this.target = '_blank';
                 this.rel = 'noopener noreferrer';
                 this.href = urlWithUtm;
+                // For external links, manually open to ensure new tab
+                window.open(urlWithUtm, '_blank', 'noopener,noreferrer');
               }
             }
           });
