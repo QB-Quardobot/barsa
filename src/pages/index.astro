@@ -366,7 +366,7 @@ const DEBUG_MODE = false;
         
         <!-- Benefits -->
         <div class="benefits-section">
-          <h3 class="benefits-title">⚙️ Что ты получишь, применив систему на себе:</h3>
+          <h3 class="benefits-title">⚙️ Что ты получишь, применив систему на&nbsp;себе:</h3>
           
           <div class="benefits-list">
             <div class="benefit-item reveal-up">
@@ -435,7 +435,7 @@ const DEBUG_MODE = false;
             Просто новая профессия 2026 года — <span class="gradient-text">AI-продюсер</span>.
           </p>
           <p class="pitch-formula">
-            Только Ты + Ноут + Немного времени = 💸
+            Только Ты + Ноут + Немного времени <span class="no-break">= 💸</span>
           </p>
         </div>
         
@@ -571,15 +571,15 @@ const DEBUG_MODE = false;
         <!-- Industry Block -->
         <div class="why-industry reveal-up">
           <p class="industry-text">
-            Это целая <strong>индустрия</strong>, где все только начинается.
+            Это целая <strong>индустрия</strong>, где все только&nbsp;начинается.
           </p>
           <div class="industry-points">
             <div class="point-line">📈 Спрос огромный, конкуренции почти нет</div>
-            <div class="point-line">🎯 Ты не зависишь от бирж, курсов или удачи</div>
+            <div class="point-line">🎯 Ты не зависишь от бирж, курсов или&nbsp;удачи</div>
           </div>
           <p class="industry-work">
             Ты управляешь цифровым персонажем, который работает 24/7,<br/>
-            А ты просто контролируешь процесс и получаешь прибыль.
+            А ты просто контролируешь процесс и&nbsp;получаешь&nbsp;прибыль.
           </p>
         </div>
         
@@ -2753,6 +2753,10 @@ const DEBUG_MODE = false;
     color: var(--fg);
     margin-bottom: 2rem;
     text-align: center;
+    /* Prevent orphan words */
+    hyphens: none;
+    word-break: normal;
+    overflow-wrap: break-word;
   }
   
   .benefits-list {
@@ -2880,6 +2884,15 @@ const DEBUG_MODE = false;
     font-size: clamp(1.125rem, 3vw, 1.375rem);
     color: #b3b3b3;
     font-weight: 600;
+    /* Prevent orphan words */
+    hyphens: none;
+    word-break: normal;
+  }
+  
+  /* Prevent breaking symbols and emojis */
+  .no-break {
+    white-space: nowrap;
+    display: inline-block;
   }
   
   .what-you-get-grid {
@@ -3280,6 +3293,10 @@ const DEBUG_MODE = false;
     font-size: clamp(1.125rem, 3vw, 1.375rem);
     color: #e5e5e5;
     margin-bottom: 1.5rem;
+    /* Prevent orphan words */
+    hyphens: none;
+    word-break: normal;
+    overflow-wrap: break-word;
   }
   
   .industry-points {
@@ -3293,6 +3310,10 @@ const DEBUG_MODE = false;
     font-size: clamp(1rem, 2.5vw, 1.125rem);
     color: #b3b3b3;
     padding-left: 0.5rem;
+    /* Prevent orphan words */
+    hyphens: none;
+    word-break: normal;
+    overflow-wrap: break-word;
   }
   
   .industry-work {
@@ -3301,6 +3322,10 @@ const DEBUG_MODE = false;
     line-height: 1.7;
     font-weight: 600;
     margin-top: 1.5rem;
+    /* Prevent orphan words */
+    hyphens: none;
+    word-break: normal;
+    overflow-wrap: break-word;
   }
   
   /* Niche Visual */
