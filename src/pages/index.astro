@@ -249,22 +249,18 @@ const DEBUG_MODE = false;
         
         <!-- Founder Header -->
         <div class="founder-header reveal-scale">
-          <div class="founder-avatar">
-            <div class="photo-circle">
-              <img 
-                src="/ilya-avatar.webp"
-                alt="Илья - AI-продюсер"
-                class="avatar-image"
-                width="140"
-                height="140"
-                loading="eager"
-                decoding="async"
-              />
-              <div class="earning-corner">
-                <div class="earning-amount">$10K</div>
-                <div class="earning-period">мес</div>
-              </div>
-            </div>
+          <div class="founder-photo-container">
+            <img 
+              src="/ilya-photo.webp"
+              srcset="/ilya-photo-600.webp 600w, /ilya-photo-900.webp 900w, /ilya-photo-1200.webp 1200w, /ilya-photo.webp 1280w"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 600px"
+              alt="Илья - AI-продюсер"
+              width="600"
+              height="675"
+              loading="lazy"
+              decoding="async"
+              class="founder-photo"
+            />
           </div>
           <div class="founder-name-block">
             <div class="founder-name">Илья</div>
@@ -2326,16 +2322,39 @@ const DEBUG_MODE = false;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    gap: 1.5rem;
     margin-bottom: 3rem;
   }
   
-  .founder-avatar {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
+  .founder-photo-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    border-radius: var(--radius-2xl);
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 40px rgba(96, 165, 250, 0.1);
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .founder-photo-container:hover {
+    transform: translateY(-4px) translateZ(0);
+    box-shadow: 0 20px 60px rgba(96, 165, 250, 0.3);
+  }
+  
+  .founder-photo {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: var(--radius-2xl);
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  
+  .founder-photo.loaded {
+    opacity: 1;
   }
   
   .founder-name-block {
@@ -2356,101 +2375,6 @@ const DEBUG_MODE = false;
     font-size: 0.9375rem;
     color: rgba(255, 255, 255, 0.6);
     font-weight: 500;
-  }
-  
-  .photo-circle {
-    width: 140px;
-    height: 140px;
-    background: linear-gradient(135deg, rgba(96, 165, 250, 0.15), rgba(34, 211, 238, 0.1));
-    border: 3px solid rgba(96, 165, 250, 0.4);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 6px 24px rgba(96, 165, 250, 0.2);
-    position: relative;
-    /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
-  }
-  
-  .photo-circle::before {
-    content: '';
-    position: absolute;
-    inset: -3px;
-    background: linear-gradient(135deg, rgba(96, 165, 250, 0.5), rgba(34, 211, 238, 0.5));
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    z-index: -1;
-    border-radius: 50%;
-  }
-  
-  .avatar-emoji {
-    font-size: 4rem;
-    position: relative;
-    z-index: 1;
-  }
-  
-  .avatar-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    border-radius: 50%;
-    display: block;
-    position: relative;
-    z-index: 1;
-  }
-  
-  .earning-corner {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: linear-gradient(135deg, rgba(96, 165, 250, 0.3), rgba(34, 211, 238, 0.25)); /* Increased opacity instead of blur */
-    border: 2px solid rgba(96, 165, 250, 0.5);
-    border-radius: 12px;
-    padding: 0.5rem 0.75rem;
-    box-shadow: 0 3px 12px rgba(96, 165, 250, 0.35); /* Reduced blur */
-    z-index: 2;
-    /* GPU acceleration */
-    transform: translateZ(0);
-  }
-  
-  .earning-corner .earning-amount {
-    font-size: 1.25rem;
-    font-weight: 900;
-    line-height: 1;
-    background: linear-gradient(90deg, #60a5fa, #22d3ee);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 0.125rem;
-    /* Use system fonts for uniform rendering */
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-    font-variant-numeric: normal !important;
-    font-feature-settings: normal !important;
-    font-variant-ligatures: none !important;
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-  }
-  
-  .earning-corner .earning-period {
-    font-size: 0.625rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.6);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  
-  .founder-avatar:hover .photo-circle {
-    transform: scale(1.05) translateZ(0); /* GPU acceleration */
-    box-shadow: 0 8px 28px rgba(96, 165, 250, 0.3); /* Reduced blur */
-  }
-  
-  .founder-avatar:hover .earning-corner {
-    transform: scale(1.05) translateZ(0); /* GPU acceleration */
-    box-shadow: 0 4px 16px rgba(96, 165, 250, 0.45); /* Reduced blur */
   }
   
   .photo-name {
