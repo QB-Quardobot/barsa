@@ -1041,6 +1041,18 @@ const DEBUG_MODE = false;
           };
         }
       }
+      
+      // Video preview image lazy loading
+      const videoPreviewImg = document.querySelector('.video-preview-img');
+      if (videoPreviewImg && !videoPreviewImg.classList.contains('loaded')) {
+        if (videoPreviewImg.complete && videoPreviewImg.naturalHeight !== 0) {
+          videoPreviewImg.classList.add('loaded');
+        } else {
+          videoPreviewImg.onload = () => {
+            videoPreviewImg.classList.add('loaded');
+          };
+        }
+      }
     } catch (e) {
       // Silently fail
     }
