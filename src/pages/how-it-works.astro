@@ -1628,13 +1628,16 @@ import Base from '../layouts/Base.astro';
     border: 2px solid rgba(96, 165, 250, 0.2);
     border-radius: var(--radius-2xl);
     padding: 2rem 1.5rem;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
-    box-shadow: 
-      0 8px 30px rgba(0, 0, 0, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
   }
   
   /* Animated gradient background */
