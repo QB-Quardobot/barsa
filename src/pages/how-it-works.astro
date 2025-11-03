@@ -1214,15 +1214,6 @@ import Base from '../layouts/Base.astro';
     <span class="modal-close">&times;</span>
     <img class="modal-image" alt="Увеличенное изображение">
   </div>
-  
-  <!-- Debug Panel for Mobile -->
-  <div id="debugPanel" style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.95); color: #0f0; padding: 10px; font-size: 11px; max-height: 150px; overflow-y: auto; z-index: 10000; border-top: 2px solid #0f0; font-family: monospace;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-      <strong style="color: #0ff;">🐛 DEBUG PANEL</strong>
-      <button onclick="document.getElementById('debugPanel').style.display='none'" style="background: #f00; color: #fff; border: none; padding: 2px 8px; border-radius: 3px; font-size: 10px;">Close</button>
-    </div>
-    <div id="debugLog" style="font-size: 10px; line-height: 1.3;"></div>
-  </div>
 
 </Base>
 
@@ -3376,8 +3367,8 @@ import Base from '../layouts/Base.astro';
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
-    padding: 2rem 0 5rem;
-    overflow: hidden;  /* CRITICAL: Must be hidden for CSS scroll snap */
+    padding: 2rem 1rem 5rem;  /* Add horizontal padding */
+    overflow: hidden;
     position: relative;
     min-height: 600px;
   }
@@ -3385,7 +3376,7 @@ import Base from '../layouts/Base.astro';
   /* Mobile fixes */
   @media (max-width: 767px) {
     .testimonials-swiper {
-      padding: 1rem 0 4rem;
+      padding: 1rem 1rem 4rem;  /* Horizontal padding on mobile */
       overflow: hidden;
       min-height: auto;
     }
@@ -3405,6 +3396,17 @@ import Base from '../layouts/Base.astro';
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE/Edge */
+    
+    /* Prevent card clipping on edges */
+    padding-inline: 1rem;
+    margin-inline: -1rem;
+  }
+  
+  @media (max-width: 767px) {
+    .testimonials-swiper .swiper-wrapper {
+      padding-inline: 0.5rem;
+      margin-inline: -0.5rem;
+    }
   }
   
   .testimonials-swiper .swiper-wrapper::-webkit-scrollbar {
@@ -3418,8 +3420,25 @@ import Base from '../layouts/Base.astro';
     flex-shrink: 0;
     
     /* CRITICAL: Scroll snap alignment for CSS mode */
-    scroll-snap-align: center;
+    scroll-snap-align: start;
     scroll-snap-stop: always;
+    
+    /* Ensure proper width in CSS mode */
+    min-width: 100%;
+  }
+  
+  @media (min-width: 768px) {
+    .testimonials-swiper .swiper-slide {
+      min-width: calc(100% / 1.1);
+      scroll-snap-align: start;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .testimonials-swiper .swiper-slide {
+      min-width: calc(100% / 1.2);
+      scroll-snap-align: center;
+    }
   }
   
   .testimonial-card {
@@ -4469,8 +4488,6 @@ import Base from '../layouts/Base.astro';
       const swiperContainer = document.querySelector('.testimonials-swiper');
       if (!swiperContainer) return;
       
-      debugLog('🔧 Создаю Swiper...', '#ff0');
-      
       const swiper = new Swiper('.testimonials-swiper', {
         // Core
         direction: 'horizontal',
@@ -4511,8 +4528,9 @@ import Base from '../layouts/Base.astro';
         
         // Autoplay
         autoplay: {
-          delay: 8000,
+          delay: 5000,
           disableOnInteraction: false,
+          pauseOnMouseEnter: true,
         },
         
         // Pagination
@@ -4533,10 +4551,17 @@ import Base from '../layouts/Base.astro';
           320: {
             slidesPerView: 1,
             spaceBetween: 16,
+            centeredSlides: false,
+          },
+          640: {
+            slidesPerView: 1,
+            spaceBetween: 20,
+            centeredSlides: false,
           },
           768: {
-            slidesPerView: 1,
+            slidesPerView: 1.1,
             spaceBetween: 24,
+            centeredSlides: false,
           },
           1024: {
             slidesPerView: 1.2,
@@ -4545,103 +4570,23 @@ import Base from '../layouts/Base.astro';
           },
         },
         
-        // Events with debug
+        // Events
         on: {
           init: function() {
-            debugLog('✅ Swiper готов!', '#0f0');
-            debugLog('🎨 cssMode: ' + this.params.cssMode, '#0ff');
-            debugLog('allowTouchMove: ' + this.allowTouchMove, '#fff');
-            debugLog('simulateTouch: ' + this.params.simulateTouch, '#fff');
-            debugLog('passiveListeners: ' + this.passiveListeners, '#fff');
-            debugLog('Slides: ' + this.slides.length, '#fff');
-          },
-          touchStart: function(swiper, event) {
-            debugLog('👆 TOUCH START', '#0ff');
-          },
-          touchMove: function(swiper, event) {
-            debugLog('👉 TOUCH MOVE', '#ff0');
-          },
-          touchEnd: function(swiper, event) {
-            debugLog('✋ TOUCH END', '#0ff');
-          },
-          slideChange: function() {
-            debugLog('📍 Слайд: ' + (this.realIndex + 1) + '/' + this.slides.length, '#0f0');
-          },
-          sliderMove: function() {
-            debugLog('🔄 Swiper движется...', '#f0f');
+            // Swiper initialized
           },
         },
       });
       
-      debugLog('Swiper instance created: ' + !!swiper, '#0f0');
-      
-      // Force enable touch handling
+      // Prevent Telegram collapse on carousel touch
       const swiperEl = document.querySelector('.testimonials-swiper');
-      const swiperWrapper = swiperEl?.querySelector('.swiper-wrapper');
-      
       if (swiperEl) {
-        debugLog('📦 Swiper element found', '#0f0');
-        debugLog('Swiper.touches: ' + JSON.stringify(swiper.touches || {}), '#fff');
-        debugLog('Swiper.allowTouchMove: ' + swiper.allowTouchMove, '#fff');
-        
-        // CRITICAL: Prevent Telegram collapse on carousel
         swiperEl.addEventListener('touchstart', function(e) {
-          debugLog('🟢 SWIPER touchstart (target: ' + e.target.className + ')', '#0f0');
-          debugLog('Touches count: ' + e.touches.length, '#fff');
-          
-          // Prevent Telegram collapse
           if (window.scrollY === 0) {
             window.scrollTo(0, 1);
-            debugLog('⬆️ Prevented collapse on swiper touch', '#ff0');
           }
-          
-          // Try to trigger Swiper manually
-          if (swiper && swiper.onTouchStart) {
-            debugLog('🔧 Manually triggering Swiper.onTouchStart', '#f0f');
-          }
-        }, { passive: true });
-        
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let isSwiping = false;
-        
-        swiperEl.addEventListener('touchstart', function(e) {
-          touchStartX = e.touches[0].clientX;
-          touchStartY = e.touches[0].clientY;
-          isSwiping = false;
-        }, { passive: true });
-        
-        swiperEl.addEventListener('touchmove', function(e) {
-          if (!isSwiping) {
-            const deltaX = Math.abs(e.touches[0].clientX - touchStartX);
-            const deltaY = Math.abs(e.touches[0].clientY - touchStartY);
-            
-            if (deltaX > 10 || deltaY > 10) {
-              isSwiping = true;
-              
-              if (deltaX > deltaY) {
-                debugLog('➡️ HORIZONTAL swipe!', '#0ff');
-              } else {
-                debugLog('⬇️ VERTICAL swipe', '#f0f');
-              }
-            }
-          }
-        }, { passive: true });
-        
-        swiperEl.addEventListener('touchend', function(e) {
-          debugLog('🔴 SWIPER touchend', '#f00');
-          isSwiping = false;
         }, { passive: true });
       }
-      
-      // Additional debug for wrapper
-      if (swiperWrapper) {
-        swiperWrapper.addEventListener('touchstart', function(e) {
-          debugLog('🟡 WRAPPER touch detected', '#ff0');
-        }, { passive: true });
-      }
-      
-      debugLog('✅ Инициализация завершена', '#0f0');
     }
     
     if (document.readyState === 'loading') {
@@ -4652,46 +4597,14 @@ import Base from '../layouts/Base.astro';
   })();
   
   // ============================================
-  // DEBUG PANEL FOR MOBILE
+  // TELEGRAM WEBAPP FIXES
   // ============================================
   (function() {
-    window.debugLog = function(msg, color = '#0f0') {
-      const debugLog = document.getElementById('debugLog');
-      if (debugLog) {
-        const time = new Date().toLocaleTimeString();
-        const line = document.createElement('div');
-        line.style.color = color;
-        line.textContent = `[${time}] ${msg}`;
-        debugLog.insertBefore(line, debugLog.firstChild);
-        
-        // Keep only last 20 messages
-        while (debugLog.children.length > 20) {
-          debugLog.removeChild(debugLog.lastChild);
-        }
-      }
-      console.log(msg);
-    };
-    
-    // Log initial info
-    debugLog('📱 Screen: ' + window.innerWidth + 'x' + window.innerHeight, '#fff');
-    debugLog('🌐 User Agent: ' + (navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'), '#fff');
-    debugLog('⚡ Telegram WebApp: ' + (window.Telegram?.WebApp ? 'YES' : 'NO'), '#fff');
-    
-    // Test global touch events
-    document.addEventListener('touchstart', function(e) {
-      debugLog('🌍 GLOBAL touchstart detected', '#0ff');
-    }, { passive: true, capture: true });
-    
-    document.addEventListener('touchmove', function(e) {
-      debugLog('🌍 GLOBAL touchmove detected', '#ff0');
-    }, { passive: true, capture: true });
-    
     // CRITICAL: Ensure document is always scrollable for Telegram WebApp
     function ensureDocumentIsScrollable() {
       const isScrollable = document.documentElement.scrollHeight > window.innerHeight;
       if (!isScrollable) {
         document.documentElement.style.setProperty('height', 'calc(100vh + 1px)', 'important');
-        debugLog('📏 Document made scrollable', '#0f0');
       }
     }
     
@@ -4699,7 +4612,6 @@ import Base from '../layouts/Base.astro';
     function preventTelegramCollapse() {
       if (window.scrollY === 0) {
         window.scrollTo(0, 1);
-        debugLog('⬆️ Prevented collapse (scrollY was 0)', '#ff0');
       }
     }
     
@@ -4707,24 +4619,15 @@ import Base from '../layouts/Base.astro';
     ensureDocumentIsScrollable();
     window.addEventListener('resize', ensureDocumentIsScrollable);
     
-    // Disable Telegram vertical swipes IMMEDIATELY
+    // Disable Telegram vertical swipes
     if (window.Telegram?.WebApp) {
       try {
         window.Telegram.WebApp.disableVerticalSwipes();
-        debugLog('🚫 Telegram vertical swipes DISABLED', '#0f0');
-      } catch (e) {
-        debugLog('⚠️ Failed to disable vertical swipes: ' + e.message, '#f00');
-      }
-      
-      // Expand to fullscreen
-      try {
         window.Telegram.WebApp.expand();
-        debugLog('📏 WebApp expanded', '#0f0');
       } catch (e) {
-        debugLog('⚠️ Failed to expand: ' + e.message, '#f00');
+        // Silently fail
       }
       
-      // Add prevent collapse to all interactive elements
       document.addEventListener('touchstart', preventTelegramCollapse, { passive: true });
     }
   })();
