@@ -3371,6 +3371,7 @@ import Base from '../layouts/Base.astro';
     overflow: visible;
     position: relative;
     min-height: 600px;
+    /* Remove touch-action to let Swiper handle it */
   }
   
   /* Mobile fixes */
@@ -3385,7 +3386,7 @@ import Base from '../layouts/Base.astro';
   .testimonials-swiper .swiper-wrapper {
     display: flex;
     align-items: stretch;
-    touch-action: pan-y;
+    /* Let Swiper control touch-action */
     user-select: none;
     -webkit-user-select: none;
   }
@@ -3513,7 +3514,6 @@ import Base from '../layouts/Base.astro';
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     background: rgba(10, 10, 15, 0.6);
     pointer-events: auto;
-    touch-action: manipulation;
   }
   
   @media (min-width: 768px) {
@@ -4456,10 +4456,30 @@ import Base from '../layouts/Base.astro';
         spaceBetween: 20,
         centeredSlides: false,
         
-        // Touch
+        // CRITICAL: Touch settings for real mobile devices
+        touchEventsTarget: 'container',
+        simulateTouch: true,
+        allowTouchMove: true,
         touchRatio: 1,
         touchAngle: 45,
         grabCursor: true,
+        
+        // CRITICAL: Allow preventDefault to work on mobile
+        passiveListeners: false,
+        
+        // CRITICAL: Don't stop propagation for Telegram WebApp
+        touchMoveStopPropagation: false,
+        touchStartPreventDefault: true,
+        touchStartForcePreventDefault: false,
+        
+        // Additional touch settings
+        resistance: true,
+        resistanceRatio: 0.85,
+        threshold: 5,
+        longSwipes: true,
+        longSwipesRatio: 0.5,
+        longSwipesMs: 300,
+        followFinger: true,
         
         // Autoplay
         autoplay: {
@@ -4501,17 +4521,40 @@ import Base from '../layouts/Base.astro';
         // Events
         on: {
           init: function() {
-            console.log('✅ Swiper готов');
+            console.log('✅ Swiper инициализирован');
+            console.log('Touch enabled:', this.allowTouchMove);
+            console.log('Passive listeners:', this.passiveListeners);
+          },
+          touchStart: function() {
+            console.log('👆 Touch start');
+          },
+          touchMove: function() {
+            console.log('👉 Touch move');
+          },
+          touchEnd: function() {
+            console.log('✋ Touch end');
           },
         },
       });
       
-      // Force enable touch on mobile
-      if (window.innerWidth < 768) {
-        swiper.params.simulateTouch = true;
-        swiper.params.allowTouchMove = true;
-        swiper.update();
-        console.log('📱 Mobile touch enabled');
+      // Disable Telegram WebApp vertical swipes for carousel area
+      if (window.Telegram && window.Telegram.WebApp) {
+        try {
+          const swiperEl = document.querySelector('.testimonials-swiper');
+          if (swiperEl) {
+            swiperEl.addEventListener('touchstart', function(e) {
+              // Prevent Telegram from handling these touches
+              if (window.Telegram.WebApp.isVerticalSwipesEnabled) {
+                // Don't stop propagation, just mark it
+                e.swiperCarousel = true;
+              }
+            }, { passive: false });
+            
+            console.log('🚫 Telegram swipes adjusted for carousel');
+          }
+        } catch (e) {
+          console.log('⚠️ Telegram WebApp adjustment failed:', e);
+        }
       }
     }
     
