@@ -4468,22 +4468,31 @@ import Base from '../layouts/Base.astro';
         spaceBetween: 20,
         centeredSlides: false,
         
-        // Touch - CRITICAL FOR MOBILE
-        touchEventsTarget: 'wrapper',  // Changed from 'container' for better mobile support
+        // Touch - USE POINTER EVENTS for Telegram WebApp compatibility
+        touchEventsTarget: 'wrapper',
         simulateTouch: true,
         allowTouchMove: true,
         touchRatio: 1,
         touchAngle: 45,
-        grabCursor: true,
-        nested: false,
         
-        // Touch events - KEY SETTINGS FOR REAL DEVICES
-        passiveListeners: false,  // Must be false to allow preventDefault
-        touchStartPreventDefault: false,  // Don't prevent default on touch start
+        // CRITICAL: Don't use cursor on mobile
+        grabCursor: false,
+        
+        // CRITICAL: Prevent nested swipers interference
+        nested: false,
+        uniqueNavElements: true,
+        
+        // Touch events - OPTIMIZED FOR TELEGRAM WEBAPP
+        passiveListeners: false,
+        touchStartPreventDefault: false,
         touchStartForcePreventDefault: false,
         touchReleaseOnEdges: false,
-        preventInteractionOnTransition: false,  // Allow interaction during transition
-        followFinger: true,  // Slider follows finger during dragging
+        preventInteractionOnTransition: false,
+        followFinger: true,
+        
+        // Enable both touch AND pointer events
+        touchEventsTarget: 'wrapper',
+        cssMode: false,  // Disable CSS mode to use JS swipe
         
         // Resistance
         resistance: true,
@@ -4560,25 +4569,60 @@ import Base from '../layouts/Base.astro';
       
       debugLog('Swiper instance created: ' + !!swiper, '#0f0');
       
-      // Special handling for Telegram WebApp
-      if (window.Telegram && window.Telegram.WebApp) {
-        debugLog('📱 Telegram WebApp detected', '#ff0');
+      // Force enable touch handling
+      const swiperEl = document.querySelector('.testimonials-swiper');
+      const swiperWrapper = swiperEl?.querySelector('.swiper-wrapper');
+      
+      if (swiperEl) {
+        // CRITICAL: Prevent Telegram collapse on carousel
+        swiperEl.addEventListener('touchstart', function(e) {
+          debugLog('🟢 SWIPER touchstart', '#0f0');
+          
+          // Prevent Telegram collapse
+          if (window.scrollY === 0) {
+            window.scrollTo(0, 1);
+            debugLog('⬆️ Prevented collapse on swiper touch', '#ff0');
+          }
+        }, { passive: true });
         
-        const swiperEl = document.querySelector('.testimonials-swiper');
-        if (swiperEl) {
-          // Log all touch events for debugging
-          swiperEl.addEventListener('touchstart', function(e) {
-            debugLog('🟢 Native touchstart on swiper', '#0f0');
-          }, { passive: true, capture: false });
-          
-          swiperEl.addEventListener('touchmove', function(e) {
-            debugLog('🟡 Native touchmove', '#ff0');
-          }, { passive: true, capture: false });
-          
-          swiperEl.addEventListener('touchend', function(e) {
-            debugLog('🔴 Native touchend', '#f00');
-          }, { passive: true, capture: false });
-        }
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let isSwiping = false;
+        
+        swiperEl.addEventListener('touchstart', function(e) {
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+          isSwiping = false;
+        }, { passive: true });
+        
+        swiperEl.addEventListener('touchmove', function(e) {
+          if (!isSwiping) {
+            const deltaX = Math.abs(e.touches[0].clientX - touchStartX);
+            const deltaY = Math.abs(e.touches[0].clientY - touchStartY);
+            
+            if (deltaX > 10 || deltaY > 10) {
+              isSwiping = true;
+              
+              if (deltaX > deltaY) {
+                debugLog('➡️ HORIZONTAL swipe!', '#0ff');
+              } else {
+                debugLog('⬇️ VERTICAL swipe', '#f0f');
+              }
+            }
+          }
+        }, { passive: true });
+        
+        swiperEl.addEventListener('touchend', function(e) {
+          debugLog('🔴 SWIPER touchend', '#f00');
+          isSwiping = false;
+        }, { passive: true });
+      }
+      
+      // Additional debug for wrapper
+      if (swiperWrapper) {
+        swiperWrapper.addEventListener('touchstart', function(e) {
+          debugLog('🟡 WRAPPER touch detected', '#ff0');
+        }, { passive: true });
       }
       
       debugLog('✅ Инициализация завершена', '#0f0');
@@ -4616,6 +4660,57 @@ import Base from '../layouts/Base.astro';
     debugLog('📱 Screen: ' + window.innerWidth + 'x' + window.innerHeight, '#fff');
     debugLog('🌐 User Agent: ' + (navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'), '#fff');
     debugLog('⚡ Telegram WebApp: ' + (window.Telegram?.WebApp ? 'YES' : 'NO'), '#fff');
+    
+    // Test global touch events
+    document.addEventListener('touchstart', function(e) {
+      debugLog('🌍 GLOBAL touchstart detected', '#0ff');
+    }, { passive: true, capture: true });
+    
+    document.addEventListener('touchmove', function(e) {
+      debugLog('🌍 GLOBAL touchmove detected', '#ff0');
+    }, { passive: true, capture: true });
+    
+    // CRITICAL: Ensure document is always scrollable for Telegram WebApp
+    function ensureDocumentIsScrollable() {
+      const isScrollable = document.documentElement.scrollHeight > window.innerHeight;
+      if (!isScrollable) {
+        document.documentElement.style.setProperty('height', 'calc(100vh + 1px)', 'important');
+        debugLog('📏 Document made scrollable', '#0f0');
+      }
+    }
+    
+    // CRITICAL: Prevent collapse when scrollY is 0
+    function preventTelegramCollapse() {
+      if (window.scrollY === 0) {
+        window.scrollTo(0, 1);
+        debugLog('⬆️ Prevented collapse (scrollY was 0)', '#ff0');
+      }
+    }
+    
+    // Apply fixes
+    ensureDocumentIsScrollable();
+    window.addEventListener('resize', ensureDocumentIsScrollable);
+    
+    // Disable Telegram vertical swipes IMMEDIATELY
+    if (window.Telegram?.WebApp) {
+      try {
+        window.Telegram.WebApp.disableVerticalSwipes();
+        debugLog('🚫 Telegram vertical swipes DISABLED', '#0f0');
+      } catch (e) {
+        debugLog('⚠️ Failed to disable vertical swipes: ' + e.message, '#f00');
+      }
+      
+      // Expand to fullscreen
+      try {
+        window.Telegram.WebApp.expand();
+        debugLog('📏 WebApp expanded', '#0f0');
+      } catch (e) {
+        debugLog('⚠️ Failed to expand: ' + e.message, '#f00');
+      }
+      
+      // Add prevent collapse to all interactive elements
+      document.addEventListener('touchstart', preventTelegramCollapse, { passive: true });
+    }
   })();
   
   // ============================================
