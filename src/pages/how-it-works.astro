@@ -3377,17 +3377,16 @@ import Base from '../layouts/Base.astro';
     max-width: 1400px;
     margin: 0 auto;
     padding: 2rem 0 5rem;
-    overflow: visible;
+    overflow: hidden;  /* CRITICAL: Must be hidden for CSS scroll snap */
     position: relative;
     min-height: 600px;
-    /* Remove touch-action to let Swiper handle it */
   }
   
   /* Mobile fixes */
   @media (max-width: 767px) {
     .testimonials-swiper {
       padding: 1rem 0 4rem;
-      overflow: visible;
+      overflow: hidden;
       min-height: auto;
     }
   }
@@ -3395,9 +3394,21 @@ import Base from '../layouts/Base.astro';
   .testimonials-swiper .swiper-wrapper {
     display: flex;
     align-items: stretch;
-    /* Let Swiper control touch-action */
     user-select: none;
     -webkit-user-select: none;
+    
+    /* CRITICAL: CSS Mode support for native scrolling */
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+  }
+  
+  .testimonials-swiper .swiper-wrapper::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
   }
   
   .testimonials-swiper .swiper-slide {
@@ -3405,6 +3416,10 @@ import Base from '../layouts/Base.astro';
     display: flex;
     align-items: stretch;
     flex-shrink: 0;
+    
+    /* CRITICAL: Scroll snap alignment for CSS mode */
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
   }
   
   .testimonial-card {
@@ -4468,31 +4483,21 @@ import Base from '../layouts/Base.astro';
         spaceBetween: 20,
         centeredSlides: false,
         
-        // Touch - USE POINTER EVENTS for Telegram WebApp compatibility
-        touchEventsTarget: 'wrapper',
+        // TELEGRAM WEBAPP FIX: Use CSS Scroll mode
+        cssMode: true,  // CRITICAL: Use native CSS scrolling for Telegram WebApp
+        
+        // Touch - Minimal config for CSS mode
         simulateTouch: true,
         allowTouchMove: true,
-        touchRatio: 1,
-        touchAngle: 45,
         
-        // CRITICAL: Don't use cursor on mobile
-        grabCursor: false,
-        
-        // CRITICAL: Prevent nested swipers interference
-        nested: false,
-        uniqueNavElements: true,
-        
-        // Touch events - OPTIMIZED FOR TELEGRAM WEBAPP
-        passiveListeners: false,
+        // Touch events - Passive for CSS mode
+        passiveListeners: true,
         touchStartPreventDefault: false,
-        touchStartForcePreventDefault: false,
-        touchReleaseOnEdges: false,
-        preventInteractionOnTransition: false,
-        followFinger: true,
         
-        // Enable both touch AND pointer events
-        touchEventsTarget: 'wrapper',
-        cssMode: false,  // Disable CSS mode to use JS swipe
+        // Disable conflicting options in CSS mode
+        freeMode: false,
+        grabCursor: false,
+        nested: false,
         
         // Resistance
         resistance: true,
@@ -4544,6 +4549,7 @@ import Base from '../layouts/Base.astro';
         on: {
           init: function() {
             debugLog('✅ Swiper готов!', '#0f0');
+            debugLog('🎨 cssMode: ' + this.params.cssMode, '#0ff');
             debugLog('allowTouchMove: ' + this.allowTouchMove, '#fff');
             debugLog('simulateTouch: ' + this.params.simulateTouch, '#fff');
             debugLog('passiveListeners: ' + this.passiveListeners, '#fff');
@@ -4574,14 +4580,24 @@ import Base from '../layouts/Base.astro';
       const swiperWrapper = swiperEl?.querySelector('.swiper-wrapper');
       
       if (swiperEl) {
+        debugLog('📦 Swiper element found', '#0f0');
+        debugLog('Swiper.touches: ' + JSON.stringify(swiper.touches || {}), '#fff');
+        debugLog('Swiper.allowTouchMove: ' + swiper.allowTouchMove, '#fff');
+        
         // CRITICAL: Prevent Telegram collapse on carousel
         swiperEl.addEventListener('touchstart', function(e) {
-          debugLog('🟢 SWIPER touchstart', '#0f0');
+          debugLog('🟢 SWIPER touchstart (target: ' + e.target.className + ')', '#0f0');
+          debugLog('Touches count: ' + e.touches.length, '#fff');
           
           // Prevent Telegram collapse
           if (window.scrollY === 0) {
             window.scrollTo(0, 1);
             debugLog('⬆️ Prevented collapse on swiper touch', '#ff0');
+          }
+          
+          // Try to trigger Swiper manually
+          if (swiper && swiper.onTouchStart) {
+            debugLog('🔧 Manually triggering Swiper.onTouchStart', '#f0f');
           }
         }, { passive: true });
         
