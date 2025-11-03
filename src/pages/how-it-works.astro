@@ -37,7 +37,7 @@ import Base from '../layouts/Base.astro';
   <section class="two-paths-section">
     <div class="container">
       <h2 class="section-title reveal-up">
-        У тебя есть два пути (лесенка)
+        У тебя есть два пути
       </h2>
       
       <div class="paths-ladder reveal-up">
@@ -134,7 +134,7 @@ import Base from '../layouts/Base.astro';
           </div>
           <ul class="step-list">
             <li>— выплаты на карту или крипту</li>
-            <li>— полностью легально и безопасно <span class="highlight-text">(сделать акцент)</span></li>
+            <li>— полностью легально и безопасно</li>
           </ul>
         </div>
         
@@ -472,7 +472,7 @@ import Base from '../layouts/Base.astro';
             Идеален, если хочешь начать с нуля и все делать сам.
           </p>
           <div class="tariff-content">
-            <p class="tariff-includes-title">Включает полную базу обучения (8 блоков):</p>
+            <p class="tariff-includes-title">Включает полную базу обучения:</p>
             <ul class="tariff-list">
               <li>• как устроена бизнес-модель;</li>
               <li>• создание AI-модели (фото и видео);</li>
@@ -508,7 +508,7 @@ import Base from '../layouts/Base.astro';
           <div class="tariff-content">
             <p class="tariff-includes-title">Внутри всё, что входит в базу, и добавлены расширенные блоки:</p>
             <ul class="tariff-list">
-              <li>• <strong>(все из тарифа 1)</strong></li>
+              <li>• Все из тарифа 1</li>
               <li>• AI 18+ Эстетика — как создавать фото и видео-контент со вкусом.</li>
               <li>• Мультитаскинг и безопасность — как вести 10,20,30+ аккаунтов соц.сетей с помощью моей платформы.</li>
               <li>• Совмещение предметов и локаций — создаешь любые сцены из чего угодно.</li>
@@ -516,9 +516,9 @@ import Base from '../layouts/Base.astro';
               <li>• Воронки и продвижение — полная стратегия автоворонки и прогрева.</li>
             </ul>
             <div class="tariff-highlights">
-              <p class="highlight-item">✓ Доступ к чату с учениками и кураторами <strong>(выделить)</strong></p>
-              <p class="highlight-item">✓ Личная обратная связь от меня <strong>(выделить)</strong></p>
-              <p class="highlight-item">✓ Все обновления навсегда <strong>(выделить)</strong></p>
+              <p class="highlight-item">✓ Доступ к чату с учениками и кураторами</p>
+              <p class="highlight-item">✓ Личная обратная связь от меня</p>
+              <p class="highlight-item">✓ Все обновления навсегда</p>
               <p class="highlight-item">✓ Возможность делегировать процессы и строить бизнес под ключ</p>
             </div>
           </div>
@@ -603,7 +603,7 @@ import Base from '../layouts/Base.astro';
             Также я помогаю с регистрацией на <strong>Fanvue</strong>, даже если ты из России, Беларуси или Украины.
           </p>
           <p class="note-text note-accent">
-            Все методы легальны и работают по всему миру. <strong class="gradient-text">(сделать акцент)</strong>
+            Все методы легальны и работают по всему миру.
           </p>
         </div>
       </div>
@@ -660,7 +660,7 @@ import Base from '../layouts/Base.astro';
       <!-- AI Models Section -->
       <div class="ai-models-section reveal-fade">
         <h3 class="models-subtitle">AI-модели учеников</h3>
-        <p class="models-description">Заработок учеников (скрин)</p>
+        <p class="models-description">Заработок учеников</p>
         
         <!-- Student Results Carousel -->
         <div class="student-results-carousel reveal-scale">
@@ -1042,12 +1042,18 @@ import Base from '../layouts/Base.astro';
     background: rgba(13, 13, 16, 0.6);
     border: 1px solid rgba(96, 165, 250, 0.15);
     border-radius: var(--radius-2xl);
-    padding: 2.5rem 2rem;
+    padding: 2rem 1.5rem;
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     transition: all 0.4s ease;
     position: relative;
     overflow: hidden;
+  }
+  
+  @media (min-width: 768px) {
+    .path-card {
+      padding: 2.5rem 2rem;
+    }
   }
   
   .path-card::before {
@@ -1117,10 +1123,18 @@ import Base from '../layouts/Base.astro';
     background: rgba(13, 13, 16, 0.6);
     border: 1px solid rgba(96, 165, 250, 0.15);
     border-radius: var(--radius-2xl);
-    padding: 2.5rem 2rem;
+    padding: 1.75rem 1.5rem;
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     transition: all 0.4s ease;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  @media (min-width: 768px) {
+    .work-step {
+      padding: 2.5rem 2rem;
+    }
   }
   
   .work-step:hover {
@@ -1132,18 +1146,31 @@ import Base from '../layouts/Base.astro';
   .step-header {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  @media (min-width: 768px) {
+    .step-header {
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
   }
   
   .step-badge {
-    font-size: 2.5rem;
+    font-size: 2rem;
     line-height: 1;
     flex-shrink: 0;
   }
   
+  @media (min-width: 768px) {
+    .step-badge {
+      font-size: 2.5rem;
+    }
+  }
+  
   .step-title {
-    font-size: clamp(1.5rem, 3vw, 1.75rem);
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
     font-weight: 800;
     color: var(--fg);
     margin: 0;
@@ -1153,6 +1180,7 @@ import Base from '../layouts/Base.astro';
   .step-image-placeholder {
     width: 100%;
     aspect-ratio: 16 / 9;
+    max-height: 200px;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(96, 165, 250, 0.1);
     border-radius: var(--radius-xl);
@@ -1160,9 +1188,17 @@ import Base from '../layouts/Base.astro';
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
     transition: all 0.3s ease;
+  }
+  
+  @media (min-width: 768px) {
+    .step-image-placeholder {
+      max-height: none;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
   }
   
   .step-image-placeholder:hover {
@@ -1171,14 +1207,26 @@ import Base from '../layouts/Base.astro';
   }
   
   .placeholder-icon {
-    font-size: 3rem;
+    font-size: 2rem;
     opacity: 0.6;
   }
   
+  @media (min-width: 768px) {
+    .placeholder-icon {
+      font-size: 3rem;
+    }
+  }
+  
   .placeholder-text {
-    font-size: 1rem;
+    font-size: 0.875rem;
     color: var(--muted);
     font-weight: 600;
+  }
+  
+  @media (min-width: 768px) {
+    .placeholder-text {
+      font-size: 1rem;
+    }
   }
   
   .step-list {
