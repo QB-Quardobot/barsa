@@ -1011,8 +1011,14 @@ import Base from '../layouts/Base.astro';
   
   /* Two Paths Section */
   .two-paths-section {
-    padding: 4rem 0;
+    padding: 3rem 1rem;
     background: rgba(13, 13, 16, 0.4);
+  }
+  
+  @media (min-width: 768px) {
+    .two-paths-section {
+      padding: 4rem 0;
+    }
   }
   
   .section-title {
@@ -2750,13 +2756,19 @@ import Base from '../layouts/Base.astro';
       padding: 3rem 0 2rem;
     }
     
-    .two-paths-section,
+    .two-paths-section {
+      padding: 2.5rem 0.75rem;
+    }
+    
     .how-it-works-section,
     .final-cta-section {
       padding: 3rem 0;
     }
     
-    .path-card,
+    .path-card {
+      padding: 1.5rem 1rem;
+    }
+    
     .work-step {
       padding: 2rem 1.5rem;
     }
