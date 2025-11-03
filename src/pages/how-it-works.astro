@@ -70,9 +70,10 @@ import Base from '../layouts/Base.astro';
         Как это работает
       </h2>
       
-      <div class="steps-container">
-        <!-- Step 1 -->
-        <div class="work-step reveal-up">
+      <div class="steps-scroll-wrapper">
+        <div class="steps-inner">
+          <!-- Step 1 -->
+          <div class="work-step" data-step="1">
           <div class="step-header">
             <div class="step-badge">1️⃣</div>
             <h3 class="step-title">Создаём AI-модель</h3>
@@ -88,8 +89,8 @@ import Base from '../layouts/Base.astro';
           </ul>
         </div>
         
-        <!-- Step 2 -->
-        <div class="work-step reveal-up">
+          <!-- Step 2 -->
+          <div class="work-step" data-step="2">
           <div class="step-header">
             <div class="step-badge">2️⃣</div>
             <h3 class="step-title">Запускаем контент</h3>
@@ -105,8 +106,8 @@ import Base from '../layouts/Base.astro';
           </ul>
         </div>
         
-        <!-- Step 3 -->
-        <div class="work-step reveal-up">
+          <!-- Step 3 -->
+          <div class="work-step" data-step="3">
           <div class="step-header">
             <div class="step-badge">3️⃣</div>
             <h3 class="step-title">Монетизация</h3>
@@ -122,8 +123,8 @@ import Base from '../layouts/Base.astro';
           </ul>
         </div>
         
-        <!-- Step 4 -->
-        <div class="work-step reveal-up">
+          <!-- Step 4 -->
+          <div class="work-step" data-step="4">
           <div class="step-header">
             <div class="step-badge">4️⃣</div>
             <h3 class="step-title">Вывод средств</h3>
@@ -138,24 +139,25 @@ import Base from '../layouts/Base.astro';
           </ul>
         </div>
         
-        <!-- Step 5 -->
-        <div class="work-step reveal-up">
-          <div class="step-header">
-            <div class="step-badge">5️⃣</div>
-            <h3 class="step-title">Масштабирование</h3>
-          </div>
-          <div class="step-image-placeholder">
-            <span class="placeholder-icon">📈</span>
-            <span class="placeholder-text">Изображение</span>
-          </div>
-          <ul class="step-list">
-            <li>— запускаем вторую модель</li>
-            <li>— делегируем переписку и контент</li>
-            <li>— выходим на $5.000–$20.000/мес</li>
-          </ul>
-          <div class="step-note">
-            <p>Все прозрачно, просто и пошагово.</p>
-            <p>Без воды, пустой траты времени и огромной команды.</p>
+          <!-- Step 5 -->
+          <div class="work-step" data-step="5">
+            <div class="step-header">
+              <div class="step-badge">5️⃣</div>
+              <h3 class="step-title">Масштабирование</h3>
+            </div>
+            <div class="step-image-placeholder">
+              <span class="placeholder-icon">📈</span>
+              <span class="placeholder-text">Изображение</span>
+            </div>
+            <ul class="step-list">
+              <li>— запускаем вторую модель</li>
+              <li>— делегируем переписку и контент</li>
+              <li>— выходим на $5.000–$20.000/мес</li>
+            </ul>
+            <div class="step-note">
+              <p>Все прозрачно, просто и пошагово.</p>
+              <p>Без воды, пустой траты времени и огромной команды.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -1184,55 +1186,104 @@ import Base from '../layouts/Base.astro';
   /* How It Works Section */
   .how-it-works-section {
     padding: 4rem 0;
+    position: relative;
+    min-height: 500vh; /* Enough space for scroll effect */
   }
   
-  .steps-container {
-    max-width: 1000px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.875rem;
+  @media (max-width: 768px) {
+    .how-it-works-section {
+      min-height: 400vh;
+    }
+  }
+  
+  /* Sticky wrapper for scroll effect */
+  .steps-scroll-wrapper {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2rem 0;
+    z-index: 1;
+  }
+  
+  @media (max-width: 768px) {
+    .steps-scroll-wrapper {
+      padding: 1rem 0;
+    }
+  }
+  
+  .steps-inner {
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+    padding: 0 5vw;
     width: 100%;
-    padding: 0 0.5rem;
+    will-change: transform;
+    transition: transform 0.1s ease-out;
   }
   
   @media (min-width: 768px) {
-    .steps-container {
-      display: flex;
-      flex-direction: column;
+    .steps-inner {
       gap: 3rem;
-      padding: 0;
+      padding: 0 8vw;
     }
   }
   
   .work-step {
-    background: linear-gradient(145deg, rgba(15, 15, 20, 0.95), rgba(20, 20, 28, 0.95));
+    background: rgba(13, 13, 16, 0.95);
     border: 2px solid rgba(96, 165, 250, 0.2);
-    border-radius: var(--radius-xl);
-    padding: 1.125rem 0.875rem;
+    border-radius: var(--radius-2xl);
+    padding: 2rem 1.5rem;
     box-shadow: 
-      0 6px 20px rgba(0, 0, 0, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 0 0 1px rgba(96, 165, 250, 0.1);
-    transition: all 0.3s ease;
-    width: 100%;
+      0 20px 60px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform, box-shadow;
+    width: 85vw;
+    max-width: 600px;
+    min-height: 60vh;
+    opacity: 0.4;
+    transform: translateX(150px) scale(0.85);
+    will-change: transform, opacity;
+    position: relative;
+  }
+  
+  .work-step.active {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    border-color: rgba(96, 165, 250, 0.5);
+    box-shadow: 
+      0 30px 80px rgba(96, 165, 250, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    z-index: 10;
+  }
+  
+  .work-step.passed {
+    opacity: 0.3;
+    transform: translateX(-150px) scale(0.8);
   }
   
   @media (min-width: 768px) {
     .work-step {
-      background: rgba(13, 13, 16, 0.6);
-      border: 1px solid rgba(96, 165, 250, 0.15);
-      border-radius: var(--radius-2xl);
-      padding: 2.5rem 2rem;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      display: block;
+      width: 80vw;
+      max-width: 700px;
+      padding: 3rem 2.5rem;
+      min-height: 70vh;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .work-step {
+      width: 85vw;
+      min-height: 55vh;
+      padding: 1.5rem 1.25rem;
+      max-width: none;
     }
   }
   
@@ -2947,20 +2998,72 @@ import Base from '../layouts/Base.astro';
 </style>
 
 <script>
-  // Initialize reveal animations for this page (optional - content is visible without them)
+  // Horizontal scroll animation for steps
   (function() {
+    function initStepsScroll() {
+      const stepsWrapper = document.querySelector('.steps-scroll-wrapper');
+      const stepsInner = document.querySelector('.steps-inner');
+      const steps = document.querySelectorAll('.work-step');
+      
+      if (!stepsWrapper || !stepsInner || steps.length === 0) return;
+      
+      let currentStep = 0;
+      const stepWidth = steps[0].offsetWidth + parseInt(getComputedStyle(stepsInner).gap);
+      
+      function updateSteps() {
+        const wrapperRect = stepsWrapper.getBoundingClientRect();
+        const scrollProgress = Math.max(0, Math.min(1, 
+          (window.innerHeight - wrapperRect.top) / window.innerHeight
+        ));
+        
+        // Calculate which step should be active
+        const totalSteps = steps.length;
+        const stepProgress = scrollProgress * (totalSteps - 1);
+        const activeStepIndex = Math.min(Math.floor(stepProgress), totalSteps - 1);
+        
+        // Update active step
+        steps.forEach((step, index) => {
+          step.classList.remove('active', 'passed');
+          if (index < activeStepIndex) {
+            step.classList.add('passed');
+          } else if (index === activeStepIndex) {
+            step.classList.add('active');
+          }
+        });
+        
+        // Calculate horizontal offset
+        const offset = -activeStepIndex * stepWidth * 0.5;
+        stepsInner.style.transform = `translateX(${offset}px)`;
+        
+        currentStep = activeStepIndex;
+      }
+      
+      // Throttle scroll for performance
+      let ticking = false;
+      function onScroll() {
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            updateSteps();
+            ticking = false;
+          });
+          ticking = true;
+        }
+      }
+      
+      window.addEventListener('scroll', onScroll, { passive: true });
+      updateSteps(); // Initial call
+    }
+    
+    // Initialize reveal animations for this page
     function initRevealAnimations() {
       try {
-        // Check if reveal is already initialized
         if (window.revealInstance) {
-          return; // Already initialized
+          return;
         }
         
-        // Try to access reveal instance from global
         if (typeof window.initReveal === 'function') {
           window.initReveal();
         } else {
-          // Fallback: Try importing reveal module directly
           import('/src/lib/reveal-init.js').then(() => {
             if (typeof window.initReveal === 'function') {
               window.initReveal();
