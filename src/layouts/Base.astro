@@ -472,10 +472,18 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                 } catch {}
               }
             } else {
-              // Not in Telegram - open in new tab
-              this.target = '_blank';
-              this.rel = 'noopener noreferrer';
-              this.href = urlWithUtm;
+              // Not in Telegram - check if internal link
+              const isInternalLink = href.startsWith('/') || href.startsWith(window.location.origin) || !href.includes('://');
+              if (isInternalLink) {
+                // Internal link - open in same tab
+                this.target = '_self';
+                this.href = urlWithUtm;
+              } else {
+                // External link - open in new tab
+                this.target = '_blank';
+                this.rel = 'noopener noreferrer';
+                this.href = urlWithUtm;
+              }
             }
           });
         });
