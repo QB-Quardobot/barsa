@@ -1043,29 +1043,16 @@ const DEBUG_MODE = false;
   // Центрируем среднюю карточку при загрузке (с кэшированием DOM)
   const domReadyHandler = () => {
     try {
-      // Cache DOM query
-      const proofRow = document.querySelector('.proof-row');
-      if (proofRow) {
-        const proofItems = proofRow.querySelectorAll('.proof-item');
-        if (proofItems.length >= 2) {
-          // Скроллим ко второй карточке (центральная - AI модель)
-          const centerItem = proofItems[1];
-          const scrollTimeout = setTimeout(() => {
-            try {
-              centerItem.scrollIntoView({
-                behavior: 'auto',
-                block: 'nearest',
-                inline: 'center'
-              });
-            } catch (e) {
-              // Silently fail
-            }
-          }, 100);
-          
-          // Cleanup on unload
-          window.addEventListener('beforeunload', () => {
-            clearTimeout(scrollTimeout);
-          }, { once: true });
+      // Proof cover image lazy loading
+      const proofCoverImg = document.querySelector('.proof-cover-img');
+      if (proofCoverImg && !proofCoverImg.classList.contains('loaded')) {
+        // If image is already loaded or no data-src, just add loaded class
+        if (proofCoverImg.complete && proofCoverImg.naturalHeight !== 0) {
+          proofCoverImg.classList.add('loaded');
+        } else {
+          proofCoverImg.onload = () => {
+            proofCoverImg.classList.add('loaded');
+          };
         }
       }
     } catch (e) {
@@ -1509,90 +1496,50 @@ const DEBUG_MODE = false;
     }
   }
   
-  /* === PROOF ROW - HORIZONTAL SOCIAL PROOF === */
-  .proof-row {
-    display: flex;
-    gap: 1.5rem;
-    margin: 3rem -1rem;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    scroll-snap-stop: always;
-    -webkit-overflow-scrolling: touch;
-    padding: 0 1rem 1rem;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  
-  .proof-row::-webkit-scrollbar {
-    display: none;
-  }
-  
-  /* Desktop: Center and show all */
-  @media (min-width: 768px) {
-    .proof-row {
-      justify-content: center;
-      overflow-x: visible;
-      margin: 3rem auto;
-      padding: 0;
-      gap: 2rem;
-    }
-  }
-  
-  .proof-item {
-    flex: 0 0 auto;
-    width: 75%;
-    max-width: 300px;
+  /* === PROOF COVER - SINGLE LARGE COVER IMAGE === */
+  .proof-cover {
+    margin: 3rem auto;
+    max-width: 1200px;
+    width: 100%;
+    padding: 0 1rem;
     text-align: center;
-    scroll-snap-align: center;
-    scroll-snap-stop: always;
   }
   
-  /* На планшетах и десктопах */
   @media (min-width: 768px) {
-    .proof-item {
-      flex: 1;
-      width: auto;
-      max-width: 280px;
+    .proof-cover {
+      padding: 0 2rem;
+      margin: 4rem auto;
     }
   }
   
-  /* Proof Image Container - Optimized for real images */
-  .proof-image-container {
-    background: rgba(255, 255, 255, 0.02);
-    border: 2px solid rgba(96, 165, 250, 0.3);
-    border-radius: var(--radius-xl);
-    aspect-ratio: 4/3;
+  .proof-cover-image {
+    margin: 0;
     position: relative;
     overflow: hidden;
+    border-radius: var(--radius-2xl);
     /* GPU acceleration */
     transform: translateZ(0);
     will-change: transform;
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
   
-  .proof-image-container:hover {
-    border-color: var(--primary);
-    transform: translateY(-2px) translateZ(0);
-    box-shadow: 0 8px 28px rgba(96, 165, 250, 0.3);
+  .proof-cover-image:hover {
+    transform: translateY(-4px) translateZ(0);
+    box-shadow: 0 20px 60px rgba(96, 165, 250, 0.3);
   }
   
-  .proof-image {
+  .proof-cover-img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
+    height: auto;
     display: block;
+    border-radius: var(--radius-2xl);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 40px rgba(96, 165, 250, 0.1);
     /* Smooth loading transition */
     opacity: 0;
-    transition: opacity 0.4s ease;
-    /* Ensure image fills container completely */
-    min-width: 100%;
-    min-height: 100%;
+    transition: opacity 0.6s ease;
   }
   
-  .proof-image.loaded {
+  .proof-cover-img.loaded {
     opacity: 1;
   }
   
