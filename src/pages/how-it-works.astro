@@ -1204,9 +1204,10 @@ import Base from '../layouts/Base.astro';
     overflow: hidden;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     padding: 2rem 0;
     z-index: 1;
+    width: 100%;
   }
   
   @media (max-width: 768px) {
@@ -1219,16 +1220,17 @@ import Base from '../layouts/Base.astro';
     display: flex;
     flex-direction: row;
     gap: 2rem;
-    padding: 0 5vw;
-    width: 100%;
+    padding: 0 10vw;
+    width: max-content;
+    min-width: 100%;
     will-change: transform;
-    transition: transform 0.1s ease-out;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   @media (min-width: 768px) {
     .steps-inner {
       gap: 3rem;
-      padding: 0 8vw;
+      padding: 0 15vw;
     }
   }
   
@@ -1240,7 +1242,7 @@ import Base from '../layouts/Base.astro';
     box-shadow: 
       0 20px 60px rgba(0, 0, 0, 0.5),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
     box-sizing: border-box;
     display: flex;
@@ -1248,15 +1250,15 @@ import Base from '../layouts/Base.astro';
     width: 85vw;
     max-width: 600px;
     min-height: 60vh;
-    opacity: 0.4;
-    transform: translateX(150px) scale(0.85);
+    opacity: 0.5;
+    transform: scale(0.9);
     will-change: transform, opacity;
     position: relative;
   }
   
   .work-step.active {
     opacity: 1;
-    transform: translateX(0) scale(1);
+    transform: scale(1);
     border-color: rgba(96, 165, 250, 0.5);
     box-shadow: 
       0 30px 80px rgba(96, 165, 250, 0.4),
@@ -1265,8 +1267,8 @@ import Base from '../layouts/Base.astro';
   }
   
   .work-step.passed {
-    opacity: 0.3;
-    transform: translateX(-150px) scale(0.8);
+    opacity: 0.4;
+    transform: scale(0.85);
   }
   
   @media (min-width: 768px) {
@@ -3080,10 +3082,16 @@ import Base from '../layouts/Base.astro';
     // Initialize after a short delay (non-blocking)
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(initRevealAnimations, 200);
+        setTimeout(() => {
+          initRevealAnimations();
+          initStepsScroll();
+        }, 200);
       }, { once: true });
     } else {
-      setTimeout(initRevealAnimations, 200);
+      setTimeout(() => {
+        initRevealAnimations();
+        initStepsScroll();
+      }, 200);
     }
   })();
   
