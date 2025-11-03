@@ -1210,9 +1210,9 @@ import Base from '../layouts/Base.astro';
   </section>
 
   <!-- Photo Modal -->
-  <div id="photoModal" class="modal">
+  <div id="photoModal" class="modal" style="display: none;">
     <span class="modal-close">&times;</span>
-    <img class="modal-image" alt="Увеличенное изображение">
+    <img class="modal-image" alt="">
   </div>
 
 </Base>
@@ -1717,8 +1717,8 @@ import Base from '../layouts/Base.astro';
   
   @media (max-width: 767px) {
     .step-content {
-      padding: 2rem 1.5rem;
-      min-height: auto;
+      padding: 2.5rem 2rem;
+      min-height: 60vh;
     }
   }
   
@@ -3545,6 +3545,8 @@ import Base from '../layouts/Base.astro';
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    position: relative;
+    z-index: 1;
   }
   
   .testimonial-image-container {
@@ -3595,7 +3597,7 @@ import Base from '../layouts/Base.astro';
     display: block !important;
     opacity: 1 !important;
     visibility: visible !important;
-    z-index: 1;
+    z-index: 3;
   }
   
   .image-overlay {
@@ -3611,7 +3613,7 @@ import Base from '../layouts/Base.astro';
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
-    z-index: 2;
+    z-index: 5;
   }
   
   .image-icon {
@@ -3662,10 +3664,12 @@ import Base from '../layouts/Base.astro';
     color: var(--fg);
     font-size: 0.75rem;
     font-weight: 600;
-    text-align: center;
-    border-radius: var(--radius-lg);
-    border: 1px solid rgba(96, 165, 250, 0.3);
+    border-radius: var(--radius-md);
     backdrop-filter: blur(8px);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
   }
   
   @media (min-width: 768px) {
@@ -3728,26 +3732,18 @@ import Base from '../layouts/Base.astro';
   }
   
   /* Photo Modal */
-  .photo-modal {
+  .modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.95);
-    backdrop-filter: blur(10px);
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     z-index: 10000;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .photo-modal.active {
-    opacity: 1;
-    visibility: visible;
+    padding: 2rem;
   }
   
   .modal-image {
@@ -3756,12 +3752,6 @@ import Base from '../layouts/Base.astro';
     object-fit: contain;
     border-radius: var(--radius-xl);
     box-shadow: 0 25px 100px rgba(0, 0, 0, 0.7);
-    transform: scale(0.9);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .photo-modal.active .modal-image {
-    transform: scale(1);
   }
   
   .modal-close {
@@ -4724,23 +4714,21 @@ import Base from '../layouts/Base.astro';
           if (img && img.src) {
             modalImg.src = img.src;
             modalImg.alt = img.alt || 'Фото отзыва';
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
+            modal.style.display = 'flex';
           }
         });
       });
       
-      // Закрытие модала по кнопке
+      // Закрытие модала
       closeBtn.addEventListener('click', () => {
-        modal.classList.remove('active');
-        document.body.style.overflow = '';
+        modal.style.display = 'none';
+        modalImg.src = '';
       });
       
-      // Закрытие модала по клику на фон
       modal.addEventListener('click', (e) => {
         if (e.target === modal) {
-          modal.classList.remove('active');
-          document.body.style.overflow = '';
+          modal.style.display = 'none';
+          modalImg.src = '';
         }
       });
       
