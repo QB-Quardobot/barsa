@@ -1210,9 +1210,18 @@ import Base from '../layouts/Base.astro';
   </section>
 
   <!-- Photo Modal -->
-  <div id="photoModal" class="photo-modal">
-    <button class="modal-close" aria-label="Закрыть">×</button>
-    <img src="" alt="" class="modal-image" />
+  <div id="photoModal" class="modal">
+    <span class="modal-close">&times;</span>
+    <img class="modal-image" alt="Увеличенное изображение">
+  </div>
+  
+  <!-- Debug Panel for Mobile -->
+  <div id="debugPanel" style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.95); color: #0f0; padding: 10px; font-size: 11px; max-height: 150px; overflow-y: auto; z-index: 10000; border-top: 2px solid #0f0; font-family: monospace;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+      <strong style="color: #0ff;">🐛 DEBUG PANEL</strong>
+      <button onclick="document.getElementById('debugPanel').style.display='none'" style="background: #f00; color: #fff; border: none; padding: 2px 8px; border-radius: 3px; font-size: 10px;">Close</button>
+    </div>
+    <div id="debugLog" style="font-size: 10px; line-height: 1.3;"></div>
   </div>
 
 </Base>
@@ -4445,47 +4454,51 @@ import Base from '../layouts/Base.astro';
       const swiperContainer = document.querySelector('.testimonials-swiper');
       if (!swiperContainer) return;
       
+      debugLog('🔧 Создаю Swiper...', '#ff0');
+      
       const swiper = new Swiper('.testimonials-swiper', {
         // Core
         direction: 'horizontal',
         loop: true,
-        speed: 800,
+        speed: 600,
+        watchOverflow: true,
         
         // Slides
         slidesPerView: 1,
         spaceBetween: 20,
         centeredSlides: false,
         
-        // CRITICAL: Touch settings for real mobile devices
-        touchEventsTarget: 'container',
+        // Touch - CRITICAL FOR MOBILE
+        touchEventsTarget: 'wrapper',  // Changed from 'container' for better mobile support
         simulateTouch: true,
         allowTouchMove: true,
         touchRatio: 1,
         touchAngle: 45,
         grabCursor: true,
+        nested: false,
         
-        // CRITICAL: Allow preventDefault to work on mobile
-        passiveListeners: false,
-        
-        // CRITICAL: Don't stop propagation for Telegram WebApp
-        touchMoveStopPropagation: false,
-        touchStartPreventDefault: true,
+        // Touch events - KEY SETTINGS FOR REAL DEVICES
+        passiveListeners: false,  // Must be false to allow preventDefault
+        touchStartPreventDefault: false,  // Don't prevent default on touch start
         touchStartForcePreventDefault: false,
+        touchReleaseOnEdges: false,
+        preventInteractionOnTransition: false,  // Allow interaction during transition
+        followFinger: true,  // Slider follows finger during dragging
         
-        // Additional touch settings
+        // Resistance
         resistance: true,
         resistanceRatio: 0.85,
+        
+        // Thresholds
         threshold: 5,
         longSwipes: true,
         longSwipesRatio: 0.5,
         longSwipesMs: 300,
-        followFinger: true,
         
         // Autoplay
         autoplay: {
           delay: 8000,
           disableOnInteraction: false,
-          pauseOnMouseEnter: true,
         },
         
         // Pagination
@@ -4518,44 +4531,57 @@ import Base from '../layouts/Base.astro';
           },
         },
         
-        // Events
+        // Events with debug
         on: {
           init: function() {
-            console.log('✅ Swiper инициализирован');
-            console.log('Touch enabled:', this.allowTouchMove);
-            console.log('Passive listeners:', this.passiveListeners);
+            debugLog('✅ Swiper готов!', '#0f0');
+            debugLog('allowTouchMove: ' + this.allowTouchMove, '#fff');
+            debugLog('simulateTouch: ' + this.params.simulateTouch, '#fff');
+            debugLog('passiveListeners: ' + this.passiveListeners, '#fff');
+            debugLog('Slides: ' + this.slides.length, '#fff');
           },
-          touchStart: function() {
-            console.log('👆 Touch start');
+          touchStart: function(swiper, event) {
+            debugLog('👆 TOUCH START', '#0ff');
           },
-          touchMove: function() {
-            console.log('👉 Touch move');
+          touchMove: function(swiper, event) {
+            debugLog('👉 TOUCH MOVE', '#ff0');
           },
-          touchEnd: function() {
-            console.log('✋ Touch end');
+          touchEnd: function(swiper, event) {
+            debugLog('✋ TOUCH END', '#0ff');
+          },
+          slideChange: function() {
+            debugLog('📍 Слайд: ' + (this.realIndex + 1) + '/' + this.slides.length, '#0f0');
+          },
+          sliderMove: function() {
+            debugLog('🔄 Swiper движется...', '#f0f');
           },
         },
       });
       
-      // Disable Telegram WebApp vertical swipes for carousel area
+      debugLog('Swiper instance created: ' + !!swiper, '#0f0');
+      
+      // Special handling for Telegram WebApp
       if (window.Telegram && window.Telegram.WebApp) {
-        try {
-          const swiperEl = document.querySelector('.testimonials-swiper');
-          if (swiperEl) {
-            swiperEl.addEventListener('touchstart', function(e) {
-              // Prevent Telegram from handling these touches
-              if (window.Telegram.WebApp.isVerticalSwipesEnabled) {
-                // Don't stop propagation, just mark it
-                e.swiperCarousel = true;
-              }
-            }, { passive: false });
-            
-            console.log('🚫 Telegram swipes adjusted for carousel');
-          }
-        } catch (e) {
-          console.log('⚠️ Telegram WebApp adjustment failed:', e);
+        debugLog('📱 Telegram WebApp detected', '#ff0');
+        
+        const swiperEl = document.querySelector('.testimonials-swiper');
+        if (swiperEl) {
+          // Log all touch events for debugging
+          swiperEl.addEventListener('touchstart', function(e) {
+            debugLog('🟢 Native touchstart on swiper', '#0f0');
+          }, { passive: true, capture: false });
+          
+          swiperEl.addEventListener('touchmove', function(e) {
+            debugLog('🟡 Native touchmove', '#ff0');
+          }, { passive: true, capture: false });
+          
+          swiperEl.addEventListener('touchend', function(e) {
+            debugLog('🔴 Native touchend', '#f00');
+          }, { passive: true, capture: false });
         }
       }
+      
+      debugLog('✅ Инициализация завершена', '#0f0');
     }
     
     if (document.readyState === 'loading') {
@@ -4563,6 +4589,33 @@ import Base from '../layouts/Base.astro';
     } else {
       initTestimonialsSwiper();
     }
+  })();
+  
+  // ============================================
+  // DEBUG PANEL FOR MOBILE
+  // ============================================
+  (function() {
+    window.debugLog = function(msg, color = '#0f0') {
+      const debugLog = document.getElementById('debugLog');
+      if (debugLog) {
+        const time = new Date().toLocaleTimeString();
+        const line = document.createElement('div');
+        line.style.color = color;
+        line.textContent = `[${time}] ${msg}`;
+        debugLog.insertBefore(line, debugLog.firstChild);
+        
+        // Keep only last 20 messages
+        while (debugLog.children.length > 20) {
+          debugLog.removeChild(debugLog.lastChild);
+        }
+      }
+      console.log(msg);
+    };
+    
+    // Log initial info
+    debugLog('📱 Screen: ' + window.innerWidth + 'x' + window.innerHeight, '#fff');
+    debugLog('🌐 User Agent: ' + (navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'), '#fff');
+    debugLog('⚡ Telegram WebApp: ' + (window.Telegram?.WebApp ? 'YES' : 'NO'), '#fff');
   })();
   
   // ============================================
