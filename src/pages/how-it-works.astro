@@ -1483,10 +1483,44 @@ import Base from '../layouts/Base.astro';
     .path-card:hover::after {
       opacity: 0.6;
     }
+    
+    .path-card:hover .path-number {
+      transform: scale(1.05) rotate(-3deg);
+    }
+  }
+  
+  /* Touch support for mobile devices */
+  @media (hover: none) and (pointer: coarse) {
+    .path-card:active,
+    .path-card.touch-active {
+      border-color: rgba(96, 165, 250, 0.5);
+      box-shadow: 
+        0 20px 60px rgba(96, 165, 250, 0.3),
+        0 0 0 1px rgba(96, 165, 250, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      transform: translateY(-6px) translateZ(0);
+    }
+    
+    .path-card:active::before,
+    .path-card.touch-active::before {
+      opacity: 1;
+    }
+    
+    .path-card:active::after,
+    .path-card.touch-active::after {
+      opacity: 0.6;
+    }
+    
+    .path-card:active .path-number,
+    .path-card.touch-active .path-number {
+      transform: scale(1.05) rotate(-3deg);
+    }
   }
   
   @media (prefers-reduced-motion: reduce) {
-    .path-card:hover {
+    .path-card:hover,
+    .path-card:active,
+    .path-card.touch-active {
       transform: none;
     }
   }
@@ -1520,10 +1554,6 @@ import Base from '../layouts/Base.astro';
       height: 80px;
       font-size: 2.25rem;
     }
-  }
-  
-  .path-card:hover .path-number {
-    transform: scale(1.05) rotate(-3deg);
   }
   
   .path-title {

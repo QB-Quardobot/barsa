@@ -1077,7 +1077,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         // Visual feedback for touch interactions
         if (isTouchDevice) {
           // Use cached query if available
-          const touchSelector = '.reveal-up, .proof-item, .proof-image-placeholder, .student-photo, .student-circle, .banner-photo, .models-banner > div, .step-card, .cta-section, button, a[data-cta], .btn-capsule, .timeline-step';
+          const touchSelector = '.reveal-up, .proof-item, .proof-image-placeholder, .student-photo, .student-circle, .banner-photo, .models-banner > div, .step-card, .path-card, .cta-section, button, a[data-cta], .btn-capsule, .timeline-step';
           let touchElements = hapticCache.get(touchSelector);
           if (!touchElements) {
             touchElements = doc.querySelectorAll(touchSelector);
