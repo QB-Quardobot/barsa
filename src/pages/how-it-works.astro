@@ -638,7 +638,7 @@ import Base from '../layouts/Base.astro';
           <div class="tariff-header">
             <h3 class="tariff-name">🔹 Тариф 3 — Личное ведение</h3>
             <div class="tariff-price">
-              <span class="price-amount">5 000 €</span>
+              <span class="price-amount price-gradient">5 000 €</span>
               <span class="price-alt">5 800 $ / 470 000 ₽</span>
             </div>
           </div>
@@ -648,18 +648,18 @@ import Base from '../layouts/Base.astro';
           <div class="tariff-content">
             <p class="tariff-includes-title">Ты проходишь все этапы под моим контролем:</p>
             <ul class="tariff-list">
-              <li>• индивидуальный анализ твоего проекта;</li>
-              <li>• персональная стратегия и позиционирование;</li>
-              <li>• настройка аккаунтов, контента, трафика и переписки;</li>
-              <li>• масштабирование и создание команды.</li>
+              <li>• <strong>индивидуальный анализ</strong> твоего проекта;</li>
+              <li>• <strong>персональная стратегия</strong> и позиционирование;</li>
+              <li>• настройка <strong>аккаунтов, контента, трафика</strong> и переписки;</li>
+              <li>• <strong>масштабирование</strong> и создание команды.</li>
             </ul>
             <div class="tariff-mentorship">
-              <p class="mentorship-title"><strong>Каждую неделю — персональный созвон со мной.</strong></p>
+              <p class="mentorship-title"><strong class="highlight-glow gradient-text">Каждую неделю — персональный созвон со мной.</strong></p>
               <p class="mentorship-text">На созвонах мы:</p>
               <ul class="tariff-list">
-                <li>• разбираем результаты за неделю,</li>
-                <li>• корректируем стратегию,</li>
-                <li>• ставим цели и план действий на следующие 7 дней.</li>
+                <li>• разбираем <strong>результаты за неделю</strong>,</li>
+                <li>• корректируем <strong>стратегию</strong>,</li>
+                <li>• ставим <strong>цели и план действий</strong> на следующие 7 дней.</li>
               </ul>
             </div>
           </div>
@@ -3111,12 +3111,23 @@ import Base from '../layouts/Base.astro';
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
+    overflow: visible;
   }
   
   .pricing-card:hover {
     border-color: rgba(96, 165, 250, 0.4);
     transform: translateY(-4px);
     box-shadow: 0 12px 40px rgba(96, 165, 250, 0.2);
+  }
+  
+  @media (max-width: 768px) {
+    .pricing-card {
+      padding: 2rem 1.5rem;
+    }
+    
+    .pricing-card-popular {
+      padding-top: 2.5rem;
+    }
   }
   
   .pricing-card-popular {
@@ -3128,33 +3139,7 @@ import Base from '../layouts/Base.astro';
       inset 0 0 30px rgba(96, 165, 250, 0.1);
     transform: scale(1.05);
     position: relative;
-  }
-  
-  .pricing-card-popular::before {
-    content: '';
-    position: absolute;
-    inset: -3px;
-    border-radius: var(--radius-2xl);
-    padding: 3px;
-    background: linear-gradient(135deg, var(--primary), #fbbf24, var(--primary-2));
-    -webkit-mask: 
-      linear-gradient(#fff 0 0) content-box, 
-      linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    z-index: -1;
-    animation: border-glow 3s ease infinite;
-  }
-  
-  @keyframes border-glow {
-    0%, 100% {
-      opacity: 1;
-      filter: blur(0px);
-    }
-    50% {
-      opacity: 0.8;
-      filter: blur(4px);
-    }
+    padding-top: 3rem;
   }
   
   @media (max-width: 1023px) {
@@ -3165,7 +3150,7 @@ import Base from '../layouts/Base.astro';
   
   .popular-badge {
     position: absolute;
-    top: -16px;
+    top: -24px;
     left: 50%;
     transform: translateX(-50%);
     background: linear-gradient(135deg, #fbbf24, #f59e0b, var(--primary));
@@ -3182,6 +3167,8 @@ import Base from '../layouts/Base.astro';
       inset 0 1px 0 rgba(255, 255, 255, 0.3);
     border: 2px solid rgba(255, 255, 255, 0.2);
     animation: badge-pulse 2s ease-in-out infinite;
+    z-index: 10;
+    white-space: nowrap;
   }
   
   @keyframes badge-pulse {
