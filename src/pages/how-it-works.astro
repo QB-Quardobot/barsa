@@ -237,13 +237,6 @@ import Base from '../layouts/Base.astro';
   <section class="alternative-content-section">
     <div class="container">
       <div class="alt-content-header reveal-up">
-        <h2 class="alt-content-title">
-          Не хочешь <span class="gradient-text">18+ контент</span>?
-        </h2>
-        <p class="alt-content-subtitle">
-          Без проблем.
-        </p>
-        
         <div class="alt-content-photo-wrapper image-wrapper">
           <div class="shimmer-wrapper">
             <img 
@@ -256,6 +249,10 @@ import Base from '../layouts/Base.astro';
             <div class="shimmer-overlay"></div>
           </div>
         </div>
+        
+        <p class="alt-content-subtitle">
+          Без проблем.
+        </p>
         
         <p class="alt-content-description">
           Можешь создать AI-блогера, который будет рекламировать бренды, вести сторис и делать лайфстайл-контент за тебя.
@@ -1942,24 +1939,17 @@ import Base from '../layouts/Base.astro';
     margin: 0 auto 3rem;
   }
   
-  .alt-content-title {
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
-    font-weight: 900;
-    line-height: 1.3;
-    margin-bottom: 1rem;
-    color: var(--fg);
-  }
-  
   .alt-content-subtitle {
     font-size: clamp(1.25rem, 3vw, 1.5rem);
     font-weight: 700;
     color: var(--primary);
     margin-bottom: 1.5rem;
+    margin-top: 1.5rem;
     line-height: 1.3;
   }
   
   .alt-content-photo-wrapper {
-    margin: 2rem auto;
+    margin: 0 auto 1.5rem;
     max-width: 300px;
     position: relative;
   }
