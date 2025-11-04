@@ -1009,16 +1009,16 @@ import Base from '../layouts/Base.astro';
         </h2>
         <div class="era-text-block">
           <p class="era-text">
-            Каждую неделю выходит новая нейросеть.
+            <strong class="highlight-glow gradient-text">Каждую неделю</strong> выходит <strong class="highlight-glow gradient-text">новая нейросеть</strong>.
           </p>
           <p class="era-text">
-            ИИ уже везде — в рекламе, кино, дизайне, музыке… Даже во всех рилсах, которые ты смотришь
+            ИИ уже везде — в <strong class="highlight-glow">рекламе</strong>, <strong class="highlight-glow">кино</strong>, <strong class="highlight-glow">дизайне</strong>, <strong class="highlight-glow">музыке</strong>… Даже во <strong class="highlight-glow gradient-text">всех рилсах</strong>, которые ты смотришь
           </p>
         </div>
         
         <div class="nvidia-quote reveal-up">
           <blockquote class="quote-text">
-            Генеральный директор NVIDIA заявил, что ИИ создаст больше миллионеров за 5 лет, чем интернет создал за 20
+            Генеральный директор <strong class="highlight-glow gradient-text">NVIDIA</strong> заявил, что <strong class="highlight-glow gradient-text">ИИ создаст больше миллионеров за 5 лет</strong>, чем интернет создал за 20
           </blockquote>
         </div>
         
@@ -1034,10 +1034,10 @@ import Base from '../layouts/Base.astro';
             <div class="shimmer-overlay"></div>
           </div>
           <p class="era-note">
-            Даже если ты не хочешь создавать моделей — используй обучение, чтобы делать фото и видео для себя, которые не отличить от реальных.
+            Даже если ты не хочешь создавать моделей — используй обучение, чтобы делать <strong class="highlight-glow gradient-text">фото и видео для себя</strong>, которые <strong class="highlight-glow gradient-text">не отличить от реальных</strong>.
           </p>
           <p class="era-note">
-            Повышай охваты, просмотры и количество своих подписчиков без запары.
+            <strong class="highlight-glow gradient-text">Повышай охваты</strong>, <strong class="highlight-glow gradient-text">просмотры</strong> и <strong class="highlight-glow gradient-text">количество своих подписчиков</strong> без запары.
           </p>
         </div>
       </div>
@@ -2036,6 +2036,8 @@ import Base from '../layouts/Base.astro';
     backdrop-filter: blur(20px);
     aspect-ratio: 1;
     min-height: 0;
+    width: 100%;
+    box-sizing: border-box;
   }
   
   @media (min-width: 640px) {
@@ -2102,25 +2104,30 @@ import Base from '../layouts/Base.astro';
   }
   
   .format-title {
-    font-size: clamp(0.625rem, 1.5vw, 0.75rem);
+    font-size: clamp(0.5625rem, 1.2vw, 0.6875rem);
     font-weight: 700;
     color: var(--fg);
     margin: 0;
     text-align: center;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
     word-break: break-word;
+    overflow-wrap: break-word;
     hyphens: auto;
     flex-grow: 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0 0.25rem;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   
   @media (min-width: 640px) {
     .format-title {
-      font-size: clamp(0.6875rem, 1.8vw, 0.8125rem);
-      line-height: 1.25;
+      font-size: clamp(0.625rem, 1.5vw, 0.75rem);
+      line-height: 1.2;
+      padding: 0 0.5rem;
     }
   }
   
@@ -4267,6 +4274,59 @@ import Base from '../layouts/Base.astro';
     color: var(--muted);
     line-height: 1.8;
     margin-bottom: 1rem;
+  }
+  
+  .era-text .highlight-glow {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.15), rgba(139, 92, 246, 0.15));
+    padding: 0.125rem 0.375rem;
+    border-radius: 6px;
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    display: inline-block;
+    margin: 0 0.125rem;
+    transition: all 0.3s ease;
+  }
+  
+  .era-text .highlight-glow:hover {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.25), rgba(139, 92, 246, 0.25));
+    border-color: rgba(96, 165, 250, 0.5);
+    transform: translateY(-1px);
+  }
+  
+  .era-text .highlight-glow.gradient-text {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(139, 92, 246, 0.2));
+    border-color: rgba(96, 165, 250, 0.4);
+  }
+  
+  .era-note .highlight-glow {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.15), rgba(139, 92, 246, 0.15));
+    padding: 0.125rem 0.375rem;
+    border-radius: 6px;
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    display: inline-block;
+    margin: 0 0.125rem;
+    transition: all 0.3s ease;
+  }
+  
+  .era-note .highlight-glow.gradient-text {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(139, 92, 246, 0.2));
+    border-color: rgba(96, 165, 250, 0.4);
+  }
+  
+  .quote-text .highlight-glow {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(139, 92, 246, 0.2));
+    padding: 0.125rem 0.5rem;
+    border-radius: 8px;
+    border: 1px solid rgba(96, 165, 250, 0.4);
+    display: inline-block;
+    margin: 0 0.25rem;
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
+    transition: all 0.3s ease;
+  }
+  
+  .quote-text .highlight-glow.gradient-text {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.25), rgba(139, 92, 246, 0.25));
+    border-color: rgba(96, 165, 250, 0.5);
+    box-shadow: 0 0 25px rgba(96, 165, 250, 0.4);
   }
   
   .nvidia-quote {
