@@ -991,7 +991,8 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             if (!haptics) return;
             
             const target = e.target;
-            if (!target) return;
+            // Fix: Check if target is a DOM element before calling closest()
+            if (!target || typeof target.closest !== 'function') return;
             
             // Check if touched element is one of our interactive elements
             const isInteractive = target.closest('.proof-item, .proof-image-placeholder, .student-photo, .student-circle, .banner-photo, .models-banner > div, .step-card, .benefit-item, .timeline-step, .founder-avatar, .photo-circle, .earning-corner, button, a[href], [role="button"]');
