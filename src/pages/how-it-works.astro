@@ -1586,17 +1586,28 @@ import Base from '../layouts/Base.astro';
   
   .stacking-cards-container {
     position: relative;
-    max-width: 900px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 0 1rem;
     /* Add space for scroll */
     padding-bottom: 10vh;
   }
   
+  @media (min-width: 640px) {
+    .stacking-cards-container {
+      padding: 0 1.5rem;
+    }
+  }
+  
   @media (min-width: 768px) {
     .stacking-cards-container {
-      max-width: 1000px;
       padding: 0 2rem 15vh 2rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .stacking-cards-container {
+      padding: 0 3rem 15vh 3rem;
     }
   }
   
@@ -1856,6 +1867,9 @@ import Base from '../layouts/Base.astro';
     padding: 0;
     font-weight: 500;
     hyphens: none;
+    text-wrap: pretty;
+    word-break: normal;
+    overflow-wrap: break-word;
   }
   
   @media (min-width: 640px) {
@@ -2678,6 +2692,10 @@ import Base from '../layouts/Base.astro';
     color: var(--muted);
     line-height: 1.8;
     margin-bottom: 0.75rem;
+    text-wrap: pretty;
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: none;
   }
   
   /* Highlight styles for Before/After section */
@@ -2913,9 +2931,15 @@ import Base from '../layouts/Base.astro';
     display: grid;
     grid-template-columns: 1fr;
     gap: 2rem;
-    max-width: 1100px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 0 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .comparison-ladder {
+      padding: 0 1.5rem;
+    }
   }
   
   @media (min-width: 1024px) {
@@ -2923,6 +2947,7 @@ import Base from '../layouts/Base.astro';
       grid-template-columns: 1fr auto 1fr;
       gap: 3rem;
       align-items: stretch;
+      padding: 0 2rem;
     }
   }
   
@@ -3434,6 +3459,10 @@ import Base from '../layouts/Base.astro';
     line-height: 1.8;
     margin-bottom: 0.75rem;
     padding-left: 0;
+    text-wrap: pretty;
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: none;
   }
   
   .tariff-list li:last-child {

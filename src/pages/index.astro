@@ -656,7 +656,7 @@ const DEBUG_MODE = false;
         <!-- Video Preview Image Placeholder -->
         <figure class="final-video-preview reveal-scale">
           <img 
-            src="/telegram-preview-new.jpg"
+            src="/images/photo_2025-11-03-16-24-07.jpeg"
             alt="Прямо сейчас открыта регистрация на обучение AI Model 2.0"
             width="1200"
             height="675"
@@ -1057,8 +1057,42 @@ const DEBUG_MODE = false;
   
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', domReadyHandler, { once: true });
+    document.addEventListener('DOMContentLoaded', preventOrphans, { once: true });
   } else {
     domReadyHandler();
+    preventOrphans();
+  }
+  
+  // Prevent orphan words (single words on new line)
+  function preventOrphans() {
+    const prepositions = ['в', 'на', 'с', 'по', 'о', 'у', 'за', 'из', 'к', 'до', 'от', 'об', 'под', 'про', 'для', 'без', 'над', 'при', 'через', 'между', 'среди'];
+    const shortWords = ['и', 'а', 'но', 'или', 'как', 'что', 'где', 'чем', 'оно', 'они', 'она', 'он', 'ты', 'мы', 'вы'];
+    const wordsToPrevent = [...prepositions, ...shortWords];
+    
+    // Select all text elements
+    const elements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, li, .final-description, .final-action-text, .idea-item, .insight-text, .insight-subtext');
+    
+    elements.forEach(element => {
+      // Skip if element contains HTML tags (to avoid breaking structure)
+      if (element.innerHTML.includes('<strong>') || element.innerHTML.includes('<span>') || element.innerHTML.includes('<em>')) {
+        return;
+      }
+      
+      let text = element.textContent || element.innerText;
+      if (!text) return;
+      
+      // Process each word
+      wordsToPrevent.forEach(word => {
+        // Match word followed by space (case insensitive)
+        const regex = new RegExp(`\\b${word}\\b `, 'gi');
+        text = text.replace(regex, `${word}\u00A0`); // \u00A0 is non-breaking space
+      });
+      
+      // Only update if text changed
+      if (text !== (element.textContent || element.innerText)) {
+        element.textContent = text;
+      }
+    });
   }
   
   // Optimize lazy-loaded images to prevent white flash
@@ -1255,6 +1289,14 @@ const DEBUG_MODE = false;
 </script>
 
 <style>
+  /* === PREVENT ORPHAN WORDS === */
+  p, li, .final-description, .final-action-text, .idea-item, .insight-text, .insight-subtext {
+    text-wrap: pretty;
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: none;
+  }
+  
   /* === GLOBAL BACKGROUND === */
   body {
     position: relative;
