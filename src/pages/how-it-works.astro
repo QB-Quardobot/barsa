@@ -1606,7 +1606,7 @@ import Base from '../layouts/Base.astro';
   
   @media (min-width: 640px) {
     .stacking-cards-container {
-      padding: 0 1.5rem;
+      padding: 0;
     }
   }
   
@@ -1718,7 +1718,7 @@ import Base from '../layouts/Base.astro';
   
   @media (max-width: 767px) {
     .step-content {
-      padding: 2rem 1.5rem;
+      padding: 2.5rem 2rem;
       min-height: auto;
       max-width: 100%;
       width: 100%;
@@ -2214,7 +2214,7 @@ import Base from '../layouts/Base.astro';
   }
   
   .about-ilya-content {
-    max-width: 1400px;
+    max-width: 900px;
     margin: 0 auto;
     position: relative;
     z-index: 1;
@@ -2224,11 +2224,13 @@ import Base from '../layouts/Base.astro';
   @media (min-width: 640px) {
     .about-ilya-content {
       padding: 0 1.5rem;
+      max-width: 1000px;
     }
   }
   
   @media (min-width: 1024px) {
     .about-ilya-content {
+      max-width: 1200px;
       display: grid;
       grid-template-columns: 1fr 400px;
       gap: 4rem;
@@ -2323,12 +2325,13 @@ import Base from '../layouts/Base.astro';
   
   .ilya-story {
     text-align: left;
-    padding: 0 0.5rem;
+    padding: 0;
+    max-width: 100%;
   }
   
   @media (min-width: 640px) {
     .ilya-story {
-      padding: 0 1rem;
+      padding: 0;
     }
   }
   
@@ -2382,10 +2385,11 @@ import Base from '../layouts/Base.astro';
     color: rgba(255, 255, 255, 0.85);
     line-height: 1.8;
     margin-bottom: 1.25rem;
-    text-wrap: balance;
+    text-wrap: pretty;
     word-break: normal;
     overflow-wrap: break-word;
     hyphens: none;
+    white-space: normal;
     position: relative;
     z-index: 1;
   }
@@ -2433,7 +2437,7 @@ import Base from '../layouts/Base.astro';
     font-weight: 600;
     line-height: 1.7;
     margin: 2rem 0;
-    padding: 2rem 1.5rem;
+    padding: 2rem 1.75rem;
     background: 
       rgba(96, 165, 250, 0.08),
       linear-gradient(135deg, rgba(15, 15, 20, 0.95), rgba(20, 20, 28, 0.95));
@@ -3267,26 +3271,17 @@ import Base from '../layouts/Base.astro';
     gap: 2rem;
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0 1rem;
-  }
-  
-  @media (min-width: 640px) {
-    .pricing-grid {
-      padding: 0 1.5rem;
-    }
   }
   
   @media (min-width: 768px) {
     .pricing-grid {
       grid-template-columns: repeat(2, 1fr);
-      padding: 0 2rem;
     }
   }
   
   @media (min-width: 1024px) {
     .pricing-grid {
       grid-template-columns: repeat(3, 1fr);
-      padding: 0;
     }
   }
   
