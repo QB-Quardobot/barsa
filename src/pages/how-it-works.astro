@@ -3424,6 +3424,10 @@ import Base from '../layouts/Base.astro';
     line-height: 1.7;
     margin-bottom: 1.5rem;
     text-align: center;
+    text-wrap: pretty;
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: none;
   }
   
   .tariff-content {
@@ -3516,6 +3520,10 @@ import Base from '../layouts/Base.astro';
     font-style: italic;
     margin-bottom: 1.5rem;
     text-align: center;
+    text-wrap: pretty;
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: none;
   }
   
   .tariff-btn {
@@ -5038,6 +5046,44 @@ import Base from '../layouts/Base.astro';
       }
       
       document.addEventListener('touchstart', preventTelegramCollapse, { passive: true });
+    }
+  })();
+  
+  // ============================================
+  // PREVENT ORPHAN WORDS
+  // Prevent single words on new line for better typography
+  // ============================================
+  (function() {
+    function preventOrphans() {
+      const prepositions = ['в', 'на', 'с', 'по', 'о', 'у', 'за', 'из', 'к', 'до', 'от', 'об', 'под', 'про', 'для', 'без', 'над', 'при', 'через', 'между', 'среди'];
+      const shortWords = ['и', 'а', 'но', 'или', 'как', 'что', 'где', 'чем', 'оно', 'они', 'она', 'он', 'ты', 'мы', 'вы'];
+      const wordsToPrevent = [...prepositions, ...shortWords];
+      
+      const elements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, li, .comparison-text, .step-list li, .tariff-list li, .path-description, .tariff-description, .tariff-note');
+      
+      elements.forEach(element => {
+        if (element.innerHTML.includes('<strong>') || element.innerHTML.includes('<span') || element.innerHTML.includes('<em>') || element.innerHTML.includes('<a>')) {
+          return;
+        }
+        
+        let text = element.textContent || element.innerText;
+        if (!text || text.trim().length < 10) return;
+        
+        wordsToPrevent.forEach(word => {
+          const regex = new RegExp(`\\b${word}\\b `, 'gi');
+          text = text.replace(regex, `${word}\u00A0`);
+        });
+        
+        if (text !== (element.textContent || element.innerText)) {
+          element.textContent = text;
+        }
+      });
+    }
+    
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', preventOrphans, { once: true });
+    } else {
+      preventOrphans();
     }
   })();
   
