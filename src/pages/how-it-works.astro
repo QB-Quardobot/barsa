@@ -969,6 +969,114 @@ import Base from '../layouts/Base.astro';
           <div class="stat-label">на рекламу</div>
         </div>
       </div>
+      
+      <!-- Student Models Gallery -->
+      <div class="student-models-section reveal-up">
+        <h3 class="models-section-title">Модели учеников</h3>
+        
+        <div class="swiper student-models-swiper">
+          <div class="swiper-wrapper">
+            
+            <!-- Model 1 -->
+            <div class="swiper-slide">
+              <div class="model-card">
+                <div class="model-image-wrapper">
+                  <div class="shimmer-wrapper">
+                    <img 
+                      src="/images/models/IMG_1944.JPG"
+                      alt="Модель ученика 1"
+                      class="model-photo lazy-image"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div class="shimmer-overlay"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Model 2 -->
+            <div class="swiper-slide">
+              <div class="model-card">
+                <div class="model-image-wrapper">
+                  <div class="shimmer-wrapper">
+                    <img 
+                      src="/images/models/IMG_1961.JPG"
+                      alt="Модель ученика 2"
+                      class="model-photo lazy-image"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div class="shimmer-overlay"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Model 3 -->
+            <div class="swiper-slide">
+              <div class="model-card">
+                <div class="model-image-wrapper">
+                  <div class="shimmer-wrapper">
+                    <img 
+                      src="/images/models/IMG_1949.JPG"
+                      alt="Модель ученика 3"
+                      class="model-photo lazy-image"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div class="shimmer-overlay"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Model 4 -->
+            <div class="swiper-slide">
+              <div class="model-card">
+                <div class="model-image-wrapper">
+                  <div class="shimmer-wrapper">
+                    <img 
+                      src="/images/models/IMG_1936.JPG"
+                      alt="Модель ученика 4"
+                      class="model-photo lazy-image"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div class="shimmer-overlay"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Model 5 -->
+            <div class="swiper-slide">
+              <div class="model-card">
+                <div class="model-image-wrapper">
+                  <div class="shimmer-wrapper">
+                    <img 
+                      src="/images/models/IMG_1953.JPG"
+                      alt="Модель ученика 5"
+                      class="model-photo lazy-image"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div class="shimmer-overlay"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+          
+          <!-- Navigation -->
+          <div class="swiper-button-prev model-nav-btn"></div>
+          <div class="swiper-button-next model-nav-btn"></div>
+          
+          <!-- Pagination -->
+          <div class="swiper-pagination model-pagination"></div>
+        </div>
+      </div>
     </div>
   </section>
   
@@ -1356,12 +1464,22 @@ import Base from '../layouts/Base.astro';
     max-width: 1400px;
     margin: 0 auto;
     width: 100%;
+    padding-left: 0;
+    padding-right: 0;
   }
   
   @media (min-width: 768px) {
     .paths-ladder {
       grid-template-columns: repeat(2, 1fr);
       gap: 2.5rem;
+    }
+  }
+  
+  /* Calculate exact path-card width for matching */
+  @media (min-width: 768px) {
+    .paths-ladder {
+      /* Store the actual width calculation */
+      container-type: inline-size;
     }
   }
   
@@ -1590,17 +1708,28 @@ import Base from '../layouts/Base.astro';
     max-width: 1400px;
     margin: 0 auto;
     padding-bottom: 0;
+    width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+    /* CSS variable for matching path-card width */
+    --work-step-width: 100%;
   }
   
   .work-step {
     position: relative;
     margin-bottom: 1.5rem;
     will-change: transform, opacity;
+    width: 100%;
+    max-width: var(--work-step-width, 100%);
   }
   
+  /* Match path-card width exactly using CSS variable from JavaScript */
   @media (min-width: 768px) {
     .work-step {
       margin-bottom: 2rem;
+      max-width: var(--work-step-width, 100%);
+      margin-left: auto;
+      margin-right: auto;
     }
   }
   
@@ -1616,6 +1745,9 @@ import Base from '../layouts/Base.astro';
     border: 1.5px solid rgba(96, 165, 250, 0.2);
     border-radius: 28px;
     padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     box-shadow: 
       0 20px 60px -12px rgba(0, 0, 0, 0.7),
       0 8px 24px -8px rgba(96, 165, 250, 0.15),
@@ -4625,6 +4757,331 @@ import Base from '../layouts/Base.astro';
     line-height: 1.5;
   }
   
+  /* Student Models Section */
+  .student-models-section {
+    margin-top: 4rem;
+    padding: 3rem 0;
+  }
+  
+  @media (max-width: 768px) {
+    .student-models-section {
+      margin-top: 3rem;
+      padding: 2rem 0;
+    }
+  }
+  
+  .models-section-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 2.5rem;
+    background: linear-gradient(135deg, var(--primary), var(--primary-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  
+  .student-models-swiper {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 2rem 0 5rem;
+    overflow: visible;
+    position: relative;
+  }
+  
+  .student-models-swiper .swiper-wrapper {
+    display: flex;
+    align-items: stretch;
+    user-select: none;
+    -webkit-user-select: none;
+    overflow-x: auto;
+    overflow-y: visible;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .student-models-swiper .swiper-wrapper::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .student-models-swiper .swiper-slide {
+    height: auto;
+    display: flex;
+    align-items: stretch;
+    flex-shrink: 0;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    width: 100%;
+    min-width: 100%;
+    padding: 0 1rem;
+    box-sizing: border-box;
+  }
+  
+  @media (min-width: 768px) {
+    .student-models-swiper .swiper-slide {
+      width: 60%;
+      min-width: 60%;
+      padding: 0 1.5rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .student-models-swiper .swiper-slide {
+      width: 45%;
+      min-width: 45%;
+      padding: 0 2rem;
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .student-models-swiper .swiper-slide {
+      width: 35%;
+      min-width: 35%;
+    }
+  }
+  
+  .model-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    min-height: 500px;
+    box-sizing: border-box;
+    padding: 1.5rem;
+    background: linear-gradient(145deg, rgba(15, 15, 20, 0.95), rgba(20, 20, 28, 0.95));
+    border: 2px solid rgba(96, 165, 250, 0.2);
+    border-radius: var(--radius-2xl);
+    box-shadow: 
+      0 10px 40px rgba(0, 0, 0, 0.3),
+      0 0 20px rgba(96, 165, 250, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .model-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-2));
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  
+  
+  @media (max-width: 767px) {
+    .model-card {
+      padding: 1rem;
+      min-height: 400px;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .model-card {
+      padding: 2rem;
+      min-height: 600px;
+    }
+  }
+  
+  .model-image-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    flex: 1;
+    min-height: 300px;
+    max-height: 700px;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background: rgba(10, 10, 15, 0.6);
+    border: 2px solid rgba(96, 165, 250, 0.15);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  
+  @media (max-width: 767px) {
+    .model-image-wrapper {
+      max-width: 100%;
+      min-height: 250px;
+      max-height: 500px;
+    }
+  }
+  
+  .model-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: 3;
+  }
+  
+  /* Model Navigation Buttons */
+  .model-nav-btn {
+    width: 56px;
+    height: 56px;
+    background: rgba(96, 165, 250, 0.2);
+    border: 2px solid rgba(96, 165, 250, 0.4);
+    border-radius: 50%;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    cursor: pointer;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(96, 165, 250, 0.2);
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  .model-nav-btn:hover {
+    background: rgba(96, 165, 250, 0.35);
+    border-color: rgba(96, 165, 250, 0.6);
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 24px rgba(96, 165, 250, 0.35);
+  }
+  
+  .model-nav-btn:active {
+    transform: translateY(-50%) scale(0.95);
+  }
+  
+  .student-models-swiper .swiper-button-prev {
+    left: 1rem !important;
+    right: auto !important;
+    margin: 0 !important;
+  }
+  
+  .student-models-swiper .swiper-button-next {
+    right: 1rem !important;
+    left: auto !important;
+    margin: 0 !important;
+  }
+  
+  .model-nav-btn::after {
+    content: '';
+    width: 0;
+    height: 0;
+    border-style: solid;
+    font-size: 0;
+  }
+  
+  .student-models-swiper .swiper-button-prev::after,
+  .student-models-swiper .swiper-button-next::after {
+    font-size: 1.75rem;
+    color: #fff;
+    font-weight: 900;
+    line-height: 1;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, Arial, sans-serif;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: block;
+    width: auto;
+    height: auto;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .student-models-swiper .swiper-button-prev::after {
+    content: '←';
+  }
+  
+  .student-models-swiper .swiper-button-next::after {
+    content: '→';
+  }
+  
+  .student-models-swiper .swiper-button-disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  
+  @media (max-width: 767px) {
+    .model-nav-btn {
+      width: 48px;
+      height: 48px;
+    }
+    
+    .student-models-swiper .swiper-button-prev {
+      left: 0.5rem !important;
+    }
+    
+    .student-models-swiper .swiper-button-next {
+      right: 0.5rem !important;
+    }
+    
+    .student-models-swiper .swiper-button-prev::after,
+    .student-models-swiper .swiper-button-next::after {
+      font-size: 1.5rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .model-nav-btn {
+      width: 44px;
+      height: 44px;
+    }
+    
+    .student-models-swiper .swiper-button-prev {
+      left: 0.25rem !important;
+    }
+    
+    .student-models-swiper .swiper-button-next {
+      right: 0.25rem !important;
+    }
+    
+    .student-models-swiper .swiper-button-prev::after,
+    .student-models-swiper .swiper-button-next::after {
+      font-size: 1.25rem;
+    }
+  }
+  
+  /* Model Pagination */
+  .model-pagination {
+    bottom: 0 !important;
+  }
+  
+  .model-pagination .swiper-pagination-bullet {
+    width: 12px;
+    height: 12px;
+    background: rgba(96, 165, 250, 0.3);
+    opacity: 1;
+    transition: all 0.3s ease;
+  }
+  
+  .model-pagination .swiper-pagination-bullet-active {
+    background: rgba(96, 165, 250, 0.9);
+    transform: scale(1.2);
+  }
+  
   /* Era Section */
   .era-section {
     padding: 4rem 0 0.5rem 0;
@@ -5164,6 +5621,125 @@ import Base from '../layouts/Base.astro';
 </style>
 
 <script>
+  // Match work-step width to path-card width exactly using CSS variables
+  (function() {
+    let rafId = null;
+    let resizeObserver = null;
+    
+    function measureAndApplyWidth() {
+      // Only run on desktop
+      if (window.innerWidth < 768) {
+        // Reset to 100% on mobile
+        const container = document.querySelector('.stacking-cards-container');
+        if (container) {
+          container.style.setProperty('--work-step-width', '100%');
+        }
+        return;
+      }
+      
+      // Find elements
+      const pathCard = document.querySelector('.path-card');
+      const container = document.querySelector('.stacking-cards-container');
+      
+      if (!pathCard || !container) {
+        return;
+      }
+      
+      // Use requestAnimationFrame to ensure layout is complete
+      requestAnimationFrame(() => {
+        // Get computed width of path-card
+        const pathCardRect = pathCard.getBoundingClientRect();
+        const pathCardWidth = pathCardRect.width;
+        
+        // Only apply if we got a valid measurement
+        if (pathCardWidth > 0) {
+          // Set CSS variable on container
+          container.style.setProperty('--work-step-width', pathCardWidth + 'px');
+          
+          // Debug log (remove in production if needed)
+          // console.log('Matched work-step width to path-card:', pathCardWidth + 'px');
+        }
+      });
+    }
+    
+    function initWidthMatching() {
+      // Initial measurement after layout
+      requestAnimationFrame(() => {
+        setTimeout(measureAndApplyWidth, 50);
+      });
+      
+      // Use ResizeObserver for more reliable resize detection
+      if (typeof ResizeObserver !== 'undefined') {
+        const pathCard = document.querySelector('.path-card');
+        if (pathCard) {
+          resizeObserver = new ResizeObserver(() => {
+            // Debounce resize
+            if (rafId) {
+              cancelAnimationFrame(rafId);
+            }
+            rafId = requestAnimationFrame(() => {
+              measureAndApplyWidth();
+            });
+          });
+          
+          resizeObserver.observe(pathCard);
+          
+          // Also observe window resize as fallback
+          let resizeTimeout;
+          window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+              measureAndApplyWidth();
+            }, 150);
+          });
+        }
+      } else {
+        // Fallback for browsers without ResizeObserver
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTimeout);
+          resizeTimeout = setTimeout(() => {
+            measureAndApplyWidth();
+          }, 150);
+        });
+      }
+    }
+    
+    // Initialize when DOM is ready
+    function init() {
+      // Wait for DOM and images to load
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          // Wait for layout to settle
+          requestAnimationFrame(() => {
+            setTimeout(initWidthMatching, 100);
+          });
+        });
+      } else {
+        requestAnimationFrame(() => {
+          setTimeout(initWidthMatching, 100);
+        });
+      }
+      
+      // Also run after images load (for lazy-loaded images)
+      window.addEventListener('load', () => {
+        setTimeout(measureAndApplyWidth, 200);
+      });
+    }
+    
+    init();
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+    });
+  })();
+  
   // Horizontal card reveal on vertical scroll with Intersection Observer
   (function() {
     function initHorizontalCardReveal() {
@@ -5607,6 +6183,303 @@ import Base from '../layouts/Base.astro';
       document.addEventListener('DOMContentLoaded', initTestimonialsSwiper);
     } else {
       initTestimonialsSwiper();
+    }
+  })();
+  
+  // ============================================
+  // STUDENT MODELS SWIPER
+  // ============================================
+  (function() {
+    function initStudentModelsSwiper() {
+      // Load Swiper library if not already loaded
+      if (typeof Swiper === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
+        script.onload = function() {
+          createModelsSwiper();
+        };
+        document.head.appendChild(script);
+      } else {
+        createModelsSwiper();
+      }
+    }
+    
+    function createModelsSwiper() {
+      const swiperContainer = document.querySelector('.student-models-swiper');
+      if (!swiperContainer) return;
+      
+      const swiper = new Swiper('.student-models-swiper', {
+        // Core
+        direction: 'horizontal',
+        loop: true,
+        speed: 600,
+        watchOverflow: true,
+        
+        // Slides
+        slidesPerView: 1,
+        spaceBetween: 20,
+        centeredSlides: false,
+        
+        // TELEGRAM WEBAPP FIX: Use CSS Scroll mode
+        cssMode: true,
+        
+        // Touch - Minimal config for CSS mode
+        simulateTouch: true,
+        allowTouchMove: true,
+        
+        // Touch events - Passive for CSS mode
+        passiveListeners: true,
+        touchStartPreventDefault: false,
+        
+        // Disable conflicting options in CSS mode
+        freeMode: false,
+        grabCursor: false,
+        nested: false,
+        
+        // Resistance
+        resistance: true,
+        resistanceRatio: 0.85,
+        
+        // Thresholds
+        threshold: 5,
+        longSwipes: true,
+        longSwipesRatio: 0.5,
+        longSwipesMs: 300,
+        
+        // Autoplay
+        autoplay: {
+          delay: 4000,
+          disableOnInteraction: false,
+          pauseOnMouseEnter: true,
+        },
+        
+        // Pagination
+        pagination: {
+          el: '.model-pagination',
+          clickable: true,
+          dynamicBullets: true,
+        },
+        
+        // Navigation
+        navigation: {
+          nextEl: '.student-models-swiper .swiper-button-next',
+          prevEl: '.student-models-swiper .swiper-button-prev',
+        },
+        
+        // Breakpoints
+        breakpoints: {
+          320: {
+            slidesPerView: 1,
+            spaceBetween: 0,
+            centeredSlides: true,
+          },
+          768: {
+            slidesPerView: 1,
+            spaceBetween: 0,
+            centeredSlides: true,
+          },
+          1024: {
+            slidesPerView: 1,
+            spaceBetween: 0,
+            centeredSlides: true,
+          },
+        },
+        
+        // Events
+        on: {
+          init: function() {
+            // Swiper initialized
+          },
+        },
+      });
+      
+      // Custom navigation for CSS mode
+      const wrapper = swiperContainer.querySelector('.swiper-wrapper');
+      const slides = wrapper.querySelectorAll('.swiper-slide');
+      
+      if (!wrapper || !slides.length) return;
+      
+      function getNavButtons() {
+        return {
+          prevBtn: swiperContainer.querySelector('.swiper-button-prev'),
+          nextBtn: swiperContainer.querySelector('.swiper-button-next')
+        };
+      }
+      
+      function updateNavButtons() {
+        const { prevBtn, nextBtn } = getNavButtons();
+        const scrollLeft = wrapper.scrollLeft;
+        const scrollWidth = wrapper.scrollWidth;
+        const clientWidth = wrapper.clientWidth;
+        const maxScroll = scrollWidth - clientWidth;
+        
+        // Disable/enable buttons
+        if (prevBtn) {
+          if (scrollLeft <= 5) {
+            prevBtn.classList.add('swiper-button-disabled');
+          } else {
+            prevBtn.classList.remove('swiper-button-disabled');
+          }
+        }
+        
+        if (nextBtn) {
+          if (scrollLeft >= maxScroll - 5) {
+            nextBtn.classList.add('swiper-button-disabled');
+          } else {
+            nextBtn.classList.remove('swiper-button-disabled');
+          }
+        }
+      }
+      
+      // Navigate to previous slide
+      const { prevBtn, nextBtn } = getNavButtons();
+      if (prevBtn) {
+        const newPrevBtn = prevBtn.cloneNode(true);
+        prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
+        
+        function handlePrevClick(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          
+          if (newPrevBtn.classList.contains('swiper-button-disabled')) {
+            return false;
+          }
+          
+          const currentScroll = wrapper.scrollLeft;
+          const slideWidth = slides[0]?.offsetWidth || wrapper.clientWidth;
+          
+          let targetScroll = 0;
+          for (let i = 0; i < slides.length; i++) {
+            const slideLeft = slides[i].offsetLeft;
+            if (slideLeft < currentScroll && slideLeft > 0) {
+              targetScroll = slideLeft;
+            }
+          }
+          
+          if (targetScroll === 0 && currentScroll > 0) {
+            targetScroll = Math.max(0, currentScroll - slideWidth);
+          }
+          
+          wrapper.scrollTo({
+            left: targetScroll,
+            behavior: 'smooth'
+          });
+          
+          return false;
+        }
+        
+        newPrevBtn.addEventListener('click', handlePrevClick, { capture: true });
+        newPrevBtn.addEventListener('touchend', handlePrevClick, { capture: true, passive: false });
+        newPrevBtn.addEventListener('touchstart', function(e) {
+          e.stopPropagation();
+        }, { capture: true });
+      }
+      
+      // Navigate to next slide
+      if (nextBtn) {
+        const newNextBtn = nextBtn.cloneNode(true);
+        nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
+        
+        function handleNextClick(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          
+          if (newNextBtn.classList.contains('swiper-button-disabled')) {
+            return false;
+          }
+          
+          const currentScroll = wrapper.scrollLeft;
+          const slideWidth = slides[0]?.offsetWidth || wrapper.clientWidth;
+          const wrapperWidth = wrapper.clientWidth;
+          
+          let targetScroll = currentScroll + slideWidth;
+          
+          for (let i = 0; i < slides.length; i++) {
+            const slideLeft = slides[i].offsetLeft;
+            const slideRight = slideLeft + slides[i].offsetWidth;
+            
+            if (slideLeft > currentScroll + 5 || slideRight > currentScroll + wrapperWidth + 5) {
+              targetScroll = slideLeft;
+              break;
+            }
+          }
+          
+          const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+          targetScroll = Math.min(targetScroll, maxScroll);
+          
+          wrapper.scrollTo({
+            left: targetScroll,
+            behavior: 'smooth'
+          });
+          
+          return false;
+        }
+        
+        newNextBtn.addEventListener('click', handleNextClick, { capture: true });
+        newNextBtn.addEventListener('touchend', handleNextClick, { capture: true, passive: false });
+        newNextBtn.addEventListener('touchstart', function(e) {
+          e.stopPropagation();
+        }, { capture: true });
+      }
+      
+      // Update button states on scroll
+      wrapper.addEventListener('scroll', updateNavButtons, { passive: true });
+      
+      // Initial button state
+      setTimeout(function() {
+        updateNavButtons();
+        const currentPrevBtn = swiperContainer.querySelector('.swiper-button-prev');
+        const currentNextBtn = swiperContainer.querySelector('.swiper-button-next');
+        if (currentPrevBtn && currentNextBtn) {
+          updateNavButtons();
+        }
+      }, 300);
+      
+      // Update on resize
+      let resizeTimeout;
+      window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+          updateNavButtons();
+        }, 150);
+      });
+      
+      // Prevent Telegram collapse on carousel touch
+      const swiperEl = document.querySelector('.student-models-swiper');
+      if (swiperEl) {
+        swiperEl.addEventListener('touchstart', function(e) {
+          if (window.scrollY === 0) {
+            window.scrollTo(0, 1);
+          }
+        }, { passive: true });
+      }
+      
+      // Image click handler for modal
+      swiperContainer.querySelectorAll('.model-image-wrapper').forEach(wrapper => {
+        wrapper.addEventListener('click', function(e) {
+          const img = wrapper.querySelector('.model-photo');
+          if (img && img.src) {
+            const modal = document.getElementById('photoModal');
+            if (modal) {
+              const modalImg = modal.querySelector('.modal-image');
+              if (modalImg) {
+                modalImg.src = img.src;
+                modalImg.alt = img.alt || 'Модель ученика';
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+              }
+            }
+          }
+        });
+      });
+    }
+    
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initStudentModelsSwiper);
+    } else {
+      initStudentModelsSwiper();
     }
   })();
   
