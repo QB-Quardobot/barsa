@@ -436,18 +436,34 @@
   .earnings-ticker-content {
     position: relative;
     padding: 1.5rem 1.75rem;
-    background: linear-gradient(135deg, rgba(15, 15, 20, 0.98), rgba(25, 25, 35, 0.98)); /* Solid background instead of blur(20px) */
-    border: 1px solid rgba(96, 165, 250, 0.3);
+    background: linear-gradient(135deg, 
+      rgba(15, 15, 20, 0.95), 
+      rgba(30, 58, 138, 0.4),
+      rgba(17, 94, 89, 0.4),
+      rgba(15, 15, 20, 0.95)
+    );
+    background-size: 300% 300%;
+    animation: gradientShift 4s ease infinite;
+    border: 1px solid rgba(96, 165, 250, 0.4);
     border-radius: 24px;
     box-shadow: 
-      0 6px 24px rgba(0, 0, 0, 0.5), /* Reduced blur */
+      0 6px 24px rgba(0, 0, 0, 0.5),
+      0 0 20px rgba(96, 165, 250, 0.2),
       0 0 0 1px rgba(96, 165, 250, 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
     min-width: 220px;
-    /* GPU acceleration - only animate transform, box-shadow, border-color */
     transform: translateZ(0);
     will-change: transform, box-shadow, border-color;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  
+  @keyframes gradientShift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
   }
   
   .earnings-ticker-btn:hover .earnings-ticker-content {
