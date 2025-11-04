@@ -235,8 +235,12 @@
     
     // Smooth scroll to final CTA with pre-reveal optimization
     function scrollToCTA() {
+      // Try to find the button first, then fallback to section
+      const ctaButton = document.querySelector('.final-cta-section .btn-capsule[data-cta]');
       const ctaSection = document.querySelector('.final-cta-section');
-      if (!ctaSection) return;
+      const targetElement = ctaButton || ctaSection;
+      
+      if (!targetElement) return;
       
       // Pre-reveal elements to prevent white flash
       var revealInstance = window.revealInstance;
@@ -245,41 +249,50 @@
       } else {
         // Fallback: manually reveal elements
         const allRevealElements = document.querySelectorAll(
-          '[class*="reveal-fade"]:not(.is-revealed), [class*="reveal-up"]:not(.is-revealed), [class*="reveal-scale"]:not(.is-revealed)'
+          '.final-cta-section [class*="reveal-fade"]:not(.is-revealed), .final-cta-section [class*="reveal-up"]:not(.is-revealed), .final-cta-section [class*="reveal-scale"]:not(.is-revealed)'
         );
-        const currentScroll = getScrollPosition();
-        const targetRect = ctaSection.getBoundingClientRect();
-        const targetScroll = targetRect.top + (mainContentEl ? mainContentEl.scrollTop : currentScroll);
-        
         allRevealElements.forEach((el) => {
-          const elRect = el.getBoundingClientRect();
-          const elScroll = elRect.top + (mainContentEl ? mainContentEl.scrollTop : currentScroll);
-          
-          if (elScroll >= currentScroll - 200 && elScroll <= targetScroll + 500) {
-            el.style.transition = 'none';
-            el.style.opacity = '1';
-            el.style.transform = 'none';
-            el.classList.add('is-revealed');
-          }
+          el.style.transition = 'none';
+          el.style.opacity = '1';
+          el.style.transform = 'none';
+          el.classList.add('is-revealed');
         });
       }
       
       // Smooth scroll - works in both Telegram Mini App and regular browsers
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          const offset = 80;
-          const targetRect = ctaSection.getBoundingClientRect();
+          // Calculate precise scroll position to center the button
+          const targetRect = targetElement.getBoundingClientRect();
+          const scrollContainer = mainContentEl || window;
+          const currentScroll = getScrollPosition();
+          
+          // Calculate offset to position button nicely (center of viewport with some padding)
+          const viewportHeight = mainContentEl ? mainContentEl.clientHeight : window.innerHeight;
+          const offset = viewportHeight * 0.4; // Position button at 40% from top (comfortable viewing position)
+          
+          let scrollTop;
           
           if (mainContentEl) {
             // Telegram Mini App: scroll main-content
-            const scrollTop = mainContentEl.scrollTop + targetRect.top - offset;
+            scrollTop = mainContentEl.scrollTop + targetRect.top - offset;
+            // Ensure we don't scroll past the bottom
+            const maxScroll = mainContentEl.scrollHeight - mainContentEl.clientHeight;
+            scrollTop = Math.min(scrollTop, maxScroll);
+            scrollTop = Math.max(0, scrollTop);
+            
             mainContentEl.scrollTo({
               top: scrollTop,
               behavior: 'smooth'
             });
           } else {
             // Regular browser: scroll window
-            const scrollTop = window.pageYOffset + targetRect.top - offset;
+            scrollTop = window.pageYOffset + targetRect.top - offset;
+            // Ensure we don't scroll past the bottom
+            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+            scrollTop = Math.min(scrollTop, maxScroll);
+            scrollTop = Math.max(0, scrollTop);
+            
             window.scrollTo({
               top: scrollTop,
               behavior: 'smooth'
