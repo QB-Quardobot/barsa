@@ -297,57 +297,82 @@ function setupSwiperNavigation(
     
     if (targetScroll === currentScroll) return;
     
-    try {
-      wrapper.scrollTo({
-        left: targetScroll,
-        behavior: 'smooth'
-      });
-    } catch (e) {
-      wrapper.scrollLeft = targetScroll;
-    }
+    requestAnimationFrame(() => {
+      try {
+        wrapper.scrollTo({
+          left: targetScroll,
+          behavior: 'smooth'
+        });
+      } catch (e) {
+        wrapper.scrollLeft = targetScroll;
+      }
+    });
   }
   
-  function handleButtonClick(e: Event, button: HTMLElement): void {
-    if (button.classList.contains('swiper-button-disabled')) {
+  function attachButtonHandlers(button: HTMLElement, direction: 'prev' | 'next'): void {
+    const handleClick = (e: Event) => {
+      if (button.classList.contains('swiper-button-disabled')) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+      
       e.preventDefault();
       e.stopPropagation();
-      return;
-    }
+      e.stopImmediatePropagation();
+      
+      scrollToSlide(direction);
+      return false;
+    };
     
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
+    const handleTouchStart = (e: TouchEvent) => {
+      if (button.classList.contains('swiper-button-disabled')) {
+        e.stopPropagation();
+        return;
+      }
+      e.stopPropagation();
+    };
     
-    if (button.classList.contains('swiper-button-prev')) {
-      scrollToSlide('prev');
-    } else if (button.classList.contains('swiper-button-next')) {
-      scrollToSlide('next');
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (button.classList.contains('swiper-button-disabled')) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      
+      scrollToSlide(direction);
+    };
+    
+    button.addEventListener('click', handleClick, { capture: true, passive: false });
+    button.addEventListener('touchend', handleTouchEnd, { capture: true, passive: false });
+    button.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
+    
+    if ('ontouchstart' in window === false) {
+      button.addEventListener('mousedown', (e) => {
+        if (button.classList.contains('swiper-button-disabled')) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+        e.stopPropagation();
+      }, { capture: true });
     }
   }
   
-  swiperContainer.addEventListener('pointerdown', (e) => {
-    const target = e.target as HTMLElement;
-    const button = target.closest('.swiper-button-prev, .swiper-button-next') as HTMLElement;
-    if (button && !button.classList.contains('swiper-button-disabled')) {
-      e.stopPropagation();
-      button.setPointerCapture(e.pointerId);
-      button.addEventListener('pointerup', function pointerUpHandler(upEvent: PointerEvent) {
-        button.releasePointerCapture(upEvent.pointerId);
-        if (upEvent.pointerId === e.pointerId) {
-          handleButtonClick(upEvent, button);
-        }
-        button.removeEventListener('pointerup', pointerUpHandler);
-      }, { once: true });
-    }
-  }, { passive: true });
+  const navButtons = getNavButtons();
   
-  swiperContainer.addEventListener('click', (e) => {
-    const target = e.target as HTMLElement;
-    const button = target.closest('.swiper-button-prev, .swiper-button-next') as HTMLElement;
-    if (button) {
-      handleButtonClick(e, button);
-    }
-  }, { passive: false });
+  if (navButtons.prevBtn) {
+    attachButtonHandlers(navButtons.prevBtn, 'prev');
+  }
+  
+  if (navButtons.nextBtn) {
+    attachButtonHandlers(navButtons.nextBtn, 'next');
+  }
   
   let scrollTimeout: ReturnType<typeof setTimeout>;
   const handleScroll = () => {
