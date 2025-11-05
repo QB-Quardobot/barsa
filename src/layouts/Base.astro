@@ -357,7 +357,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
 
         // Back button navigation handler
         try {
-          if (tg.BackButton && typeof tg.BackButton.onClick === 'function') {
+          if (tg.BackButton) {
             let backButtonVisible = false;
             
             function isPhotoModalOpen() {
@@ -374,39 +374,31 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             
             // Function to check if we can go back
             function canGoBack() {
-              // First priority: modal is open
-              if (isPhotoModalOpen()) {
-                return true;
-              }
-              
-              // Second priority: can scroll up
+              // Check if we can scroll up
               const mainContent = doc.getElementById('main-content');
               const scrollable = mainContent || doc.documentElement;
-              const scrollTop = scrollable.scrollTop || 0;
+              const canScrollUp = scrollable.scrollTop > 100; // 100px threshold
               
-              if (scrollTop > 100) {
-                return true;
-              }
+              // Check browser history
+              const canUseHistory = win.history.length > 1;
               
-              // Don't check history - it's unreliable and causes issues
-              return false;
+              return canScrollUp || canUseHistory;
             }
             
             // Function to handle back action
             function handleBackClick() {
-              // First, close modal if open
+              // First priority: close modal if open
               if (isPhotoModalOpen()) {
                 closePhotoModal();
                 triggerHaptic('light');
                 return;
               }
               
-              // Second, scroll to top if scrolled
               const mainContent = doc.getElementById('main-content');
               const scrollable = mainContent || doc.documentElement;
-              const scrollTop = scrollable.scrollTop || 0;
               
-              if (scrollTop > 100) {
+              // Second priority: try to scroll to top
+              if (scrollable.scrollTop > 100) {
                 scrollable.scrollTo({
                   top: 0,
                   behavior: 'smooth'
@@ -415,71 +407,64 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                 return;
               }
               
+              // Third priority: try browser history
+              if (win.history.length > 1) {
+                try {
+                  win.history.back();
+                  triggerHaptic('light');
+                  return;
+                } catch (e) {
+                  // History back failed
+                }
+              }
+              
               // Last resort: show close confirmation
               triggerHaptic('medium');
-              if (typeof tg.showConfirm === 'function') {
-                tg.showConfirm('Закрыть приложение?', (ok: boolean) => {
-                  if (ok) {
-                    triggerHaptic('heavy');
-                    if (typeof tg.close === 'function') {
-                      tg.close();
-                    }
-                  }
-                });
-              }
+              tg.showConfirm?.('Закрыть приложение?', (ok) => {
+                if (ok) {
+                  triggerHaptic('heavy');
+                  tg.close();
+                }
+              });
             }
             
             // Function to update back button visibility
             function updateBackButton() {
-              try {
-                const shouldShow = canGoBack();
-                
-                if (shouldShow && !backButtonVisible) {
-                  tg.BackButton.show();
-                  backButtonVisible = true;
-                } else if (!shouldShow && backButtonVisible) {
-                  tg.BackButton.hide();
-                  backButtonVisible = false;
-                }
-              } catch (e) {
-                logger.warn('[TG-BackButton] Update visibility error:', e);
+              const shouldShow = canGoBack();
+              
+              if (shouldShow && !backButtonVisible) {
+                tg.BackButton.show();
+                backButtonVisible = true;
+              } else if (!shouldShow && backButtonVisible) {
+                tg.BackButton.hide();
+                backButtonVisible = false;
               }
             }
             
             // Set up back button click handler
-            try {
-              tg.BackButton.onClick(handleBackClick);
-            } catch (e) {
-              logger.warn('[TG-BackButton] onClick setup error:', e);
-            }
+            tg.BackButton.onClick(handleBackClick);
             
             // Monitor scroll position to show/hide button
             const scrollable = doc.getElementById('main-content') || doc.documentElement;
-            let scrollTimeout: ReturnType<typeof setTimeout>;
+            let scrollTimeout;
             
             scrollable.addEventListener('scroll', () => {
               clearTimeout(scrollTimeout);
-              scrollTimeout = setTimeout(() => {
-                updateBackButton();
-              }, 150);
+              scrollTimeout = setTimeout(updateBackButton, 100);
             }, { passive: true });
             
-            // Monitor modal state changes via MutationObserver
-            const modal = doc.getElementById('photoModal');
-            if (modal) {
-              const modalObserver = new MutationObserver(() => {
-                updateBackButton();
-              });
-              modalObserver.observe(modal, {
-                attributes: true,
-                attributeFilter: ['style']
-              });
-            }
+            // Monitor popstate for history changes
+            win.addEventListener('popstate', () => {
+              setTimeout(updateBackButton, 100);
+            });
             
             // Initial check
-            setTimeout(() => {
-              updateBackButton();
-            }, 500);
+            setTimeout(updateBackButton, 500);
+            
+            // Update on viewport changes
+            win.addEventListener('resize', () => {
+              setTimeout(updateBackButton, 100);
+            });
           }
         } catch (e) {
           logger.warn('[TG-BackButton] Error:', e);
