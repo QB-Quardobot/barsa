@@ -681,10 +681,6 @@ export function initPhotoModal(): void {
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
       isModalOpen = true;
-      
-      if ((window as any).Telegram?.WebApp?.BackButton) {
-        (window as any).Telegram.WebApp.BackButton.show();
-      }
     }
   }
   
@@ -695,10 +691,6 @@ export function initPhotoModal(): void {
     if (modalImg) modalImg.src = '';
     document.body.style.overflow = '';
     isModalOpen = false;
-    
-    if ((window as any).Telegram?.WebApp?.BackButton) {
-      (window as any).Telegram.WebApp.BackButton.hide();
-    }
   }
   
   if (closeBtn) {
