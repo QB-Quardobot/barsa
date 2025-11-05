@@ -269,8 +269,12 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           // Bot API 7.7+: Disable vertical swipes to prevent accidental closing
           if (typeof tg.disableVerticalSwipes === 'function') {
             logger.log('[TG-Init] Calling disableVerticalSwipes()...');
-            tg.disableVerticalSwipes();
-            logger.log('[TG-Init] After disableVerticalSwipes: isVerticalSwipesEnabled=' + tg.isVerticalSwipesEnabled);
+            try {
+              tg.disableVerticalSwipes();
+              logger.log('[TG-Init] After disableVerticalSwipes: isVerticalSwipesEnabled=' + tg.isVerticalSwipesEnabled);
+            } catch (err) {
+              logger.warn('[TG-Init] disableVerticalSwipes error:', err);
+            }
           } else {
             logger.warn('[TG-Init] disableVerticalSwipes not available');
           }

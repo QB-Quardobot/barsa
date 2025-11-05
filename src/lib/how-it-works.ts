@@ -1,0 +1,690 @@
+/**
+ * How It Works Page - Consolidated JavaScript Module
+ */
+
+function isDocumentReady(): boolean {
+  return document.readyState !== 'loading';
+}
+
+function onReady(callback: () => void): void {
+  if (isDocumentReady()) {
+    callback();
+  } else {
+    document.addEventListener('DOMContentLoaded', callback);
+  }
+}
+
+
+export function initHorizontalCardReveal(): void {
+  const cards = document.querySelectorAll('.work-step');
+  
+  if (cards.length === 0) return;
+  
+  const observerOptions = {
+    root: null,
+    rootMargin: '-10% 0px -20% 0px',
+    threshold: [0, 0.1, 0.3, 0.5]
+  };
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      const card = entry.target as HTMLElement;
+      const cardIndex = parseInt(card.dataset.step || '1') - 1;
+      const delay = cardIndex * 150;
+      
+      if (entry.isIntersecting && entry.intersectionRatio > 0.1) {
+        setTimeout(() => {
+          card.classList.add('is-visible');
+        }, delay);
+      } else if (entry.boundingClientRect.top > window.innerHeight) {
+        card.classList.remove('is-visible');
+      }
+    });
+  }, observerOptions);
+  
+  cards.forEach((card) => {
+    observer.observe(card);
+  });
+  
+  window.addEventListener('beforeunload', () => {
+    observer.disconnect();
+  });
+}
+
+export function initRevealAnimations(): void {
+  try {
+    if ((window as any).revealInstance) return;
+    
+    if (typeof (window as any).initReveal === 'function') {
+      (window as any).initReveal();
+    } else {
+      import('../lib/reveal-init.js').then(() => {
+        if (typeof (window as any).initReveal === 'function') {
+          (window as any).initReveal();
+        }
+      }).catch(() => {});
+    }
+  } catch (e) {}
+}
+
+
+export function initFAQ(): void {
+  const faqSection = document.querySelector('.faq-section') || document.querySelector('.faq-list');
+  if (!faqSection) return;
+  
+  const faqItems = document.querySelectorAll('.faq-item');
+  if (faqItems.length === 0) return;
+  
+  faqItems.forEach(item => {
+    const answer = item.querySelector('.faq-answer') as HTMLElement;
+    if (!answer) return;
+    
+    if (item.getAttribute('aria-expanded') !== 'true') {
+      answer.style.maxHeight = '0px';
+      answer.style.opacity = '0';
+    }
+    
+    const resizeObserver = new ResizeObserver(() => {
+      if (item.getAttribute('aria-expanded') === 'true') {
+        answer.style.maxHeight = answer.scrollHeight + 'px';
+      }
+    });
+    resizeObserver.observe(answer);
+  });
+  
+  faqSection.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    const question = target.closest('.faq-question') as HTMLElement;
+    if (!question) return;
+    
+    e.preventDefault();
+    const item = question.closest('.faq-item') as HTMLElement;
+    if (!item) return;
+    
+    const answer = item.querySelector('.faq-answer') as HTMLElement;
+    if (!answer) return;
+    
+    const isExpanded = item.getAttribute('aria-expanded') === 'true';
+    
+    faqItems.forEach(otherItem => {
+      if (otherItem !== item) {
+        const otherQuestion = otherItem.querySelector('.faq-question') as HTMLElement;
+        const otherAnswer = otherItem.querySelector('.faq-answer') as HTMLElement;
+        
+        if (otherAnswer) {
+          otherAnswer.style.maxHeight = '0px';
+          otherAnswer.style.opacity = '0';
+        }
+        
+        otherItem.setAttribute('aria-expanded', 'false');
+        if (otherQuestion) {
+          otherQuestion.setAttribute('aria-expanded', 'false');
+        }
+      }
+    });
+    
+    if (isExpanded) {
+      answer.style.maxHeight = '0px';
+      answer.style.opacity = '0';
+      item.setAttribute('aria-expanded', 'false');
+      question.setAttribute('aria-expanded', 'false');
+    } else {
+      answer.style.maxHeight = answer.scrollHeight + 'px';
+      answer.style.opacity = '1';
+      item.setAttribute('aria-expanded', 'true');
+      question.setAttribute('aria-expanded', 'true');
+    }
+  });
+}
+
+
+interface SwiperConfig {
+  container: string;
+  pagination?: string;
+  prevBtn?: string;
+  nextBtn?: string;
+  autoplayDelay?: number;
+}
+
+function createSwiperConfig(config: SwiperConfig) {
+  return {
+    direction: 'horizontal' as const,
+    loop: true,
+    speed: 600,
+    watchOverflow: true,
+    slidesPerView: 1,
+    spaceBetween: 20,
+    centeredSlides: false,
+    cssMode: true,
+    simulateTouch: true,
+    allowTouchMove: true,
+    passiveListeners: true,
+    touchStartPreventDefault: false,
+    freeMode: false,
+    grabCursor: false,
+    nested: false,
+    resistance: true,
+    resistanceRatio: 0.85,
+    threshold: 5,
+    longSwipes: true,
+    longSwipesRatio: 0.5,
+    longSwipesMs: 300,
+    autoplay: {
+      delay: config.autoplayDelay || 5000,
+      disableOnInteraction: false,
+      pauseOnMouseEnter: true,
+    },
+    pagination: config.pagination ? {
+      el: config.pagination,
+      clickable: true,
+      dynamicBullets: true,
+    } : undefined,
+    navigation: (config.prevBtn || config.nextBtn) ? {
+      nextEl: config.nextBtn,
+      prevEl: config.prevBtn,
+    } : undefined,
+    breakpoints: {
+      320: { slidesPerView: 1, spaceBetween: 0, centeredSlides: true },
+      768: { slidesPerView: 1, spaceBetween: 0, centeredSlides: true },
+      1024: { slidesPerView: 1, spaceBetween: 0, centeredSlides: true },
+    },
+    on: {
+      init: function() {},
+    },
+  };
+}
+
+function setupSwiperNavigation(
+  swiperContainer: HTMLElement,
+  wrapper: HTMLElement,
+  slides: NodeListOf<Element>,
+  prevBtn: HTMLElement | null,
+  nextBtn: HTMLElement | null
+): void {
+  if (!wrapper || !slides.length) return;
+  
+  function getNavButtons() {
+    return {
+      prevBtn: prevBtn || swiperContainer.querySelector('.swiper-button-prev') as HTMLElement,
+      nextBtn: nextBtn || swiperContainer.querySelector('.swiper-button-next') as HTMLElement
+    };
+  }
+  
+  function updateNavButtons(): void {
+    const { prevBtn, nextBtn } = getNavButtons();
+    const scrollLeft = wrapper.scrollLeft;
+    const scrollWidth = wrapper.scrollWidth;
+    const clientWidth = wrapper.clientWidth;
+    const maxScroll = scrollWidth - clientWidth;
+    
+    if (prevBtn) {
+      if (scrollLeft <= 5) {
+        prevBtn.classList.add('swiper-button-disabled');
+      } else {
+        prevBtn.classList.remove('swiper-button-disabled');
+      }
+    }
+    
+    if (nextBtn) {
+      if (scrollLeft >= maxScroll - 5) {
+        nextBtn.classList.add('swiper-button-disabled');
+      } else {
+        nextBtn.classList.remove('swiper-button-disabled');
+      }
+    }
+  }
+  
+  const { prevBtn: pBtn, nextBtn: nBtn } = getNavButtons();
+  
+  if (pBtn) {
+    const newPrevBtn = pBtn.cloneNode(true) as HTMLElement;
+    pBtn.parentNode?.replaceChild(newPrevBtn, pBtn);
+    
+    function handlePrevClick(e: Event): boolean {
+      e.preventDefault();
+      e.stopPropagation();
+      (e as any).stopImmediatePropagation();
+      
+      if (newPrevBtn.classList.contains('swiper-button-disabled')) {
+        return false;
+      }
+      
+      const currentScroll = wrapper.scrollLeft;
+      const slideWidth = (slides[0] as HTMLElement)?.offsetWidth || wrapper.clientWidth;
+      
+      let targetScroll = 0;
+      for (let i = 0; i < slides.length; i++) {
+        const slideLeft = (slides[i] as HTMLElement).offsetLeft;
+        if (slideLeft < currentScroll && slideLeft > 0) {
+          targetScroll = slideLeft;
+        }
+      }
+      
+      if (targetScroll === 0 && currentScroll > 0) {
+        targetScroll = Math.max(0, currentScroll - slideWidth);
+      }
+      
+      wrapper.scrollTo({
+        left: targetScroll,
+        behavior: 'smooth'
+      });
+      
+      return false;
+    }
+    
+    newPrevBtn.addEventListener('click', handlePrevClick, { capture: true });
+    newPrevBtn.addEventListener('touchend', handlePrevClick, { capture: true, passive: false });
+    newPrevBtn.addEventListener('touchstart', (e) => {
+      e.stopPropagation();
+    }, { capture: true });
+  }
+  
+  if (nBtn) {
+    const newNextBtn = nBtn.cloneNode(true) as HTMLElement;
+    nBtn.parentNode?.replaceChild(newNextBtn, nBtn);
+    
+    function handleNextClick(e: Event): boolean {
+      e.preventDefault();
+      e.stopPropagation();
+      (e as any).stopImmediatePropagation();
+      
+      if (newNextBtn.classList.contains('swiper-button-disabled')) {
+        return false;
+      }
+      
+      const currentScroll = wrapper.scrollLeft;
+      const slideWidth = (slides[0] as HTMLElement)?.offsetWidth || wrapper.clientWidth;
+      const wrapperWidth = wrapper.clientWidth;
+      
+      let targetScroll = currentScroll + slideWidth;
+      
+      for (let i = 0; i < slides.length; i++) {
+        const slideLeft = (slides[i] as HTMLElement).offsetLeft;
+        const slideRight = slideLeft + (slides[i] as HTMLElement).offsetWidth;
+        
+        if (slideLeft > currentScroll + 5 || slideRight > currentScroll + wrapperWidth + 5) {
+          targetScroll = slideLeft;
+          break;
+        }
+      }
+      
+      const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+      targetScroll = Math.min(targetScroll, maxScroll);
+      
+      wrapper.scrollTo({
+        left: targetScroll,
+        behavior: 'smooth'
+      });
+      
+      return false;
+    }
+    
+    newNextBtn.addEventListener('click', handleNextClick, { capture: true });
+    newNextBtn.addEventListener('touchend', handleNextClick, { capture: true, passive: false });
+    newNextBtn.addEventListener('touchstart', (e) => {
+      e.stopPropagation();
+    }, { capture: true });
+  }
+  
+  wrapper.addEventListener('scroll', updateNavButtons, { passive: true });
+  
+  setTimeout(() => {
+    updateNavButtons();
+    const currentPrevBtn = swiperContainer.querySelector('.swiper-button-prev') as HTMLElement;
+    const currentNextBtn = swiperContainer.querySelector('.swiper-button-next') as HTMLElement;
+    if (currentPrevBtn && currentNextBtn) {
+      updateNavButtons();
+    }
+  }, 300);
+  
+  let resizeTimeout: ReturnType<typeof setTimeout>;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      updateNavButtons();
+    }, 150);
+  });
+}
+
+function loadSwiperLibrary(callback: () => void): void {
+  if (typeof (window as any).Swiper !== 'undefined') {
+    callback();
+    return;
+  }
+  
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
+  script.onload = callback;
+  document.head.appendChild(script);
+}
+
+
+export function initTestimonialsSwiper(): void {
+  loadSwiperLibrary(() => {
+    createTestimonialsSwiper();
+  });
+}
+
+function createTestimonialsSwiper(): void {
+  const swiperContainer = document.querySelector('.testimonials-swiper') as HTMLElement;
+  if (!swiperContainer) return;
+  
+  const Swiper = (window as any).Swiper;
+  if (!Swiper) return;
+  
+  const swiper = new Swiper('.testimonials-swiper', createSwiperConfig({
+    container: '.testimonials-swiper',
+    pagination: '.testimonial-pagination',
+    autoplayDelay: 5000
+  }));
+  
+  const wrapper = swiperContainer.querySelector('.swiper-wrapper') as HTMLElement;
+  const slides = wrapper?.querySelectorAll('.swiper-slide');
+  
+  if (wrapper && slides) {
+    setupSwiperNavigation(swiperContainer, wrapper, slides, null, null);
+  }
+  
+  swiperContainer.addEventListener('touchstart', (e) => {
+    if (window.scrollY === 0) {
+      window.scrollTo(0, 1);
+    }
+  }, { passive: true });
+}
+
+
+export function initStudentModelsSwiper(): void {
+  loadSwiperLibrary(() => {
+    createStudentModelsSwiper();
+  });
+}
+
+function createStudentModelsSwiper(): void {
+  const swiperContainer = document.querySelector('.student-models-swiper') as HTMLElement;
+  if (!swiperContainer) return;
+  
+  const Swiper = (window as any).Swiper;
+  if (!Swiper) return;
+  
+  const swiper = new Swiper('.student-models-swiper', createSwiperConfig({
+    container: '.student-models-swiper',
+    pagination: '.model-pagination',
+    nextBtn: '.student-models-swiper .swiper-button-next',
+    prevBtn: '.student-models-swiper .swiper-button-prev',
+    autoplayDelay: 4000
+  }));
+  
+  const wrapper = swiperContainer.querySelector('.swiper-wrapper') as HTMLElement;
+  const slides = wrapper?.querySelectorAll('.swiper-slide');
+  
+  if (wrapper && slides) {
+    setupSwiperNavigation(swiperContainer, wrapper, slides, null, null);
+  }
+  
+  swiperContainer.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    const wrapper = target.closest('.model-image-wrapper');
+    if (!wrapper) return;
+    
+    const img = wrapper.querySelector('.model-photo') as HTMLImageElement;
+    if (img?.src) {
+      const modal = document.getElementById('photoModal');
+      if (modal) {
+        const modalImg = modal.querySelector('.modal-image') as HTMLImageElement;
+        if (modalImg) {
+          modalImg.src = img.src;
+          modalImg.alt = img.alt || 'Модель ученика';
+          (modal as HTMLElement).style.display = 'flex';
+          document.body.style.overflow = 'hidden';
+        }
+      }
+    }
+  });
+  
+  swiperContainer.addEventListener('touchstart', (e) => {
+    if (window.scrollY === 0) {
+      window.scrollTo(0, 1);
+    }
+  }, { passive: true });
+}
+
+
+export function initTelegramWebAppFixes(): void {
+  function ensureDocumentIsScrollable(): void {
+    const isScrollable = document.documentElement.scrollHeight > window.innerHeight;
+    if (!isScrollable) {
+      document.documentElement.style.setProperty('height', 'calc(100vh + 1px)', 'important');
+    }
+  }
+  
+  function preventTelegramCollapse(): void {
+    if (window.scrollY === 0) {
+      window.scrollTo(0, 1);
+    }
+  }
+  
+  ensureDocumentIsScrollable();
+  window.addEventListener('resize', ensureDocumentIsScrollable);
+  
+  if ((window as any).Telegram?.WebApp) {
+    try {
+      (window as any).Telegram.WebApp.disableVerticalSwipes();
+      (window as any).Telegram.WebApp.expand();
+    } catch (e) {}
+    
+    document.addEventListener('touchstart', preventTelegramCollapse, { passive: true });
+  }
+}
+
+
+export function preventOrphans(): void {
+  const prepositions = ['в', 'на', 'с', 'по', 'о', 'у', 'за', 'из', 'к', 'до', 'от', 'об', 'под', 'про', 'для', 'без', 'над', 'при', 'через', 'между', 'среди'];
+  const shortWords = ['и', 'а', 'но', 'или', 'как', 'что', 'где', 'чем', 'оно', 'они', 'она', 'он', 'ты', 'мы', 'вы'];
+  const wordsToPrevent = [...prepositions, ...shortWords];
+  
+  const elements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, li, .comparison-text, .step-list li, .tariff-list li, .path-description, .tariff-description, .tariff-note');
+  
+  elements.forEach(element => {
+    if (element.innerHTML.includes('<strong>') || element.innerHTML.includes('<span') || element.innerHTML.includes('<em>') || element.innerHTML.includes('<a>')) {
+      return;
+    }
+    
+    const htmlElement = element as HTMLElement;
+    let text = element.textContent || htmlElement.innerText;
+    if (!text || text.trim().length < 10) return;
+    
+    wordsToPrevent.forEach(word => {
+      const regex = new RegExp(`\\b${word}\\b `, 'gi');
+      text = text.replace(regex, `${word}\u00A0`);
+    });
+    
+    if (text !== (element.textContent || htmlElement.innerText)) {
+      element.textContent = text;
+    }
+  });
+}
+
+
+export function initLazyLoading(): void {
+  const lazyImages = document.querySelectorAll('.lazy-image');
+  
+  if (!lazyImages.length) return;
+  
+  const imageObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target as HTMLImageElement;
+        
+        img.classList.add('loading');
+        
+        const handleLoad = () => {
+          img.classList.remove('loading');
+          img.classList.add('loaded');
+          observer.unobserve(img);
+        };
+        
+        const handleError = () => {
+          img.classList.remove('loading');
+          img.classList.add('loaded');
+          observer.unobserve(img);
+        };
+        
+        if (img.complete && img.naturalHeight !== 0) {
+          handleLoad();
+        } else {
+          img.addEventListener('load', handleLoad, { once: true });
+          img.addEventListener('error', handleError, { once: true });
+        }
+      }
+    });
+  }, {
+    root: null,
+    rootMargin: '50px',
+    threshold: 0.01
+  });
+  
+  lazyImages.forEach(img => {
+    const rect = img.getBoundingClientRect();
+    const isInViewport = (
+      rect.top >= 0 &&
+      rect.left >= 0 &&
+      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+      rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    );
+    
+    const imageElement = img as HTMLImageElement;
+    if (isInViewport && imageElement.complete && imageElement.naturalHeight !== 0) {
+      img.classList.add('loaded');
+    } else {
+      imageObserver.observe(img);
+    }
+  });
+}
+
+
+export function initPhotoModal(): void {
+  const modal = document.getElementById('photoModal') as HTMLElement;
+  if (!modal) return;
+  
+  const modalImg = modal.querySelector('.modal-image') as HTMLImageElement;
+  const closeBtn = modal.querySelector('.modal-close') as HTMLElement;
+  
+  function openModal(imgSrc: string, imgAlt: string): void {
+    if (modalImg) {
+      modalImg.src = imgSrc;
+      modalImg.alt = imgAlt;
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+  }
+  
+  function closeModal(): void {
+    modal.style.display = 'none';
+    if (modalImg) modalImg.src = '';
+    document.body.style.overflow = '';
+  }
+  
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    
+    const sliderContainer = target.closest('.slider-image-container');
+    if (sliderContainer) {
+      const img = sliderContainer.querySelector('.slider-photo') as HTMLImageElement;
+      if (img?.src) {
+        e.preventDefault();
+        openModal(img.src, img.alt || 'Фото отзыва');
+        return;
+      }
+    }
+    
+    const testimonialContainer = target.closest('.testimonial-image-container');
+    if (testimonialContainer) {
+      const img = testimonialContainer.querySelector('.testimonial-photo') as HTMLImageElement;
+      if (img?.src) {
+        e.preventDefault();
+        openModal(img.src, img.alt || 'Фото отзыва');
+        return;
+      }
+    }
+    
+    if (target.closest('.modal-close') || (target === modal && modal.style.display === 'flex')) {
+      e.preventDefault();
+      closeModal();
+    }
+  });
+  
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.style.display === 'flex') {
+      closeModal();
+    }
+  });
+}
+
+
+export function initSmoothScroll(): void {
+  const mainContentEl = document.getElementById('main-content') || document.querySelector('main');
+  
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    const link = target.closest('a[data-scroll-to], a[href^="#"]') as HTMLAnchorElement;
+    if (!link) return;
+    
+    const href = link.getAttribute('href');
+    const scrollTo = link.getAttribute('data-scroll-to');
+    
+    if (!href || !href.startsWith('#')) return;
+    
+    const targetId = scrollTo || href.substring(1);
+    if (!targetId) return;
+    
+    const targetElement = document.getElementById(targetId);
+    if (!targetElement) return;
+    
+    e.preventDefault();
+    
+    const targetRect = targetElement.getBoundingClientRect();
+    const viewportHeight = mainContentEl ? (mainContentEl as HTMLElement).clientHeight : window.innerHeight;
+    const offset = viewportHeight * 0.2;
+    
+    let scrollTop: number;
+    
+    if (mainContentEl) {
+      scrollTop = (mainContentEl as HTMLElement).scrollTop + targetRect.top - offset;
+      const maxScroll = (mainContentEl as HTMLElement).scrollHeight - (mainContentEl as HTMLElement).clientHeight;
+      scrollTop = Math.min(scrollTop, maxScroll);
+      scrollTop = Math.max(0, scrollTop);
+      
+      (mainContentEl as HTMLElement).scrollTo({
+        top: scrollTop,
+        behavior: 'smooth'
+      });
+    } else {
+      scrollTop = window.pageYOffset + targetRect.top - offset;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      scrollTop = Math.min(scrollTop, maxScroll);
+      scrollTop = Math.max(0, scrollTop);
+      
+      window.scrollTo({
+        top: scrollTop,
+        behavior: 'smooth'
+      });
+    }
+  });
+}
+
+
+export function initHowItWorks(): void {
+  onReady(() => {
+    initRevealAnimations();
+    initHorizontalCardReveal();
+    initFAQ();
+    initTestimonialsSwiper();
+    initStudentModelsSwiper();
+    initTelegramWebAppFixes();
+    preventOrphans();
+    initLazyLoading();
+    initPhotoModal();
+    initSmoothScroll();
+  });
+}
+
