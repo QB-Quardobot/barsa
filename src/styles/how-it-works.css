@@ -3405,6 +3405,16 @@ backdrop-filter: blur(10px);
 display: flex;
 align-items: center;
 justify-content: center;
+padding: 0;
+margin: 0;
+touch-action: manipulation;
+-webkit-tap-highlight-color: transparent;
+user-select: none;
+-webkit-user-select: none;
+pointer-events: auto !important;
+z-index: 1001;
+font-family: inherit;
+outline: none;
 }
 
 .modal-close:hover {

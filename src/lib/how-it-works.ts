@@ -672,20 +672,62 @@ export function initPhotoModal(): void {
   const modalImg = modal.querySelector('.modal-image') as HTMLImageElement;
   const closeBtn = modal.querySelector('.modal-close') as HTMLElement;
   
+  let isModalOpen = false;
+  
   function openModal(imgSrc: string, imgAlt: string): void {
-    if (modalImg) {
+    if (modalImg && !isModalOpen) {
       modalImg.src = imgSrc;
       modalImg.alt = imgAlt;
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
+      isModalOpen = true;
+      
+      if ((window as any).Telegram?.WebApp?.BackButton) {
+        (window as any).Telegram.WebApp.BackButton.show();
+      }
     }
   }
   
   function closeModal(): void {
+    if (!isModalOpen) return;
+    
     modal.style.display = 'none';
     if (modalImg) modalImg.src = '';
     document.body.style.overflow = '';
+    isModalOpen = false;
+    
+    if ((window as any).Telegram?.WebApp?.BackButton) {
+      (window as any).Telegram.WebApp.BackButton.hide();
+    }
   }
+  
+  if (closeBtn) {
+    const handleCloseClick = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      closeModal();
+      return false;
+    };
+    
+    closeBtn.addEventListener('click', handleCloseClick, { capture: true, passive: false });
+    closeBtn.addEventListener('touchend', handleCloseClick, { capture: true, passive: false });
+    
+    if ('ontouchstart' in window === false) {
+      closeBtn.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+      }, { capture: true });
+    }
+  }
+  
+  modal.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (target === modal && isModalOpen) {
+      e.preventDefault();
+      e.stopPropagation();
+      closeModal();
+    }
+  }, { passive: false });
   
   document.addEventListener('click', (e) => {
     const target = e.target as HTMLElement;
@@ -693,8 +735,9 @@ export function initPhotoModal(): void {
     const sliderContainer = target.closest('.slider-image-container');
     if (sliderContainer) {
       const img = sliderContainer.querySelector('.slider-photo') as HTMLImageElement;
-      if (img?.src) {
+      if (img?.src && !isModalOpen) {
         e.preventDefault();
+        e.stopPropagation();
         openModal(img.src, img.alt || 'Фото отзыва');
         return;
       }
@@ -703,24 +746,36 @@ export function initPhotoModal(): void {
     const testimonialContainer = target.closest('.testimonial-image-container');
     if (testimonialContainer) {
       const img = testimonialContainer.querySelector('.testimonial-photo') as HTMLImageElement;
-      if (img?.src) {
+      if (img?.src && !isModalOpen) {
         e.preventDefault();
+        e.stopPropagation();
         openModal(img.src, img.alt || 'Фото отзыва');
         return;
       }
     }
     
-    if (target.closest('.modal-close') || (target === modal && modal.style.display === 'flex')) {
-      e.preventDefault();
-      closeModal();
+    const modelWrapper = target.closest('.model-image-wrapper');
+    if (modelWrapper) {
+      const img = modelWrapper.querySelector('.model-photo') as HTMLImageElement;
+      if (img?.src && !isModalOpen) {
+        e.preventDefault();
+        e.stopPropagation();
+        openModal(img.src, img.alt || 'Модель ученика');
+        return;
+      }
     }
-  });
+  }, { passive: false });
   
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.style.display === 'flex') {
+    if (e.key === 'Escape' && isModalOpen) {
+      e.preventDefault();
+      e.stopPropagation();
       closeModal();
     }
-  });
+  }, { passive: false });
+  
+  (window as any).closePhotoModal = closeModal;
+  (window as any).isPhotoModalOpen = () => isModalOpen;
 }
 
 
