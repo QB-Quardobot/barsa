@@ -2814,15 +2814,19 @@ min-height: auto;
 display: flex;
 align-items: stretch;
 user-select: none;
-  -webkit-user-select: none;
-
+-webkit-user-select: none;
 overflow-x: auto;
 overflow-y: visible;
 scroll-snap-type: x mandatory;
 scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+-webkit-overflow-scrolling: touch;
+scrollbar-width: none;
+-ms-overflow-style: none;
+will-change: scroll-position;
+transform: translateZ(0);
+-webkit-transform: translateZ(0);
+backface-visibility: hidden;
+-webkit-backface-visibility: hidden;
 }
 
 .testimonials-swiper .swiper-wrapper::-webkit-scrollbar {
@@ -2834,10 +2838,10 @@ height: auto;
 display: flex;
 align-items: stretch;
 flex-shrink: 0;
-
-/* CRITICAL: Scroll snap alignment for CSS mode */
 scroll-snap-align: center;
 scroll-snap-stop: always;
+transform: translateZ(0);
+-webkit-transform: translateZ(0);
 
 /* Full width on mobile */
 width: 100%;
@@ -3186,6 +3190,9 @@ padding: 0.5rem 1rem;
 .testimonial-nav-btn {
 width: 56px;
 height: 56px;
+touch-action: manipulation;
+-webkit-tap-highlight-color: transparent;
+pointer-events: auto;
 background: rgba(96, 165, 250, 0.2);
 border: 2px solid rgba(96, 165, 250, 0.4);
 border-radius: 50%;
@@ -3471,14 +3478,19 @@ position: relative;
 display: flex;
 align-items: stretch;
 user-select: none;
-  -webkit-user-select: none;
+-webkit-user-select: none;
 overflow-x: auto;
 overflow-y: visible;
 scroll-snap-type: x mandatory;
 scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
+-webkit-overflow-scrolling: touch;
 scrollbar-width: none;
-  -ms-overflow-style: none;
+-ms-overflow-style: none;
+will-change: scroll-position;
+transform: translateZ(0);
+-webkit-transform: translateZ(0);
+backface-visibility: hidden;
+-webkit-backface-visibility: hidden;
 }
 
 .student-models-swiper .swiper-wrapper::-webkit-scrollbar {
@@ -3492,6 +3504,8 @@ align-items: stretch;
 flex-shrink: 0;
 scroll-snap-align: center;
 scroll-snap-stop: always;
+transform: translateZ(0);
+-webkit-transform: translateZ(0);
 width: 100%;
 min-width: 100%;
 padding: 0 1rem;
@@ -3610,6 +3624,9 @@ z-index: 3;
 .model-nav-btn {
 width: 56px;
 height: 56px;
+touch-action: manipulation;
+-webkit-tap-highlight-color: transparent;
+pointer-events: auto;
 background: rgba(96, 165, 250, 0.2);
 border: 2px solid rgba(96, 165, 250, 0.4);
 border-radius: 50%;

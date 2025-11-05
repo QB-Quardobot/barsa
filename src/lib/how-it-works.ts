@@ -149,39 +149,51 @@ interface SwiperConfig {
 function createSwiperConfig(config: SwiperConfig) {
   return {
     direction: 'horizontal' as const,
-    loop: true,
-    speed: 600,
+    loop: false,
+    speed: 300,
     watchOverflow: true,
     slidesPerView: 1,
-    spaceBetween: 20,
-    centeredSlides: false,
+    spaceBetween: 0,
+    centeredSlides: true,
     cssMode: true,
-    simulateTouch: true,
+    simulateTouch: false,
     allowTouchMove: true,
     passiveListeners: true,
     touchStartPreventDefault: false,
+    touchReleaseOnEdges: true,
     freeMode: false,
     grabCursor: false,
     nested: false,
     resistance: true,
     resistanceRatio: 0.85,
-    threshold: 5,
-    longSwipes: true,
+    threshold: 10,
+    longSwipes: false,
     longSwipesRatio: 0.5,
     longSwipesMs: 300,
+    followFinger: true,
+    touchRatio: 1,
+    touchAngle: 45,
+    touchEventsTarget: 'container',
+    preventClicks: true,
+    preventClicksPropagation: true,
     autoplay: {
       delay: config.autoplayDelay || 5000,
-      disableOnInteraction: false,
-      pauseOnMouseEnter: true,
+      disableOnInteraction: true,
+      pauseOnMouseEnter: false,
+      stopOnLastSlide: true,
+      waitForTransition: true,
     },
     pagination: config.pagination ? {
       el: config.pagination,
       clickable: true,
       dynamicBullets: true,
+      dynamicMainBullets: 3,
     } : undefined,
     navigation: (config.prevBtn || config.nextBtn) ? {
       nextEl: config.nextBtn,
       prevEl: config.prevBtn,
+      disabledClass: 'swiper-button-disabled',
+      hiddenClass: 'swiper-button-hidden',
     } : undefined,
     breakpoints: {
       320: { slidesPerView: 1, spaceBetween: 0, centeredSlides: true },
@@ -215,135 +227,174 @@ function setupSwiperNavigation(
     const scrollLeft = wrapper.scrollLeft;
     const scrollWidth = wrapper.scrollWidth;
     const clientWidth = wrapper.clientWidth;
-    const maxScroll = scrollWidth - clientWidth;
+    const maxScroll = Math.max(0, scrollWidth - clientWidth);
     
     if (prevBtn) {
-      if (scrollLeft <= 5) {
+      if (scrollLeft <= 10) {
         prevBtn.classList.add('swiper-button-disabled');
+        prevBtn.setAttribute('aria-disabled', 'true');
       } else {
         prevBtn.classList.remove('swiper-button-disabled');
+        prevBtn.setAttribute('aria-disabled', 'false');
       }
     }
     
     if (nextBtn) {
-      if (scrollLeft >= maxScroll - 5) {
+      if (scrollLeft >= maxScroll - 10) {
         nextBtn.classList.add('swiper-button-disabled');
+        nextBtn.setAttribute('aria-disabled', 'true');
       } else {
         nextBtn.classList.remove('swiper-button-disabled');
+        nextBtn.setAttribute('aria-disabled', 'false');
       }
     }
   }
   
-  const { prevBtn: pBtn, nextBtn: nBtn } = getNavButtons();
-  
-  if (pBtn) {
-    const newPrevBtn = pBtn.cloneNode(true) as HTMLElement;
-    pBtn.parentNode?.replaceChild(newPrevBtn, pBtn);
+  function scrollToSlide(direction: 'prev' | 'next'): void {
+    const currentScroll = wrapper.scrollLeft;
+    const slideWidth = wrapper.clientWidth;
+    const scrollWidth = wrapper.scrollWidth;
+    const maxScroll = Math.max(0, scrollWidth - slideWidth);
     
-    function handlePrevClick(e: Event): boolean {
-      e.preventDefault();
-      e.stopPropagation();
-      (e as any).stopImmediatePropagation();
-      
-      if (newPrevBtn.classList.contains('swiper-button-disabled')) {
-        return false;
-      }
-      
-      const currentScroll = wrapper.scrollLeft;
-      const slideWidth = (slides[0] as HTMLElement)?.offsetWidth || wrapper.clientWidth;
-      
-      let targetScroll = 0;
-      for (let i = 0; i < slides.length; i++) {
-        const slideLeft = (slides[i] as HTMLElement).offsetLeft;
-        if (slideLeft < currentScroll && slideLeft > 0) {
-          targetScroll = slideLeft;
-        }
-      }
-      
-      if (targetScroll === 0 && currentScroll > 0) {
-        targetScroll = Math.max(0, currentScroll - slideWidth);
-      }
-      
+    let targetScroll: number;
+    
+    if (direction === 'prev') {
+      const currentSlide = Math.round(currentScroll / slideWidth);
+      targetScroll = Math.max(0, (currentSlide - 1) * slideWidth);
+    } else {
+      const currentSlide = Math.round(currentScroll / slideWidth);
+      targetScroll = Math.min(maxScroll, (currentSlide + 1) * slideWidth);
+    }
+    
+    if (targetScroll === currentScroll) return;
+    
+    try {
       wrapper.scrollTo({
         left: targetScroll,
         behavior: 'smooth'
       });
-      
-      return false;
+    } catch (e) {
+      wrapper.scrollLeft = targetScroll;
     }
-    
-    newPrevBtn.addEventListener('click', handlePrevClick, { capture: true });
-    newPrevBtn.addEventListener('touchend', handlePrevClick, { capture: true, passive: false });
-    newPrevBtn.addEventListener('touchstart', (e) => {
-      e.stopPropagation();
-    }, { capture: true });
   }
   
-  if (nBtn) {
-    const newNextBtn = nBtn.cloneNode(true) as HTMLElement;
-    nBtn.parentNode?.replaceChild(newNextBtn, nBtn);
+  let touchStartTime = 0;
+  let touchStartButton: HTMLElement | null = null;
+  
+  swiperContainer.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    const button = target.closest('.swiper-button-prev, .swiper-button-next') as HTMLElement;
+    if (!button) return;
     
-    function handleNextClick(e: Event): boolean {
+    if (button.classList.contains('swiper-button-disabled')) {
       e.preventDefault();
       e.stopPropagation();
-      (e as any).stopImmediatePropagation();
-      
-      if (newNextBtn.classList.contains('swiper-button-disabled')) {
-        return false;
-      }
-      
-      const currentScroll = wrapper.scrollLeft;
-      const slideWidth = (slides[0] as HTMLElement)?.offsetWidth || wrapper.clientWidth;
-      const wrapperWidth = wrapper.clientWidth;
-      
-      let targetScroll = currentScroll + slideWidth;
-      
-      for (let i = 0; i < slides.length; i++) {
-        const slideLeft = (slides[i] as HTMLElement).offsetLeft;
-        const slideRight = slideLeft + (slides[i] as HTMLElement).offsetWidth;
-        
-        if (slideLeft > currentScroll + 5 || slideRight > currentScroll + wrapperWidth + 5) {
-          targetScroll = slideLeft;
-          break;
-        }
-      }
-      
-      const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
-      targetScroll = Math.min(targetScroll, maxScroll);
-      
-      wrapper.scrollTo({
-        left: targetScroll,
-        behavior: 'smooth'
-      });
-      
-      return false;
+      return;
     }
     
-    newNextBtn.addEventListener('click', handleNextClick, { capture: true });
-    newNextBtn.addEventListener('touchend', handleNextClick, { capture: true, passive: false });
-    newNextBtn.addEventListener('touchstart', (e) => {
-      e.stopPropagation();
-    }, { capture: true });
-  }
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (button.classList.contains('swiper-button-prev')) {
+      scrollToSlide('prev');
+    } else if (button.classList.contains('swiper-button-next')) {
+      scrollToSlide('next');
+    }
+  }, { passive: false });
   
-  wrapper.addEventListener('scroll', updateNavButtons, { passive: true });
+  swiperContainer.addEventListener('touchstart', (e) => {
+    const target = e.target as HTMLElement;
+    const button = target.closest('.swiper-button-prev, .swiper-button-next') as HTMLElement;
+    
+    if (button && !button.classList.contains('swiper-button-disabled')) {
+      touchStartTime = Date.now();
+      touchStartButton = button;
+      button.style.touchAction = 'manipulation';
+      e.stopPropagation();
+    }
+  }, { passive: true });
+  
+  swiperContainer.addEventListener('touchmove', (e) => {
+    if (touchStartButton) {
+      const touch = e.touches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement;
+      const button = target?.closest('.swiper-button-prev, .swiper-button-next') as HTMLElement;
+      
+      if (button !== touchStartButton) {
+        touchStartButton = null;
+      }
+    }
+  }, { passive: true });
+  
+  swiperContainer.addEventListener('touchend', (e) => {
+    if (!touchStartButton || touchStartButton.classList.contains('swiper-button-disabled')) {
+      touchStartButton = null;
+      return;
+    }
+    
+    const touchDuration = Date.now() - touchStartTime;
+    if (touchDuration < 500) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (touchStartButton.classList.contains('swiper-button-prev')) {
+        scrollToSlide('prev');
+      } else if (touchStartButton.classList.contains('swiper-button-next')) {
+        scrollToSlide('next');
+      }
+    }
+    
+    if (touchStartButton) {
+      touchStartButton.style.touchAction = '';
+      touchStartButton = null;
+    }
+  }, { passive: false });
+  
+  swiperContainer.addEventListener('touchcancel', () => {
+    if (touchStartButton) {
+      touchStartButton.style.touchAction = '';
+      touchStartButton = null;
+    }
+  }, { passive: true });
+  
+  let scrollTimeout: ReturnType<typeof setTimeout>;
+  const handleScroll = () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      requestAnimationFrame(() => {
+        updateNavButtons();
+      });
+    }, 50);
+  };
+  
+  wrapper.addEventListener('scroll', handleScroll, { passive: true });
+  
+  if ('onscrollend' in wrapper) {
+    wrapper.addEventListener('scrollend', () => {
+      requestAnimationFrame(() => {
+        updateNavButtons();
+      });
+    }, { passive: true });
+  }
   
   setTimeout(() => {
-    updateNavButtons();
-    const currentPrevBtn = swiperContainer.querySelector('.swiper-button-prev') as HTMLElement;
-    const currentNextBtn = swiperContainer.querySelector('.swiper-button-next') as HTMLElement;
-    if (currentPrevBtn && currentNextBtn) {
+    requestAnimationFrame(() => {
       updateNavButtons();
-    }
-  }, 300);
+    });
+  }, 100);
   
   let resizeTimeout: ReturnType<typeof setTimeout>;
-  window.addEventListener('resize', () => {
+  const resizeObserver = new ResizeObserver(() => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-      updateNavButtons();
+      requestAnimationFrame(() => {
+        updateNavButtons();
+      });
     }, 150);
   });
+  
+  resizeObserver.observe(wrapper);
+  resizeObserver.observe(swiperContainer);
 }
 
 function loadSwiperLibrary(callback: () => void): void {
@@ -385,9 +436,21 @@ function createTestimonialsSwiper(): void {
     setupSwiperNavigation(swiperContainer, wrapper, slides, null, null);
   }
   
-  swiperContainer.addEventListener('touchstart', (e) => {
+  let touchStartY = 0;
+  wrapper.addEventListener('touchstart', (e) => {
+    touchStartY = e.touches[0].clientY;
     if (window.scrollY === 0) {
-      window.scrollTo(0, 1);
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 1);
+      });
+    }
+  }, { passive: true });
+  
+  wrapper.addEventListener('touchmove', (e) => {
+    const touchY = e.touches[0].clientY;
+    const deltaY = Math.abs(touchY - touchStartY);
+    if (deltaY > 10) {
+      e.stopPropagation();
     }
   }, { passive: true });
 }
@@ -423,10 +486,13 @@ function createStudentModelsSwiper(): void {
   
   swiperContainer.addEventListener('click', (e) => {
     const target = e.target as HTMLElement;
-    const wrapper = target.closest('.model-image-wrapper');
-    if (!wrapper) return;
+    const button = target.closest('.swiper-button-prev, .swiper-button-next');
+    if (button) return;
     
-    const img = wrapper.querySelector('.model-photo') as HTMLImageElement;
+    const imageWrapper = target.closest('.model-image-wrapper');
+    if (!imageWrapper) return;
+    
+    const img = imageWrapper.querySelector('.model-photo') as HTMLImageElement;
     if (img?.src) {
       const modal = document.getElementById('photoModal');
       if (modal) {
@@ -441,9 +507,21 @@ function createStudentModelsSwiper(): void {
     }
   });
   
-  swiperContainer.addEventListener('touchstart', (e) => {
+  let touchStartY = 0;
+  wrapper.addEventListener('touchstart', (e) => {
+    touchStartY = e.touches[0].clientY;
     if (window.scrollY === 0) {
-      window.scrollTo(0, 1);
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 1);
+      });
+    }
+  }, { passive: true });
+  
+  wrapper.addEventListener('touchmove', (e) => {
+    const touchY = e.touches[0].clientY;
+    const deltaY = Math.abs(touchY - touchStartY);
+    if (deltaY > 10) {
+      e.stopPropagation();
     }
   }, { passive: true });
 }
