@@ -16,7 +16,32 @@ import '../styles/how-it-works.css';
       </h1>
       
       <div class="hero-subtitle reveal-up">
-        <p class="hero-subtitle-line">Без своего лица. Без рекламы.<br>Без опыта.</p>
+        <div class="hero-features">
+          <div class="hero-feature-item">
+            <div class="hero-feature-check">
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 6L5.5 10.5L15 1" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="hero-feature-text">Без своего лица</span>
+          </div>
+          <div class="hero-feature-item">
+            <div class="hero-feature-check">
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 6L5.5 10.5L15 1" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="hero-feature-text">Без рекламы</span>
+          </div>
+          <div class="hero-feature-item">
+            <div class="hero-feature-check">
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 6L5.5 10.5L15 1" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="hero-feature-text">Без опыта</span>
+          </div>
+        </div>
         <p class="hero-subtitle-line">По моей пошаговой системе<br>с платформой, кейсами и гарантией<br>первых оплат</p>
       </div>
       
@@ -266,25 +291,25 @@ import '../styles/how-it-works.css';
       <div class="formats-grid reveal-scale">
         <div class="format-card reveal-up">
           <div class="format-icon-wrapper">
-            <div class="format-icon">💪</div>
+          <div class="format-icon">💪</div>
           </div>
           <h3 class="format-title">Тренер</h3>
         </div>
         <div class="format-card reveal-up">
           <div class="format-icon-wrapper">
-            <div class="format-icon">💅</div>
+          <div class="format-icon">💅</div>
           </div>
           <h3 class="format-title">Бьюти-блогер</h3>
         </div>
         <div class="format-card reveal-up">
           <div class="format-icon-wrapper">
-            <div class="format-icon">✨</div>
+          <div class="format-icon">✨</div>
           </div>
           <h3 class="format-title">Лайфстайл-инфлюенсер</h3>
         </div>
         <div class="format-card reveal-up">
           <div class="format-icon-wrapper">
-            <div class="format-icon">🎯</div>
+          <div class="format-icon">🎯</div>
           </div>
           <h3 class="format-title">Эксперт в любой нише</h3>
         </div>
@@ -334,9 +359,7 @@ import '../styles/how-it-works.css';
             Бесконечные документы, проверки, таблицы. Жил в постоянном стрессе, пока однажды не понял — я хочу жить и работать по-другому.
           </p>
           <p class="ilya-current reveal-up">
-            Сегодня все наоборот:<br/>
-            Я&nbsp;вышел на&nbsp;<span class="gradient-text">10.000+&nbsp;евро в&nbsp;месяц</span>, но<br/>
-            работаю в&nbsp;разы меньше,&nbsp;парадокс..
+            Сегодня все наоборот: Я&nbsp;вышел на&nbsp;<span class="ilya-current-amount gradient-text">10.000+&nbsp;евро&nbsp;в&nbsp;месяц</span>, но работаю в&nbsp;разы меньше, <span class="ilya-current-ending">парадокс..</span>
           </p>
           <p class="ilya-text reveal-fade">
             Теперь я масштабирую свою систему и уже имею несколько AI-моделей
@@ -600,9 +623,9 @@ import '../styles/how-it-works.css';
           <p class="tariff-note">
             Подходит тем, кто хочет самостоятельно запустить свою модель и получить первые продажи.
           </p>
-          <a href="https://t.me/+-H7bNyi6NihhM2Fk" class="tariff-btn" data-cta data-href="https://t.me/+-H7bNyi6NihhM2Fk" aria-label="Выбрать тариф">
+          <button type="button" class="tariff-btn" data-tariff="1" aria-label="Выбрать тариф">
             Выбрать тариф
-          </a>
+          </button>
         </div>
         
         <!-- Tariff 2 - Most Popular -->
@@ -640,9 +663,9 @@ import '../styles/how-it-works.css';
           <p class="tariff-note">
             Этот тариф — для тех, кто хочет все и сразу, двигаться быстрее и зарабатывать больше.
           </p>
-          <a href="https://t.me/+-H7bNyi6NihhM2Fk" class="tariff-btn tariff-btn-popular" data-cta data-href="https://t.me/+-H7bNyi6NihhM2Fk" aria-label="Выбрать тариф - самый популярный">
+          <button type="button" class="tariff-btn tariff-btn-popular" data-tariff="2" aria-label="Выбрать тариф - самый популярный">
             Выбрать тариф
-          </a>
+          </button>
         </div>
         
         <!-- Tariff 3 -->
@@ -759,18 +782,18 @@ import '../styles/how-it-works.css';
               <div class="slider-item review-item">
                 <div class="slider-label">💬 Отзыв</div>
                 <div class="slider-image-container image-wrapper">
-                  <div class="shimmer-wrapper">
-                    <img 
-                      src="/images/testimonials/review-1.jpg"
+                      <div class="shimmer-wrapper">
+                        <img 
+                          src="/images/testimonials/review-1.jpg"
                       alt="Отзыв ученика"
                       class="slider-photo lazy-image"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div class="shimmer-overlay"></div>
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <div class="shimmer-overlay"></div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
             </div>
             
             <!-- Income 1 -->
@@ -778,15 +801,15 @@ import '../styles/how-it-works.css';
               <div class="slider-item income-item">
                 <div class="slider-label">💰 Результат</div>
                 <div class="slider-image-container image-wrapper">
-                  <div class="shimmer-wrapper">
-                    <img 
-                      src="/images/testimonials/income-1.jpg"
+                      <div class="shimmer-wrapper">
+                        <img 
+                          src="/images/testimonials/income-1.jpg"
                       alt="Доход ученика"
                       class="slider-photo lazy-image"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div class="shimmer-overlay"></div>
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <div class="shimmer-overlay"></div>
                   </div>
                 </div>
               </div>
@@ -797,18 +820,18 @@ import '../styles/how-it-works.css';
               <div class="slider-item review-item">
                 <div class="slider-label">💬 Отзыв</div>
                 <div class="slider-image-container image-wrapper">
-                  <div class="shimmer-wrapper">
-                    <img 
-                      src="/images/testimonials/review-2.jpg"
+                      <div class="shimmer-wrapper">
+                        <img 
+                          src="/images/testimonials/review-2.jpg"
                       alt="Отзыв ученика"
                       class="slider-photo lazy-image"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div class="shimmer-overlay"></div>
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <div class="shimmer-overlay"></div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
             </div>
             
             <!-- Income 2 -->
@@ -816,15 +839,15 @@ import '../styles/how-it-works.css';
               <div class="slider-item income-item">
                 <div class="slider-label">💰 Результат</div>
                 <div class="slider-image-container image-wrapper">
-                  <div class="shimmer-wrapper">
-                    <img 
-                      src="/images/testimonials/income-2.jpg"
+                      <div class="shimmer-wrapper">
+                        <img 
+                          src="/images/testimonials/income-2.jpg"
                       alt="Доход ученика"
                       class="slider-photo lazy-image"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div class="shimmer-overlay"></div>
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <div class="shimmer-overlay"></div>
                   </div>
                 </div>
               </div>
@@ -835,18 +858,18 @@ import '../styles/how-it-works.css';
               <div class="slider-item review-item">
                 <div class="slider-label">💬 Отзыв</div>
                 <div class="slider-image-container image-wrapper">
-                  <div class="shimmer-wrapper">
-                    <img 
-                      src="/images/testimonials/review-3.jpg"
+                      <div class="shimmer-wrapper">
+                        <img 
+                          src="/images/testimonials/review-3.jpg"
                       alt="Отзыв ученика"
                       class="slider-photo lazy-image"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div class="shimmer-overlay"></div>
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <div class="shimmer-overlay"></div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
             </div>
             
             <!-- Income 3 -->
@@ -854,15 +877,15 @@ import '../styles/how-it-works.css';
               <div class="slider-item income-item">
                 <div class="slider-label">💰 Результат</div>
                 <div class="slider-image-container image-wrapper">
-                  <div class="shimmer-wrapper">
-                    <img 
-                      src="/images/testimonials/income-3.jpg"
+                      <div class="shimmer-wrapper">
+                        <img 
+                          src="/images/testimonials/income-3.jpg"
                       alt="Доход ученика"
                       class="slider-photo lazy-image"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div class="shimmer-overlay"></div>
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <div class="shimmer-overlay"></div>
                   </div>
                 </div>
               </div>
@@ -873,18 +896,18 @@ import '../styles/how-it-works.css';
               <div class="slider-item review-item">
                 <div class="slider-label">💬 Отзыв</div>
                 <div class="slider-image-container image-wrapper">
-                  <div class="shimmer-wrapper">
-                    <img 
-                      src="/images/testimonials/review-4.jpg"
+                      <div class="shimmer-wrapper">
+                        <img 
+                          src="/images/testimonials/review-4.jpg"
                       alt="Отзыв ученика"
                       class="slider-photo lazy-image"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div class="shimmer-overlay"></div>
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <div class="shimmer-overlay"></div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
             </div>
             
             <!-- Income 4 -->
@@ -892,15 +915,15 @@ import '../styles/how-it-works.css';
               <div class="slider-item income-item">
                 <div class="slider-label">💰 Результат</div>
                 <div class="slider-image-container image-wrapper">
-                  <div class="shimmer-wrapper">
-                    <img 
-                      src="/images/testimonials/income-4.jpg"
+                      <div class="shimmer-wrapper">
+                        <img 
+                          src="/images/testimonials/income-4.jpg"
                       alt="Доход ученика"
                       class="slider-photo lazy-image"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div class="shimmer-overlay"></div>
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <div class="shimmer-overlay"></div>
                   </div>
                 </div>
               </div>
@@ -911,18 +934,18 @@ import '../styles/how-it-works.css';
               <div class="slider-item review-item">
                 <div class="slider-label">💬 Отзыв</div>
                 <div class="slider-image-container image-wrapper">
-                  <div class="shimmer-wrapper">
-                    <img 
-                      src="/images/testimonials/review-5.jpg"
+                      <div class="shimmer-wrapper">
+                        <img 
+                          src="/images/testimonials/review-5.jpg"
                       alt="Отзыв ученика"
                       class="slider-photo lazy-image"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div class="shimmer-overlay"></div>
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <div class="shimmer-overlay"></div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
             </div>
             
             <!-- Income 5 -->
@@ -930,15 +953,15 @@ import '../styles/how-it-works.css';
               <div class="slider-item income-item">
                 <div class="slider-label">💰 Результат</div>
                 <div class="slider-image-container image-wrapper">
-                  <div class="shimmer-wrapper">
-                    <img 
-                      src="/images/testimonials/income-5.jpg"
+                      <div class="shimmer-wrapper">
+                        <img 
+                          src="/images/testimonials/income-5.jpg"
                       alt="Доход ученика"
                       class="slider-photo lazy-image"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div class="shimmer-overlay"></div>
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <div class="shimmer-overlay"></div>
                   </div>
                 </div>
               </div>
@@ -1291,6 +1314,31 @@ import '../styles/how-it-works.css';
   <div id="photoModal" class="modal" style="display: none;">
     <button type="button" class="modal-close" aria-label="Закрыть" title="Закрыть">&times;</button>
     <img class="modal-image" alt="">
+  </div>
+
+  <!-- Currency Selection Modal -->
+  <div id="currencyModal" class="currency-modal" style="display: none;" role="dialog" aria-labelledby="currencyModalTitle" aria-modal="true">
+    <div class="currency-modal-backdrop"></div>
+    <div class="currency-modal-content">
+      <button type="button" class="currency-modal-close" aria-label="Закрыть">&times;</button>
+      <h3 id="currencyModalTitle" class="currency-modal-title">Выберите способ оплаты</h3>
+      <div class="currency-buttons">
+        <a href="#" class="currency-btn currency-btn-rub" data-currency="rub" role="button">
+          <span class="currency-icon">₽</span>
+          <span class="currency-label">Рубли</span>
+          <span class="currency-amount" id="currencyRubAmount"></span>
+        </a>
+        <a href="#" class="currency-btn currency-btn-eur" data-currency="eur" role="button">
+          <span class="currency-icon">€</span>
+          <span class="currency-label">Евро</span>
+          <span class="currency-amount" id="currencyEurAmount"></span>
+        </a>
+      </div>
+      <a href="#" class="currency-support-btn" id="currencySupportLink" role="button">
+        <span class="support-icon">💬</span>
+        <span>Написать в поддержку</span>
+      </a>
+    </div>
   </div>
 
 

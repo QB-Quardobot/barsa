@@ -372,6 +372,18 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               return false;
             }
             
+            function isCurrencyModalOpen() {
+              return typeof win.isCurrencyModalOpen === 'function' ? win.isCurrencyModalOpen() : false;
+            }
+            
+            function closeCurrencyModal() {
+              if (typeof win.closeCurrencyModal === 'function') {
+                win.closeCurrencyModal();
+                return true;
+              }
+              return false;
+            }
+            
             // Check if we're on the first page (index/home page)
             function isFirstPage() {
               const pathname = win.location.pathname;
@@ -380,8 +392,8 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             
             // Function to check if we can go back
             function canGoBack() {
-              // Always show if modal is open
-              if (isPhotoModalOpen()) {
+              // Always show if any modal is open
+              if (isPhotoModalOpen() || isCurrencyModalOpen()) {
                 return true;
               }
               
@@ -407,7 +419,14 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             
             // Function to handle back action
             function handleBackClick() {
-              // First priority: close modal if open
+              // First priority: close currency modal if open
+              if (isCurrencyModalOpen()) {
+                closeCurrencyModal();
+                triggerHaptic('light');
+                return;
+              }
+              
+              // Second priority: close photo modal if open
               if (isPhotoModalOpen()) {
                 closePhotoModal();
                 triggerHaptic('light');

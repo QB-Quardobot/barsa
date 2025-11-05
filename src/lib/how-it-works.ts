@@ -53,18 +53,33 @@ export function initHorizontalCardReveal(): void {
 
 export function initRevealAnimations(): void {
   try {
-    if ((window as any).revealInstance) return;
-    
-    if (typeof (window as any).initReveal === 'function') {
-      (window as any).initReveal();
-    } else {
-      import('../lib/reveal-init.js').then(() => {
-        if (typeof (window as any).initReveal === 'function') {
-          (window as any).initReveal();
-        }
-      }).catch(() => {});
+    // Use the same reveal system as the first page for consistency
+    if ((window as any).revealInstance) {
+      return; // Already initialized
     }
-  } catch (e) {}
+    
+    // Import and initialize reveal animations
+    import('./reveal').then((module) => {
+      if (typeof module.initReveal === 'function') {
+        module.initReveal();
+      }
+    }).catch((error) => {
+      // Fallback: try reveal-init as alternative
+      if (typeof (window as any).initReveal === 'function') {
+        (window as any).initReveal();
+      } else {
+        import('./reveal-init').then(() => {
+          if (typeof (window as any).initReveal === 'function') {
+            (window as any).initReveal();
+          }
+        }).catch(() => {
+          // Silently fail - elements will remain visible
+        });
+      }
+    });
+  } catch (e) {
+    // Silently fail - elements will remain visible
+  }
 }
 
 
@@ -609,32 +624,46 @@ export function preventOrphans(): void {
 
 
 export function initLazyLoading(): void {
-  const lazyImages = document.querySelectorAll('.lazy-image');
+  // Use same approach as first page - handle all lazy images
+  const lazyImages = document.querySelectorAll('img[loading="lazy"], img.lazy-image');
   
   if (!lazyImages.length) return;
+  
+  if (typeof IntersectionObserver === 'undefined') {
+    // Fallback: show all images immediately
+    lazyImages.forEach(img => {
+      (img as HTMLImageElement).classList.add('loaded');
+    });
+    return;
+  }
   
   const imageObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const img = entry.target as HTMLImageElement;
         
-        img.classList.add('loading');
-        
-        const handleLoad = () => {
-          img.classList.remove('loading');
-          img.classList.add('loaded');
-          observer.unobserve(img);
-        };
-        
-        const handleError = () => {
-          img.classList.remove('loading');
-          img.classList.add('loaded');
-          observer.unobserve(img);
-        };
-        
+        // If image is already loaded, show it immediately
         if (img.complete && img.naturalHeight !== 0) {
-          handleLoad();
+          img.classList.add('loaded');
+          observer.unobserve(img);
         } else {
+          // Add loading state
+          img.classList.add('loading');
+          
+          // Wait for image to load
+          const handleLoad = () => {
+            img.classList.remove('loading');
+            img.classList.add('loaded');
+            observer.unobserve(img);
+          };
+          
+          const handleError = () => {
+            // Handle error - still show image to prevent white space
+            img.classList.remove('loading');
+            img.classList.add('loaded');
+            observer.unobserve(img);
+          };
+          
           img.addEventListener('load', handleLoad, { once: true });
           img.addEventListener('error', handleError, { once: true });
         }
@@ -642,23 +671,26 @@ export function initLazyLoading(): void {
     });
   }, {
     root: null,
-    rootMargin: '50px',
+    rootMargin: '50px', // Start loading images 50px before they enter viewport
     threshold: 0.01
   });
   
+  // Check initial viewport and observe remaining images
   lazyImages.forEach(img => {
+    const imageElement = img as HTMLImageElement;
     const rect = img.getBoundingClientRect();
     const isInViewport = (
       rect.top >= 0 &&
       rect.left >= 0 &&
-      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) + 50 &&
       rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     );
     
-    const imageElement = img as HTMLImageElement;
     if (isInViewport && imageElement.complete && imageElement.naturalHeight !== 0) {
-      img.classList.add('loaded');
+      // Already loaded and in viewport - show immediately
+      imageElement.classList.add('loaded');
     } else {
+      // Observe for lazy loading
       imageObserver.observe(img);
     }
   });
@@ -823,6 +855,182 @@ export function initSmoothScroll(): void {
 }
 
 
+// Tariff data configuration
+interface TariffData {
+  name: string;
+  rub: {
+    amount: string;
+    url: string;
+  };
+  eur: {
+    amount: string;
+    url: string;
+  };
+}
+
+const TARIFFS: Record<string, TariffData> = {
+  '1': {
+    name: 'Самостоятельный',
+    rub: {
+      amount: '24.000 ₽',
+      url: 'https://t.me/tribute/app?startapp=sFjs'
+    },
+    eur: {
+      amount: '250 €',
+      url: 'https://t.me/tribute/app?startapp=sFjp'
+    }
+  },
+  '2': {
+    name: 'Все и сразу',
+    rub: {
+      amount: '56.500 ₽',
+      url: 'https://t.me/tribute/app?startapp=sFjo'
+    },
+    eur: {
+      amount: '600 €',
+      url: 'https://t.me/tribute/app?startapp=sFjk'
+    }
+  }
+};
+
+export function initCurrencyModal(): void {
+  const modal = document.getElementById('currencyModal') as HTMLElement;
+  if (!modal) return;
+  
+  const backdrop = modal.querySelector('.currency-modal-backdrop') as HTMLElement;
+  const closeBtn = modal.querySelector('.currency-modal-close') as HTMLElement;
+  const rubBtn = modal.querySelector('.currency-btn-rub') as HTMLAnchorElement;
+  const eurBtn = modal.querySelector('.currency-btn-eur') as HTMLAnchorElement;
+  const rubAmount = modal.querySelector('#currencyRubAmount') as HTMLElement;
+  const eurAmount = modal.querySelector('#currencyEurAmount') as HTMLElement;
+  const supportBtn = modal.querySelector('#currencySupportLink') as HTMLAnchorElement;
+  
+  let isModalOpen = false;
+  let currentTariff: string | null = null;
+  
+  // Support link (will be updated later)
+  if (supportBtn) {
+    supportBtn.href = 'https://t.me/your_support_account'; // Placeholder
+  }
+  
+  function openModal(tariffId: string): void {
+    if (isModalOpen || !TARIFFS[tariffId]) return;
+    
+    currentTariff = tariffId;
+    const tariff = TARIFFS[tariffId];
+    
+    // Update amounts
+    if (rubAmount) rubAmount.textContent = tariff.rub.amount;
+    if (eurAmount) eurAmount.textContent = tariff.eur.amount;
+    
+    // Update links
+    if (rubBtn) rubBtn.href = tariff.rub.url;
+    if (eurBtn) eurBtn.href = tariff.eur.url;
+    
+    // Show modal with animation
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Trigger animation
+    requestAnimationFrame(() => {
+      modal.classList.add('is-open');
+      backdrop?.classList.add('is-active');
+    });
+    
+    isModalOpen = true;
+    
+    // Haptic feedback
+    if ((window as any).Telegram?.WebApp?.HapticFeedback) {
+      (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('light');
+    }
+  }
+  
+  function closeModal(): void {
+    if (!isModalOpen) return;
+    
+    // Remove animation classes
+    modal.classList.remove('is-open');
+    backdrop?.classList.remove('is-active');
+    
+    // Hide after animation
+    setTimeout(() => {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+      isModalOpen = false;
+      currentTariff = null;
+    }, 200);
+    
+    // Haptic feedback
+    if ((window as any).Telegram?.WebApp?.HapticFeedback) {
+      (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('light');
+    }
+  }
+  
+  // Close button handler
+  if (closeBtn) {
+    const handleClose = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeModal();
+    };
+    
+    closeBtn.addEventListener('click', handleClose, { passive: false });
+    closeBtn.addEventListener('touchend', handleClose, { passive: false });
+  }
+  
+  // Backdrop click handler
+  if (backdrop) {
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) {
+        e.preventDefault();
+        closeModal();
+      }
+    }, { passive: false });
+  }
+  
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isModalOpen) {
+      e.preventDefault();
+      closeModal();
+    }
+  }, { passive: false });
+  
+  // Handle tariff button clicks
+  const tariffButtons = document.querySelectorAll('[data-tariff]');
+  tariffButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const tariffId = (btn as HTMLElement).dataset.tariff;
+      if (tariffId) {
+        openModal(tariffId);
+      }
+    }, { passive: false });
+  });
+  
+  // Currency button click handlers (for analytics)
+  if (rubBtn) {
+    rubBtn.addEventListener('click', () => {
+      if ((window as any).Telegram?.WebApp?.HapticFeedback) {
+        (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+      }
+    });
+  }
+  
+  if (eurBtn) {
+    eurBtn.addEventListener('click', () => {
+      if ((window as any).Telegram?.WebApp?.HapticFeedback) {
+        (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+      }
+    });
+  }
+  
+  // Expose functions globally for Telegram WebApp BackButton
+  (window as any).closeCurrencyModal = closeModal;
+  (window as any).isCurrencyModalOpen = () => isModalOpen;
+}
+
+
 export function initHowItWorks(): void {
   onReady(() => {
     initRevealAnimations();
@@ -834,6 +1042,7 @@ export function initHowItWorks(): void {
     preventOrphans();
     initLazyLoading();
     initPhotoModal();
+    initCurrencyModal();
     initSmoothScroll();
   });
 }
