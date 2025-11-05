@@ -372,17 +372,37 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               return false;
             }
             
+            // Check if we're on the first page (index/home page)
+            function isFirstPage() {
+              const pathname = win.location.pathname;
+              return pathname === '/' || pathname === '/index.html' || pathname.endsWith('/index');
+            }
+            
             // Function to check if we can go back
             function canGoBack() {
-              // Check if we can scroll up
+              // Always show if modal is open
+              if (isPhotoModalOpen()) {
+                return true;
+              }
+              
+              // Check if we're on second page (how-it-works)
+              if (!isFirstPage()) {
+                // On second page, always show back button
+                return true;
+              }
+              
+              // On first page: check scroll position
               const mainContent = doc.getElementById('main-content');
               const scrollable = mainContent || doc.documentElement;
-              const canScrollUp = scrollable.scrollTop > 100; // 100px threshold
+              const scrollTop = scrollable.scrollTop || 0;
               
-              // Check browser history
-              const canUseHistory = win.history.length > 1;
+              // Show back button only if scrolled down
+              if (scrollTop > 100) {
+                return true;
+              }
               
-              return canScrollUp || canUseHistory;
+              // On first page at top: hide back button (close button will be shown by default)
+              return false;
             }
             
             // Function to handle back action
@@ -394,11 +414,25 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                 return;
               }
               
+              // Second priority: if on second page, go back to first page
+              if (!isFirstPage()) {
+                try {
+                  win.history.back();
+                  triggerHaptic('light');
+                  return;
+                } catch (e) {
+                  // Fallback: navigate to home
+                  win.location.href = '/';
+                  return;
+                }
+              }
+              
+              // Third priority: on first page, scroll to top if scrolled
               const mainContent = doc.getElementById('main-content');
               const scrollable = mainContent || doc.documentElement;
+              const scrollTop = scrollable.scrollTop || 0;
               
-              // Second priority: try to scroll to top
-              if (scrollable.scrollTop > 100) {
+              if (scrollTop > 100) {
                 scrollable.scrollTo({
                   top: 0,
                   behavior: 'smooth'
@@ -407,18 +441,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                 return;
               }
               
-              // Third priority: try browser history
-              if (win.history.length > 1) {
-                try {
-                  win.history.back();
-                  triggerHaptic('light');
-                  return;
-                } catch (e) {
-                  // History back failed
-                }
-              }
-              
-              // Last resort: show close confirmation
+              // Last resort: on first page at top, show close confirmation
               triggerHaptic('medium');
               tg.showConfirm?.('Закрыть приложение?', (ok) => {
                 if (ok) {
@@ -457,6 +480,19 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             win.addEventListener('popstate', () => {
               setTimeout(updateBackButton, 100);
             });
+            
+            // Monitor location changes (for navigation between pages)
+            let currentPath = win.location.pathname;
+            const checkPathChange = () => {
+              const newPath = win.location.pathname;
+              if (newPath !== currentPath) {
+                currentPath = newPath;
+                updateBackButton();
+              }
+            };
+            
+            // Check path changes periodically (for SPA-like navigation)
+            setInterval(checkPathChange, 500);
             
             // Initial check
             setTimeout(updateBackButton, 500);
