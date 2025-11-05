@@ -3597,6 +3597,9 @@ align-items: center;
 gap: 6px;
 z-index: 10;
 width: auto;
+visibility: visible !important;
+opacity: 1 !important;
+pointer-events: auto !important;
 }
 
 .testimonial-pagination .swiper-pagination-bullet {
@@ -3612,6 +3615,55 @@ transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 .testimonial-pagination .swiper-pagination-bullet-active {
 background: rgba(255, 255, 255, 0.95);
 transform: scale(1);
+}
+
+/* Медиа-запросы для мобильных устройств - исправление пагинации */
+@media (max-width: 767px) {
+  /* Увеличиваем padding-bottom для wrapper контейнеров, чтобы пагинация была видна */
+  .testimonials-swiper-wrapper,
+  .student-models-swiper-wrapper {
+    padding-bottom: 4rem !important;
+    overflow: visible !important;
+  }
+  
+  /* Исправляем позиционирование пагинации на мобильных */
+  .testimonial-pagination,
+  .model-pagination {
+    bottom: 0.5rem !important;
+    z-index: 100 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: flex !important;
+    pointer-events: auto !important;
+  }
+  
+  /* Убеждаемся, что bullets видны на мобильных */
+  .testimonial-pagination .swiper-pagination-bullet,
+  .model-pagination .swiper-pagination-bullet {
+    width: 8px !important;
+    height: 8px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: inline-block !important;
+  }
+  
+  .testimonial-pagination .swiper-pagination-bullet-active,
+  .model-pagination .swiper-pagination-bullet-active {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .testimonials-swiper-wrapper,
+  .student-models-swiper-wrapper {
+    padding-bottom: 3.5rem !important;
+  }
+  
+  .testimonial-pagination,
+  .model-pagination {
+    bottom: 0.25rem !important;
+  }
 }
 
 /* Photo Modal */
@@ -4058,6 +4110,9 @@ align-items: center;
 gap: 6px;
 z-index: 10;
 width: auto;
+visibility: visible !important;
+opacity: 1 !important;
+pointer-events: auto !important;
 }
 
 .model-pagination .swiper-pagination-bullet {

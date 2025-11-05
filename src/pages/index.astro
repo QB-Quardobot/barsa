@@ -1334,10 +1334,21 @@ const DEBUG_MODE = false;
             return;
           }
           
+          // Определяем мобильное устройство
+          const isMobile = window.innerWidth <= 767;
+          const bulletSize = isMobile ? '8px' : '7px';
+          
           // Убеждаемся что элемент виден
           paginationEl.style.display = 'flex';
           paginationEl.style.visibility = 'visible';
           paginationEl.style.opacity = '1';
+          paginationEl.style.pointerEvents = 'auto';
+          paginationEl.style.zIndex = isMobile ? '100' : '10';
+          
+          // На мобильных устанавливаем правильное позиционирование
+          if (isMobile) {
+            paginationEl.style.bottom = window.innerWidth <= 480 ? '0.25rem' : '0.5rem';
+          }
           
           // Проверяем нативные bullets
           const nativeBullets = swiperInstance.pagination?.bullets || [];
@@ -1346,10 +1357,10 @@ const DEBUG_MODE = false;
           if (nativeBullets.length > 0) {
             nativeBullets.forEach((bullet) => {
               if (bullet && bullet.style) {
-                // ПРИНУДИТЕЛЬНО устанавливаем размеры и стили (как в CSS: 7px)
-                bullet.style.width = '7px';
-                bullet.style.height = '7px';
-                bullet.style.display = 'block';
+                // ПРИНУДИТЕЛЬНО устанавливаем размеры и стили
+                bullet.style.width = bulletSize;
+                bullet.style.height = bulletSize;
+                bullet.style.display = 'inline-block';
                 bullet.style.visibility = 'visible';
                 bullet.style.opacity = '1';
                 bullet.style.borderRadius = '50%';
@@ -1366,9 +1377,9 @@ const DEBUG_MODE = false;
           if (domBullets.length > 0) {
             domBullets.forEach((bullet) => {
               // ПРИНУДИТЕЛЬНО устанавливаем размеры и стили
-              bullet.style.width = '7px';
-              bullet.style.height = '7px';
-              bullet.style.display = 'block';
+              bullet.style.width = bulletSize;
+              bullet.style.height = bulletSize;
+              bullet.style.display = 'inline-block';
               bullet.style.visibility = 'visible';
               bullet.style.opacity = '1';
               bullet.style.borderRadius = '50%';
@@ -1405,6 +1416,15 @@ const DEBUG_MODE = false;
         setTimeout(() => {
           ensurePaginationVisibility(swiper);
         }, 2000);
+        
+        // Обработчик изменения размера окна для мобильных устройств
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTimeout);
+          resizeTimeout = setTimeout(() => {
+            ensurePaginationVisibility(swiper);
+          }, 100);
+        });
         
         // Navigation buttons removed - using pagination only
         
@@ -4234,6 +4254,49 @@ const DEBUG_MODE = false;
   .student-model-pagination .swiper-pagination-bullet-active {
     background: rgba(255, 255, 255, 0.95);
     transform: scale(1);
+  }
+  
+  /* Медиа-запросы для мобильных устройств - исправление пагинации */
+  @media (max-width: 767px) {
+    /* Увеличиваем padding-bottom для wrapper контейнера, чтобы пагинация была видна */
+    .student-models-swiper-wrapper {
+      padding-bottom: 4rem !important;
+      overflow: visible !important;
+    }
+    
+    /* Исправляем позиционирование пагинации на мобильных */
+    .student-model-pagination {
+      bottom: 0.5rem !important;
+      z-index: 100 !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      display: flex !important;
+      pointer-events: auto !important;
+    }
+    
+    /* Убеждаемся, что bullets видны на мобильных */
+    .student-model-pagination .swiper-pagination-bullet {
+      width: 8px !important;
+      height: 8px !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      display: inline-block !important;
+    }
+    
+    .student-model-pagination .swiper-pagination-bullet-active {
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .student-models-swiper-wrapper {
+      padding-bottom: 3.5rem !important;
+    }
+    
+    .student-model-pagination {
+      bottom: 0.25rem !important;
+    }
   }
   
   /* Why Important */
