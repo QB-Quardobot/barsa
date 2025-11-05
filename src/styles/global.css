@@ -364,6 +364,8 @@ main,
   width: 100%;
   margin: 0 auto;
   overflow-x: hidden;
+  /* Always render main content - needed for scroll detection and back button */
+  content-visibility: visible;
 }
 
 /* Center section content on desktop */

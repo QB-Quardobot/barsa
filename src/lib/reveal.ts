@@ -25,6 +25,7 @@ class RevealAnimations {
   private fastScrollThreshold = 50; // pixels per frame for fast scroll
   private isFastScrolling = false;
   private fastScrollTimeout: number | null = null;
+  private scrollThrottleTimeout: number | null = null;
 
   constructor(options?: RevealOptions) {
     this.options = { ...this.options, ...options };
@@ -38,42 +39,54 @@ class RevealAnimations {
     let lastScrollY = window.scrollY;
     let lastTime = performance.now();
     
-    const updateVelocity = () => {
-      const currentScrollY = window.scrollY;
-      const currentTime = performance.now();
-      const deltaY = Math.abs(currentScrollY - lastScrollY);
-      const deltaTime = currentTime - lastTime;
-      
-      if (deltaTime > 0) {
-        this.scrollVelocity = deltaY / deltaTime * 16.67; // pixels per frame (assuming 60fps)
+    // Use scroll event with throttling instead of continuous RAF
+    const handleScroll = () => {
+      // Cancel pending update
+      if (this.scrollThrottleTimeout) {
+        cancelAnimationFrame(this.scrollThrottleTimeout);
       }
       
-      // Detect fast scrolling and adjust strategy
-      const wasFastScrolling = this.isFastScrolling;
-      this.isFastScrolling = this.scrollVelocity > this.fastScrollThreshold;
-      
-      // If just started fast scrolling, switch to prerender mode
-      if (!wasFastScrolling && this.isFastScrolling) {
-        this.enablePrerenderMode();
-      }
-      
-      // If stopped fast scrolling, switch back to normal mode after delay
-      if (wasFastScrolling && !this.isFastScrolling) {
-        if (this.fastScrollTimeout) {
-          clearTimeout(this.fastScrollTimeout);
+      // Throttle to every frame (16ms at 60fps)
+      this.scrollThrottleTimeout = requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY;
+        const currentTime = performance.now();
+        const deltaY = Math.abs(currentScrollY - lastScrollY);
+        const deltaTime = currentTime - lastTime;
+        
+        if (deltaTime > 0) {
+          this.scrollVelocity = deltaY / deltaTime * 16.67; // pixels per frame (assuming 60fps)
         }
-        this.fastScrollTimeout = window.setTimeout(() => {
-          this.disablePrerenderMode();
-        }, 300); // Wait 300ms after scroll stops to ensure it's actually stopped
-      }
-      
-      lastScrollY = currentScrollY;
-      lastTime = currentTime;
-      
-      this.rafId = requestAnimationFrame(updateVelocity);
+        
+        // Detect fast scrolling and adjust strategy
+        const wasFastScrolling = this.isFastScrolling;
+        this.isFastScrolling = this.scrollVelocity > this.fastScrollThreshold;
+        
+        // If just started fast scrolling, switch to prerender mode
+        if (!wasFastScrolling && this.isFastScrolling) {
+          this.enablePrerenderMode();
+        }
+        
+        // If stopped fast scrolling, switch back to normal mode after delay
+        if (wasFastScrolling && !this.isFastScrolling) {
+          if (this.fastScrollTimeout) {
+            clearTimeout(this.fastScrollTimeout);
+          }
+          this.fastScrollTimeout = window.setTimeout(() => {
+            this.disablePrerenderMode();
+          }, 300); // Wait 300ms after scroll stops to ensure it's actually stopped
+        }
+        
+        lastScrollY = currentScrollY;
+        lastTime = currentTime;
+        this.scrollThrottleTimeout = null;
+      });
     };
     
-    this.rafId = requestAnimationFrame(updateVelocity);
+    // Use passive scroll listener instead of continuous RAF
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Store handler for cleanup
+    (this as any).scrollHandler = handleScroll;
   }
   
   private enablePrerenderMode() {
@@ -285,6 +298,19 @@ class RevealAnimations {
     if (this.rafId !== null) {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
+    }
+    
+    // Cancel scroll throttle timeout
+    if (this.scrollThrottleTimeout !== null) {
+      cancelAnimationFrame(this.scrollThrottleTimeout);
+      this.scrollThrottleTimeout = null;
+    }
+    
+    // Remove scroll listener
+    const scrollHandler = (this as any).scrollHandler;
+    if (scrollHandler) {
+      window.removeEventListener('scroll', scrollHandler);
+      (this as any).scrollHandler = null;
     }
     
     // Cleanup reduced motion listener

@@ -392,8 +392,12 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             
             // Function to check if we can go back
             function canGoBack() {
-              // Back button is disabled - always hide it
-              return false;
+              // Always show back button - it handles all navigation cases
+              // 1. Close modals if open
+              // 2. Go back if on second page
+              // 3. Scroll to top if scrolled on first page
+              // 4. Show close confirmation if at top of first page
+              return true;
             }
             
             // Function to handle back action

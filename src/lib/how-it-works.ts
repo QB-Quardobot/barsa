@@ -384,23 +384,39 @@ function setupSwiperNavigation(
     attachButtonHandlers(navButtons.nextBtn, 'next');
   }
   
+  // Optimized scroll handler with throttling
   let scrollTimeout: ReturnType<typeof setTimeout>;
+  let rafId: number | null = null;
+  
   const handleScroll = () => {
+    // Cancel pending RAF
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+    }
+    
+    // Clear existing timeout
     clearTimeout(scrollTimeout);
+    
+    // Throttle updates to every 16ms (60fps) using RAF
+    rafId = requestAnimationFrame(() => {
+      updateNavButtons();
+      preloadNearbyImages(wrapper, slides);
+      rafId = null;
+    });
+    
+    // Also debounce for less frequent updates
     scrollTimeout = setTimeout(() => {
-      requestAnimationFrame(() => {
-        updateNavButtons();
-      });
-    }, 50);
+      if (rafId === null) {
+        rafId = requestAnimationFrame(() => {
+          updateNavButtons();
+          preloadNearbyImages(wrapper, slides);
+          rafId = null;
+        });
+      }
+    }, 100);
   };
   
   wrapper.addEventListener('scroll', handleScroll, { passive: true });
-  
-  wrapper.addEventListener('scroll', () => {
-    requestAnimationFrame(() => {
-      preloadNearbyImages(wrapper, slides);
-    });
-  }, { passive: true });
   
   if ('onscrollend' in wrapper) {
     wrapper.addEventListener('scrollend', () => {
