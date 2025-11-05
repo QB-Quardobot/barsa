@@ -392,28 +392,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             
             // Function to check if we can go back
             function canGoBack() {
-              // Always show if any modal is open
-              if (isPhotoModalOpen() || isCurrencyModalOpen()) {
-                return true;
-              }
-              
-              // Check if we're on second page (how-it-works)
-              if (!isFirstPage()) {
-                // On second page, always show back button
-                return true;
-              }
-              
-              // On first page: check scroll position
-              const mainContent = doc.getElementById('main-content');
-              const scrollable = mainContent || doc.documentElement;
-              const scrollTop = scrollable.scrollTop || 0;
-              
-              // Show back button only if scrolled down
-              if (scrollTop > 100) {
-                return true;
-              }
-              
-              // On first page at top: hide back button (close button will be shown by default)
+              // Back button is disabled - always hide it
               return false;
             }
             

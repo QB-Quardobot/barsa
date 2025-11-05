@@ -201,15 +201,10 @@ function createSwiperConfig(config: SwiperConfig) {
     pagination: config.pagination ? {
       el: config.pagination,
       clickable: true,
-      dynamicBullets: true,
-      dynamicMainBullets: 3,
+      dynamicBullets: false,
+      type: 'bullets',
     } : undefined,
-    navigation: (config.prevBtn || config.nextBtn) ? {
-      nextEl: config.nextBtn,
-      prevEl: config.prevBtn,
-      disabledClass: 'swiper-button-disabled',
-      hiddenClass: 'swiper-button-hidden',
-    } : undefined,
+    navigation: false, // Отключена навигация, используем только пагинацию
     breakpoints: {
       320: { slidesPerView: 1, spaceBetween: 0, centeredSlides: true },
       768: { slidesPerView: 1, spaceBetween: 0, centeredSlides: true },
@@ -512,8 +507,6 @@ function createStudentModelsSwiper(): void {
   const swiper = new Swiper('.student-models-swiper', createSwiperConfig({
     container: '.student-models-swiper',
     pagination: '.model-pagination',
-    nextBtn: '.student-models-swiper .swiper-button-next',
-    prevBtn: '.student-models-swiper .swiper-button-prev',
     autoplayDelay: 4000
   }));
   
@@ -803,9 +796,67 @@ export function initPhotoModal(): void {
 }
 
 
+function scrollToElement(targetId: string): void {
+  const targetElement = document.getElementById(targetId);
+  if (!targetElement) return;
+  
+  const mainContentEl = document.getElementById('main-content') || document.querySelector('main');
+  const targetRect = targetElement.getBoundingClientRect();
+  const viewportHeight = mainContentEl ? (mainContentEl as HTMLElement).clientHeight : window.innerHeight;
+  const offset = viewportHeight * 0.2;
+  
+  let scrollTop: number;
+  
+  if (mainContentEl) {
+    scrollTop = (mainContentEl as HTMLElement).scrollTop + targetRect.top - offset;
+    const maxScroll = (mainContentEl as HTMLElement).scrollHeight - (mainContentEl as HTMLElement).clientHeight;
+    scrollTop = Math.min(scrollTop, maxScroll);
+    scrollTop = Math.max(0, scrollTop);
+    
+    (mainContentEl as HTMLElement).scrollTo({
+      top: scrollTop,
+      behavior: 'smooth'
+    });
+  } else {
+    scrollTop = window.pageYOffset + targetRect.top - offset;
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    scrollTop = Math.min(scrollTop, maxScroll);
+    scrollTop = Math.max(0, scrollTop);
+    
+    window.scrollTo({
+      top: scrollTop,
+      behavior: 'smooth'
+    });
+  }
+}
+
 export function initSmoothScroll(): void {
   const mainContentEl = document.getElementById('main-content') || document.querySelector('main');
   
+  // Handle hash on page load
+  if (window.location.hash) {
+    const hash = window.location.hash.substring(1);
+    if (hash) {
+      // Wait for page to fully load before scrolling
+      setTimeout(() => {
+        scrollToElement(hash);
+      }, 300);
+    }
+  }
+  
+  // Handle hash changes
+  window.addEventListener('hashchange', () => {
+    if (window.location.hash) {
+      const hash = window.location.hash.substring(1);
+      if (hash) {
+        setTimeout(() => {
+          scrollToElement(hash);
+        }, 100);
+      }
+    }
+  });
+  
+  // Handle click on anchor links
   document.addEventListener('click', (e) => {
     const target = e.target as HTMLElement;
     const link = target.closest('a[data-scroll-to], a[href^="#"]') as HTMLAnchorElement;
@@ -814,43 +865,22 @@ export function initSmoothScroll(): void {
     const href = link.getAttribute('href');
     const scrollTo = link.getAttribute('data-scroll-to');
     
+    // Handle external links with hash (e.g., /how-it-works#pricing)
+    if (href && href.includes('#') && !href.startsWith('#')) {
+      const parts = href.split('#');
+      if (parts.length === 2 && parts[0] === '/how-it-works') {
+        // This will be handled by navigation
+        return;
+      }
+    }
+    
     if (!href || !href.startsWith('#')) return;
     
     const targetId = scrollTo || href.substring(1);
     if (!targetId) return;
     
-    const targetElement = document.getElementById(targetId);
-    if (!targetElement) return;
-    
     e.preventDefault();
-    
-    const targetRect = targetElement.getBoundingClientRect();
-    const viewportHeight = mainContentEl ? (mainContentEl as HTMLElement).clientHeight : window.innerHeight;
-    const offset = viewportHeight * 0.2;
-    
-    let scrollTop: number;
-    
-    if (mainContentEl) {
-      scrollTop = (mainContentEl as HTMLElement).scrollTop + targetRect.top - offset;
-      const maxScroll = (mainContentEl as HTMLElement).scrollHeight - (mainContentEl as HTMLElement).clientHeight;
-      scrollTop = Math.min(scrollTop, maxScroll);
-      scrollTop = Math.max(0, scrollTop);
-      
-      (mainContentEl as HTMLElement).scrollTo({
-        top: scrollTop,
-        behavior: 'smooth'
-      });
-    } else {
-      scrollTop = window.pageYOffset + targetRect.top - offset;
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      scrollTop = Math.min(scrollTop, maxScroll);
-      scrollTop = Math.max(0, scrollTop);
-      
-      window.scrollTo({
-        top: scrollTop,
-        behavior: 'smooth'
-      });
-    }
+    scrollToElement(targetId);
   });
 }
 
@@ -1044,6 +1074,47 @@ export function initHowItWorks(): void {
     initPhotoModal();
     initCurrencyModal();
     initSmoothScroll();
+    
+    // Handle hash after page fully loads (for navigation from other pages)
+    if (window.location.hash) {
+      const hash = window.location.hash.substring(1);
+      if (hash === 'pricing') {
+        // Wait for all content to render
+        setTimeout(() => {
+          const targetElement = document.getElementById('pricing');
+          if (targetElement) {
+            const mainContentEl = document.getElementById('main-content') || document.querySelector('main');
+            const targetRect = targetElement.getBoundingClientRect();
+            const viewportHeight = mainContentEl ? (mainContentEl as HTMLElement).clientHeight : window.innerHeight;
+            const offset = viewportHeight * 0.15;
+            
+            let scrollTop: number;
+            
+            if (mainContentEl) {
+              scrollTop = (mainContentEl as HTMLElement).scrollTop + targetRect.top - offset;
+              const maxScroll = (mainContentEl as HTMLElement).scrollHeight - (mainContentEl as HTMLElement).clientHeight;
+              scrollTop = Math.min(scrollTop, maxScroll);
+              scrollTop = Math.max(0, scrollTop);
+              
+              (mainContentEl as HTMLElement).scrollTo({
+                top: scrollTop,
+                behavior: 'smooth'
+              });
+            } else {
+              scrollTop = window.pageYOffset + targetRect.top - offset;
+              const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+              scrollTop = Math.min(scrollTop, maxScroll);
+              scrollTop = Math.max(0, scrollTop);
+              
+              window.scrollTo({
+                top: scrollTop,
+                behavior: 'smooth'
+              });
+            }
+          }
+        }, 500);
+      }
+    }
   });
 }
 

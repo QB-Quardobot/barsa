@@ -429,7 +429,7 @@ import '../styles/how-it-works.css';
       
       <!-- CTA Button -->
       <div class="before-after-cta reveal-fade">
-        <a href="https://t.me/+-H7bNyi6NihhM2Fk" class="btn-capsule btn-want-same" data-cta data-href="https://t.me/+-H7bNyi6NihhM2Fk" aria-label="Я хочу так же">
+        <a href="#pricing" class="btn-capsule btn-want-same" data-scroll-to="pricing" aria-label="Перейти к тарифам">
           Я хочу так же
         </a>
       </div>
@@ -774,206 +774,527 @@ import '../styles/how-it-works.css';
           <p class="testimonials-subtitle">Реальные результаты моих учеников</p>
         </div>
         
-        <div class="swiper testimonials-swiper">
-          <div class="swiper-wrapper">
-            
-            <!-- Review 1 -->
-            <div class="swiper-slide">
-              <div class="slider-item review-item">
-                <div class="slider-label">💬 Отзыв</div>
-                <div class="slider-image-container image-wrapper">
-                      <div class="shimmer-wrapper">
-                        <img 
-                          src="/images/testimonials/review-1.jpg"
-                      alt="Отзыв ученика"
-                      class="slider-photo lazy-image"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div class="shimmer-overlay"></div>
+        <div class="testimonials-swiper-wrapper">
+          <div class="swiper testimonials-swiper">
+            <div class="swiper-wrapper">
+              
+              <!-- Review 1 -->
+              <div class="swiper-slide">
+                <div class="slider-item review-item">
+                  <div class="slider-label">💬 Отзыв</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/review-1.jpg"
+                        alt="Отзыв ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-            </div>
-            
-            <!-- Income 1 -->
-            <div class="swiper-slide">
-              <div class="slider-item income-item">
-                <div class="slider-label">💰 Результат</div>
-                <div class="slider-image-container image-wrapper">
-                      <div class="shimmer-wrapper">
-                        <img 
-                          src="/images/testimonials/income-1.jpg"
-                      alt="Доход ученика"
-                      class="slider-photo lazy-image"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div class="shimmer-overlay"></div>
+              </div>
+              
+              <!-- Income 1 -->
+              <div class="swiper-slide">
+                <div class="slider-item income-item">
+                  <div class="slider-label">💰 Результат</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/income-1.jpg"
+                        alt="Доход ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <!-- Review 2 -->
-            <div class="swiper-slide">
-              <div class="slider-item review-item">
-                <div class="slider-label">💬 Отзыв</div>
-                <div class="slider-image-container image-wrapper">
-                      <div class="shimmer-wrapper">
-                        <img 
-                          src="/images/testimonials/review-2.jpg"
-                      alt="Отзыв ученика"
-                      class="slider-photo lazy-image"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div class="shimmer-overlay"></div>
+              
+              <!-- Review 2 -->
+              <div class="swiper-slide">
+                <div class="slider-item review-item">
+                  <div class="slider-label">💬 Отзыв</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/review-2.jpg"
+                        alt="Отзыв ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-            </div>
-            
-            <!-- Income 2 -->
-            <div class="swiper-slide">
-              <div class="slider-item income-item">
-                <div class="slider-label">💰 Результат</div>
-                <div class="slider-image-container image-wrapper">
-                      <div class="shimmer-wrapper">
-                        <img 
-                          src="/images/testimonials/income-2.jpg"
-                      alt="Доход ученика"
-                      class="slider-photo lazy-image"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div class="shimmer-overlay"></div>
+              </div>
+              
+              <!-- Income 2 -->
+              <div class="swiper-slide">
+                <div class="slider-item income-item">
+                  <div class="slider-label">💰 Результат</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/income-2.jpg"
+                        alt="Доход ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <!-- Review 3 -->
-            <div class="swiper-slide">
-              <div class="slider-item review-item">
-                <div class="slider-label">💬 Отзыв</div>
-                <div class="slider-image-container image-wrapper">
-                      <div class="shimmer-wrapper">
-                        <img 
-                          src="/images/testimonials/review-3.jpg"
-                      alt="Отзыв ученика"
-                      class="slider-photo lazy-image"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div class="shimmer-overlay"></div>
+              
+              <!-- Review 3 -->
+              <div class="swiper-slide">
+                <div class="slider-item review-item">
+                  <div class="slider-label">💬 Отзыв</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/review-3.jpg"
+                        alt="Отзыв ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-            </div>
-            
-            <!-- Income 3 -->
-            <div class="swiper-slide">
-              <div class="slider-item income-item">
-                <div class="slider-label">💰 Результат</div>
-                <div class="slider-image-container image-wrapper">
-                      <div class="shimmer-wrapper">
-                        <img 
-                          src="/images/testimonials/income-3.jpg"
-                      alt="Доход ученика"
-                      class="slider-photo lazy-image"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div class="shimmer-overlay"></div>
+              </div>
+              
+              <!-- Income 3 -->
+              <div class="swiper-slide">
+                <div class="slider-item income-item">
+                  <div class="slider-label">💰 Результат</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/income-3.jpg"
+                        alt="Доход ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <!-- Review 4 -->
-            <div class="swiper-slide">
-              <div class="slider-item review-item">
-                <div class="slider-label">💬 Отзыв</div>
-                <div class="slider-image-container image-wrapper">
-                      <div class="shimmer-wrapper">
-                        <img 
-                          src="/images/testimonials/review-4.jpg"
-                      alt="Отзыв ученика"
-                      class="slider-photo lazy-image"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div class="shimmer-overlay"></div>
+              
+              <!-- Review 4 -->
+              <div class="swiper-slide">
+                <div class="slider-item review-item">
+                  <div class="slider-label">💬 Отзыв</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/review-4.jpg"
+                        alt="Отзыв ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-            </div>
-            
-            <!-- Income 4 -->
-            <div class="swiper-slide">
-              <div class="slider-item income-item">
-                <div class="slider-label">💰 Результат</div>
-                <div class="slider-image-container image-wrapper">
-                      <div class="shimmer-wrapper">
-                        <img 
-                          src="/images/testimonials/income-4.jpg"
-                      alt="Доход ученика"
-                      class="slider-photo lazy-image"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div class="shimmer-overlay"></div>
+              </div>
+              
+              <!-- Income 4 -->
+              <div class="swiper-slide">
+                <div class="slider-item income-item">
+                  <div class="slider-label">💰 Результат</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/income-4.jpg"
+                        alt="Доход ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <!-- Review 5 -->
-            <div class="swiper-slide">
-              <div class="slider-item review-item">
-                <div class="slider-label">💬 Отзыв</div>
-                <div class="slider-image-container image-wrapper">
-                      <div class="shimmer-wrapper">
-                        <img 
-                          src="/images/testimonials/review-5.jpg"
-                      alt="Отзыв ученика"
-                      class="slider-photo lazy-image"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div class="shimmer-overlay"></div>
+              
+              <!-- Review 5 -->
+              <div class="swiper-slide">
+                <div class="slider-item review-item">
+                  <div class="slider-label">💬 Отзыв</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/review-5.jpg"
+                        alt="Отзыв ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-            </div>
-            
-            <!-- Income 5 -->
-            <div class="swiper-slide">
-              <div class="slider-item income-item">
-                <div class="slider-label">💰 Результат</div>
-                <div class="slider-image-container image-wrapper">
-                      <div class="shimmer-wrapper">
-                        <img 
-                          src="/images/testimonials/income-5.jpg"
-                      alt="Доход ученика"
-                      class="slider-photo lazy-image"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div class="shimmer-overlay"></div>
+              </div>
+              
+              <!-- Income 5 -->
+              <div class="swiper-slide">
+                <div class="slider-item income-item">
+                  <div class="slider-label">💰 Результат</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/income-5.jpg"
+                        alt="Доход ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                    </div>
                   </div>
                 </div>
               </div>
+              
+              <!-- Review 6 -->
+              <div class="swiper-slide">
+                <div class="slider-item review-item">
+                  <div class="slider-label">💬 Отзыв</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/review-6.jpg"
+                        alt="Отзыв ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                        </div>
+                      </div>
+                    </div>
+              </div>
+              
+              <!-- Income 6 -->
+              <div class="swiper-slide">
+                <div class="slider-item income-item">
+                  <div class="slider-label">💰 Результат</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/income-6.jpg"
+                        alt="Доход ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Review 7 -->
+              <div class="swiper-slide">
+                <div class="slider-item review-item">
+                  <div class="slider-label">💬 Отзыв</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/review-7.jpg"
+                        alt="Отзыв ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                        </div>
+                      </div>
+                    </div>
+              </div>
+              
+              <!-- Income 7 -->
+              <div class="swiper-slide">
+                <div class="slider-item income-item">
+                  <div class="slider-label">💰 Результат</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/income-7.jpg"
+                        alt="Доход ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Review 8 -->
+              <div class="swiper-slide">
+                <div class="slider-item review-item">
+                  <div class="slider-label">💬 Отзыв</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/review-8.jpg"
+                        alt="Отзыв ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                        </div>
+                      </div>
+                    </div>
+              </div>
+              
+              <!-- Income 8 -->
+              <div class="swiper-slide">
+                <div class="slider-item income-item">
+                  <div class="slider-label">💰 Результат</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/income-8.jpg"
+                        alt="Доход ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Review 9 -->
+              <div class="swiper-slide">
+                <div class="slider-item review-item">
+                  <div class="slider-label">💬 Отзыв</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/review-9.jpg"
+                        alt="Отзыв ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                        </div>
+                      </div>
+                    </div>
+              </div>
+              
+              <!-- Income 9 -->
+              <div class="swiper-slide">
+                <div class="slider-item income-item">
+                  <div class="slider-label">💰 Результат</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/income-9.jpg"
+                        alt="Доход ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Review 10 -->
+              <div class="swiper-slide">
+                <div class="slider-item review-item">
+                  <div class="slider-label">💬 Отзыв</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/review-10.jpg"
+                        alt="Отзыв ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                        </div>
+                      </div>
+                    </div>
+              </div>
+              
+              <!-- Income 10 -->
+              <div class="swiper-slide">
+                <div class="slider-item income-item">
+                  <div class="slider-label">💰 Результат</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/income-10.jpg"
+                        alt="Доход ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Review 11 -->
+              <div class="swiper-slide">
+                <div class="slider-item review-item">
+                  <div class="slider-label">💬 Отзыв</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/review-11.jpg"
+                        alt="Отзыв ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                        </div>
+                      </div>
+                    </div>
+              </div>
+              
+              <!-- Income 11 -->
+              <div class="swiper-slide">
+                <div class="slider-item income-item">
+                  <div class="slider-label">💰 Результат</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/income-11.jpg"
+                        alt="Доход ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Review 12 -->
+              <div class="swiper-slide">
+                <div class="slider-item review-item">
+                  <div class="slider-label">💬 Отзыв</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/review-12.jpg"
+                        alt="Отзыв ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                        </div>
+                      </div>
+                    </div>
+              </div>
+              
+              <!-- Income 12 -->
+              <div class="swiper-slide">
+                <div class="slider-item income-item">
+                  <div class="slider-label">💰 Результат</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/income-12.jpg"
+                        alt="Доход ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Review 13 -->
+              <div class="swiper-slide">
+                <div class="slider-item review-item">
+                  <div class="slider-label">💬 Отзыв</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/review-13.jpg"
+                        alt="Отзыв ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                        </div>
+                      </div>
+                    </div>
+              </div>
+              
+              <!-- Income 13 -->
+              <div class="swiper-slide">
+                <div class="slider-item income-item">
+                  <div class="slider-label">💰 Результат</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/income-13.jpg"
+                        alt="Доход ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Review 14 -->
+              <div class="swiper-slide">
+                <div class="slider-item review-item">
+                  <div class="slider-label">💬 Отзыв</div>
+                  <div class="slider-image-container image-wrapper">
+                        <div class="shimmer-wrapper">
+                          <img 
+                            src="/images/testimonials/review-14.jpg"
+                        alt="Отзыв ученика"
+                        class="slider-photo lazy-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="shimmer-overlay"></div>
+                        </div>
+                      </div>
+                    </div>
+              </div>
+              
             </div>
-            
           </div>
           
-          <!-- Navigation -->
-          <div class="swiper-button-prev testimonial-nav-btn"></div>
-          <div class="swiper-button-next testimonial-nav-btn"></div>
-          
-          <!-- Pagination -->
+          <!-- Pagination - вынесена за пределы слайдера -->
           <div class="swiper-pagination testimonial-pagination"></div>
         </div>
       </div>
@@ -998,106 +1319,104 @@ import '../styles/how-it-works.css';
       <div class="student-models-section reveal-up">
         <h3 class="models-section-title reveal-up">Модели учеников</h3>
         
-        <div class="swiper student-models-swiper">
-          <div class="swiper-wrapper">
-            
-            <!-- Model 1 -->
-            <div class="swiper-slide">
-              <div class="model-card">
-                <div class="model-image-wrapper">
-                  <div class="shimmer-wrapper">
-                    <img 
-                      src="/images/models/IMG_1944.JPG"
-                      alt="Модель ученика 1"
-                      class="model-photo lazy-image"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div class="shimmer-overlay"></div>
+        <div class="student-models-swiper-wrapper">
+          <div class="swiper student-models-swiper">
+            <div class="swiper-wrapper">
+              
+              <!-- Model 1 -->
+              <div class="swiper-slide">
+                <div class="model-card">
+                  <div class="model-image-wrapper">
+                    <div class="shimmer-wrapper">
+                      <img 
+                        src="/images/models/IMG_1944.JPG"
+                        alt="Модель ученика 1"
+                        class="model-photo lazy-image"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div class="shimmer-overlay"></div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <!-- Model 2 -->
-            <div class="swiper-slide">
-              <div class="model-card">
-                <div class="model-image-wrapper">
-                  <div class="shimmer-wrapper">
-                    <img 
-                      src="/images/models/IMG_1961.JPG"
-                      alt="Модель ученика 2"
-                      class="model-photo lazy-image"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div class="shimmer-overlay"></div>
+              
+              <!-- Model 2 -->
+              <div class="swiper-slide">
+                <div class="model-card">
+                  <div class="model-image-wrapper">
+                    <div class="shimmer-wrapper">
+                      <img 
+                        src="/images/models/IMG_1961.JPG"
+                        alt="Модель ученика 2"
+                        class="model-photo lazy-image"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div class="shimmer-overlay"></div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <!-- Model 3 -->
-            <div class="swiper-slide">
-              <div class="model-card">
-                <div class="model-image-wrapper">
-                  <div class="shimmer-wrapper">
-                    <img 
-                      src="/images/models/IMG_1949.JPG"
-                      alt="Модель ученика 3"
-                      class="model-photo lazy-image"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div class="shimmer-overlay"></div>
+              
+              <!-- Model 3 -->
+              <div class="swiper-slide">
+                <div class="model-card">
+                  <div class="model-image-wrapper">
+                    <div class="shimmer-wrapper">
+                      <img 
+                        src="/images/models/IMG_1949.JPG"
+                        alt="Модель ученика 3"
+                        class="model-photo lazy-image"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div class="shimmer-overlay"></div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <!-- Model 4 -->
-            <div class="swiper-slide">
-              <div class="model-card">
-                <div class="model-image-wrapper">
-                  <div class="shimmer-wrapper">
-                    <img 
-                      src="/images/models/IMG_1936.JPG"
-                      alt="Модель ученика 4"
-                      class="model-photo lazy-image"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div class="shimmer-overlay"></div>
+              
+              <!-- Model 4 -->
+              <div class="swiper-slide">
+                <div class="model-card">
+                  <div class="model-image-wrapper">
+                    <div class="shimmer-wrapper">
+                      <img 
+                        src="/images/models/IMG_1936.JPG"
+                        alt="Модель ученика 4"
+                        class="model-photo lazy-image"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div class="shimmer-overlay"></div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <!-- Model 5 -->
-            <div class="swiper-slide">
-              <div class="model-card">
-                <div class="model-image-wrapper">
-                  <div class="shimmer-wrapper">
-                    <img 
-                      src="/images/models/IMG_1953.JPG"
-                      alt="Модель ученика 5"
-                      class="model-photo lazy-image"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div class="shimmer-overlay"></div>
+              
+              <!-- Model 5 -->
+              <div class="swiper-slide">
+                <div class="model-card">
+                  <div class="model-image-wrapper">
+                    <div class="shimmer-wrapper">
+                      <img 
+                        src="/images/models/IMG_1953.JPG"
+                        alt="Модель ученика 5"
+                        class="model-photo lazy-image"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div class="shimmer-overlay"></div>
+                    </div>
                   </div>
                 </div>
               </div>
+              
             </div>
-            
           </div>
           
-          <!-- Navigation -->
-          <div class="swiper-button-prev model-nav-btn"></div>
-          <div class="swiper-button-next model-nav-btn"></div>
-          
-          <!-- Pagination -->
+          <!-- Pagination - вынесена за пределы слайдера -->
           <div class="swiper-pagination model-pagination"></div>
         </div>
       </div>
@@ -1296,14 +1615,8 @@ import '../styles/how-it-works.css';
         </p>
         
         <div class="final-btn-group">
-          <a href="https://t.me/+-H7bNyi6NihhM2Fk" class="btn-capsule" data-cta data-href="https://t.me/+-H7bNyi6NihhM2Fk" aria-label="Получить доступ к системе AI Model 2.0">
+          <a href="#pricing" class="btn-capsule" data-scroll-to="pricing" aria-label="Перейти к тарифам">
             Получить доступ к системе
-          </a>
-        </div>
-        
-        <div class="final-btn-group">
-          <a href="/" class="btn-capsule btn-outline" aria-label="Вернуться на главную">
-            ← Вернуться на главную
           </a>
         </div>
       </div>
