@@ -2842,6 +2842,8 @@ scroll-snap-align: center;
 scroll-snap-stop: always;
 transform: translateZ(0);
 -webkit-transform: translateZ(0);
+contain: layout style paint;
+will-change: transform;
 
 /* Full width on mobile */
 width: 100%;
@@ -2933,6 +2935,7 @@ position: relative;
 width: 100%;
 max-width: 500px;
 flex: 1;
+aspect-ratio: 4 / 5;
 min-height: 300px;
 max-height: 700px;
 border-radius: var(--radius-xl);
@@ -2945,6 +2948,9 @@ cursor: pointer;
 display: flex;
 align-items: center;
 justify-content: center;
+contain: layout style paint;
+will-change: contents;
+transform: translateZ(0);
 }
 
 .slider-image-container:active {
@@ -2968,6 +2974,10 @@ display: block !important;
 opacity: 1 !important;
 visibility: visible !important;
 z-index: 3;
+transform: translateZ(0);
+will-change: contents;
+backface-visibility: hidden;
+-webkit-backface-visibility: hidden;
 }
 
 /* Student Info */
@@ -3193,6 +3203,8 @@ height: 56px;
 touch-action: manipulation;
 -webkit-tap-highlight-color: transparent;
 pointer-events: auto;
+user-select: none;
+-webkit-user-select: none;
 background: rgba(96, 165, 250, 0.2);
 border: 2px solid rgba(96, 165, 250, 0.4);
 border-radius: 50%;
@@ -3506,6 +3518,8 @@ scroll-snap-align: center;
 scroll-snap-stop: always;
 transform: translateZ(0);
 -webkit-transform: translateZ(0);
+contain: layout style paint;
+will-change: transform;
 width: 100%;
 min-width: 100%;
 padding: 0 1rem;
@@ -3588,6 +3602,7 @@ position: relative;
 width: 100%;
 max-width: 500px;
 flex: 1;
+aspect-ratio: 4 / 5;
 min-height: 300px;
 max-height: 700px;
 border-radius: var(--radius-xl);
@@ -3599,6 +3614,9 @@ cursor: pointer;
 display: flex;
 align-items: center;
 justify-content: center;
+contain: layout style paint;
+will-change: contents;
+transform: translateZ(0);
 }
 
 
@@ -3619,6 +3637,10 @@ display: block !important;
 opacity: 1 !important;
 visibility: visible !important;
 z-index: 3;
+transform: translateZ(0);
+will-change: contents;
+backface-visibility: hidden;
+-webkit-backface-visibility: hidden;
 }
 
 .model-nav-btn {
@@ -3627,6 +3649,8 @@ height: 56px;
 touch-action: manipulation;
 -webkit-tap-highlight-color: transparent;
 pointer-events: auto;
+user-select: none;
+-webkit-user-select: none;
 background: rgba(96, 165, 250, 0.2);
 border: 2px solid rgba(96, 165, 250, 0.4);
 border-radius: 50%;

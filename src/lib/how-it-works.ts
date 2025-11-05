@@ -206,6 +206,35 @@ function createSwiperConfig(config: SwiperConfig) {
   };
 }
 
+function preloadNearbyImages(wrapper: HTMLElement, slides: NodeListOf<Element>): void {
+  const currentScroll = wrapper.scrollLeft;
+  const slideWidth = wrapper.clientWidth;
+  const currentIndex = Math.round(currentScroll / slideWidth);
+  
+  const preloadIndices = [
+    Math.max(0, currentIndex - 1),
+    currentIndex,
+    Math.min(slides.length - 1, currentIndex + 1)
+  ];
+  
+  preloadIndices.forEach(index => {
+    const slide = slides[index] as HTMLElement;
+    if (!slide) return;
+    
+    const images = slide.querySelectorAll('img[loading="lazy"], img.lazy-image') as NodeListOf<HTMLImageElement>;
+    images.forEach(img => {
+      if (img.src && !img.complete && img.dataset.preloaded !== 'true') {
+        img.dataset.preloaded = 'true';
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.href = img.src;
+        document.head.appendChild(link);
+      }
+    });
+  });
+}
+
 function setupSwiperNavigation(
   swiperContainer: HTMLElement,
   wrapper: HTMLElement,
@@ -278,14 +307,7 @@ function setupSwiperNavigation(
     }
   }
   
-  let touchStartTime = 0;
-  let touchStartButton: HTMLElement | null = null;
-  
-  swiperContainer.addEventListener('click', (e) => {
-    const target = e.target as HTMLElement;
-    const button = target.closest('.swiper-button-prev, .swiper-button-next') as HTMLElement;
-    if (!button) return;
-    
+  function handleButtonClick(e: Event, button: HTMLElement): void {
     if (button.classList.contains('swiper-button-disabled')) {
       e.preventDefault();
       e.stopPropagation();
@@ -294,68 +316,38 @@ function setupSwiperNavigation(
     
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
     
     if (button.classList.contains('swiper-button-prev')) {
       scrollToSlide('prev');
     } else if (button.classList.contains('swiper-button-next')) {
       scrollToSlide('next');
     }
-  }, { passive: false });
+  }
   
-  swiperContainer.addEventListener('touchstart', (e) => {
+  swiperContainer.addEventListener('pointerdown', (e) => {
     const target = e.target as HTMLElement;
     const button = target.closest('.swiper-button-prev, .swiper-button-next') as HTMLElement;
-    
     if (button && !button.classList.contains('swiper-button-disabled')) {
-      touchStartTime = Date.now();
-      touchStartButton = button;
-      button.style.touchAction = 'manipulation';
       e.stopPropagation();
+      button.setPointerCapture(e.pointerId);
+      button.addEventListener('pointerup', function pointerUpHandler(upEvent: PointerEvent) {
+        button.releasePointerCapture(upEvent.pointerId);
+        if (upEvent.pointerId === e.pointerId) {
+          handleButtonClick(upEvent, button);
+        }
+        button.removeEventListener('pointerup', pointerUpHandler);
+      }, { once: true });
     }
   }, { passive: true });
   
-  swiperContainer.addEventListener('touchmove', (e) => {
-    if (touchStartButton) {
-      const touch = e.touches[0];
-      const target = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement;
-      const button = target?.closest('.swiper-button-prev, .swiper-button-next') as HTMLElement;
-      
-      if (button !== touchStartButton) {
-        touchStartButton = null;
-      }
-    }
-  }, { passive: true });
-  
-  swiperContainer.addEventListener('touchend', (e) => {
-    if (!touchStartButton || touchStartButton.classList.contains('swiper-button-disabled')) {
-      touchStartButton = null;
-      return;
-    }
-    
-    const touchDuration = Date.now() - touchStartTime;
-    if (touchDuration < 500) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      if (touchStartButton.classList.contains('swiper-button-prev')) {
-        scrollToSlide('prev');
-      } else if (touchStartButton.classList.contains('swiper-button-next')) {
-        scrollToSlide('next');
-      }
-    }
-    
-    if (touchStartButton) {
-      touchStartButton.style.touchAction = '';
-      touchStartButton = null;
+  swiperContainer.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    const button = target.closest('.swiper-button-prev, .swiper-button-next') as HTMLElement;
+    if (button) {
+      handleButtonClick(e, button);
     }
   }, { passive: false });
-  
-  swiperContainer.addEventListener('touchcancel', () => {
-    if (touchStartButton) {
-      touchStartButton.style.touchAction = '';
-      touchStartButton = null;
-    }
-  }, { passive: true });
   
   let scrollTimeout: ReturnType<typeof setTimeout>;
   const handleScroll = () => {
@@ -369,10 +361,17 @@ function setupSwiperNavigation(
   
   wrapper.addEventListener('scroll', handleScroll, { passive: true });
   
+  wrapper.addEventListener('scroll', () => {
+    requestAnimationFrame(() => {
+      preloadNearbyImages(wrapper, slides);
+    });
+  }, { passive: true });
+  
   if ('onscrollend' in wrapper) {
     wrapper.addEventListener('scrollend', () => {
       requestAnimationFrame(() => {
         updateNavButtons();
+        preloadNearbyImages(wrapper, slides);
       });
     }, { passive: true });
   }
@@ -380,6 +379,7 @@ function setupSwiperNavigation(
   setTimeout(() => {
     requestAnimationFrame(() => {
       updateNavButtons();
+      preloadNearbyImages(wrapper, slides);
     });
   }, 100);
   
