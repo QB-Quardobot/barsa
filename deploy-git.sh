@@ -165,12 +165,16 @@ setup_git_repo() {
         fi
         
         echo "📦 Installing dependencies..."
-        # Optimize memory usage for npm ci
-        export NODE_OPTIONS="--max-old-space-size=2048"
-        # Use npm install with optimizations if npm ci fails
-        npm ci --production=false --prefer-offline --no-audit || npm install --production=false --prefer-offline --no-audit
+        # Server has only ~1GB RAM, optimize heavily
+        export NODE_OPTIONS="--max-old-space-size=512"
+        # Clear npm cache to free memory
+        npm cache clean --force 2>/dev/null || true
+        # Use npm install (less memory intensive than npm ci)
+        npm install --production=false --prefer-offline --no-audit --legacy-peer-deps
         
         echo "🔨 Building project..."
+        # Optimize build memory usage
+        export NODE_OPTIONS="--max-old-space-size=512"
         npm run build
         
         echo "🔒 Setting permissions..."
@@ -436,12 +440,16 @@ deploy() {
         echo "📍 Deployed commit: \${DEPLOYED_COMMIT}"
         
         echo "📦 Installing dependencies..."
-        # Optimize memory usage for npm ci
-        export NODE_OPTIONS="--max-old-space-size=2048"
-        # Use npm install with optimizations if npm ci fails
-        npm ci --production=false --prefer-offline --no-audit || npm install --production=false --prefer-offline --no-audit
+        # Server has only ~1GB RAM, optimize heavily
+        export NODE_OPTIONS="--max-old-space-size=512"
+        # Clear npm cache to free memory
+        npm cache clean --force 2>/dev/null || true
+        # Use npm install (less memory intensive than npm ci)
+        npm install --production=false --prefer-offline --no-audit --legacy-peer-deps
         
         echo "🔨 Building project..."
+        # Optimize build memory usage
+        export NODE_OPTIONS="--max-old-space-size=512"
         npm run build
         
         echo "🔒 Setting permissions..."
@@ -508,10 +516,12 @@ rollback() {
         git reset --hard \${COMMIT_HASH}
         
         echo "📦 Installing dependencies..."
-        # Optimize memory usage for npm ci
-        export NODE_OPTIONS="--max-old-space-size=2048"
-        # Use npm install with optimizations if npm ci fails
-        npm ci --production=false --prefer-offline --no-audit || npm install --production=false --prefer-offline --no-audit
+        # Server has only ~1GB RAM, optimize heavily
+        export NODE_OPTIONS="--max-old-space-size=512"
+        # Clear npm cache to free memory
+        npm cache clean --force 2>/dev/null || true
+        # Use npm install (less memory intensive than npm ci)
+        npm install --production=false --prefer-offline --no-audit --legacy-peer-deps
         
         echo "🔨 Building..."
         npm run build
