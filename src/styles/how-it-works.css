@@ -3569,7 +3569,7 @@ display: none !important;
 /* Static Pagination - 3 dots for testimonials */
 .static-pagination.testimonial-pagination {
 position: absolute !important;
-bottom: calc(-2rem + 120px) !important;
+bottom: calc(-2rem + 160px) !important;
 left: 50% !important;
 transform: translateX(-50%) !important;
 display: flex !important;
@@ -3601,7 +3601,7 @@ background: rgba(255, 255, 255, 0.95);
 @media (max-width: 767px) {
   .static-pagination.testimonial-pagination {
     position: absolute !important;
-    bottom: calc(-1rem + 40px) !important;
+    bottom: calc(-1rem + 80px) !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
     display: flex !important;
@@ -4057,7 +4057,7 @@ font-size: 1.25rem;
 /* Static Pagination - 3 dots for models */
 .static-pagination.model-pagination {
 position: absolute !important;
-bottom: calc(-2rem + 120px) !important;
+bottom: calc(-2rem + 200px) !important;
 left: 50% !important;
 transform: translateX(-50%) !important;
 display: flex !important;
@@ -4078,7 +4078,7 @@ background: rgba(255, 255, 255, 0.95);
 @media (max-width: 767px) {
   .static-pagination.model-pagination {
     position: absolute !important;
-    bottom: calc(-1rem + 40px) !important;
+    bottom: calc(-1rem + 120px) !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
     display: flex !important;
