@@ -86,6 +86,9 @@ deploy() {
         # Create logs directory
         mkdir -p ../logs
         
+        # Create database directory
+        mkdir -p database
+        
         # Make sure Python interpreter is executable
         chmod +x .venv/bin/python
         

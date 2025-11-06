@@ -83,13 +83,22 @@ chmod +x /var/www/illariooo.ru/bot/barcelona_bots/main.py
 chown -R root:root /var/www/illariooo.ru/bot
 ```
 
-#### Проблема: "Database error"
+#### Проблема: "Database error" или "unable to open database file"
 **Решение:** Проверьте путь к базе данных и права на запись:
 ```bash
 cd /var/www/illariooo.ru/bot/barcelona_bots
 mkdir -p database
 chmod 755 database
+touch database/client.db
+chmod 644 database/client.db
 ```
+
+**Если проблема с асинхронным драйвером SQLite:**
+Убедитесь, что в `.env` используется правильный формат:
+```
+DATABASE_URL=sqlite:///./database/client.db
+```
+Код автоматически конвертирует это в `sqlite+aiosqlite://` для асинхронной работы.
 
 ### 7. Перезапуск бота
 
