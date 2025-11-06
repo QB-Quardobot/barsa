@@ -74,7 +74,7 @@ npm install -g pm2
 5. **Запустить через PM2:**
 ```bash
 cd /var/www/illariooo.ru/bot
-pm2 start ecosystem.config.js
+pm2 start ecosystem.config.cjs
 pm2 save
 ```
 

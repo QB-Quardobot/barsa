@@ -112,7 +112,7 @@ ENDSSH
         pm2 delete barcelona-bots 2>/dev/null || true
         
         # Start bot
-        pm2 start ecosystem.config.js
+        pm2 start ecosystem.config.cjs
         pm2 save
         
         # Show status
