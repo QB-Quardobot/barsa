@@ -13,8 +13,15 @@ const DEBUG_MODE = false;
 
 <Base title="AI Model 2.0" description="Как зарабатывать $500–$2 500 на AI-моделях без команды, без лица и без вложений. Система AI Model 2.0.">
   
-  <!-- Swiper CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" slot="head" />
+  <!-- Swiper CSS - load asynchronously to prevent render blocking -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"></noscript>
+  
+  <!-- Preload Hero Image for LCP optimization -->
+  <link rel="preload" as="image" href="/income-proof-600.webp" imagesrcset="/income-proof-600.webp 600w, /income-proof-900.webp 900w, /income-proof-1200.webp 1200w" imagesizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px" fetchpriority="high" slot="head">
+  
+  <!-- Preload Swiper JS (loads later, but DNS/prepare connection early) -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" as="script" slot="head">
   
   {DEBUG_MODE && (
     <div id="tg-debug-panel" style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.95); color: #0f0; font-family: monospace; font-size: 11px; padding: 10px; z-index: 999999; max-height: 250px; overflow-y: auto; border-top: 2px solid #0f0; box-shadow: 0 -4px 20px rgba(0,255,0,0.3); user-select: text; -webkit-user-select: text;">
@@ -61,8 +68,9 @@ const DEBUG_MODE = false;
               srcset="/income-proof-600.webp 600w, /income-proof-900.webp 900w, /income-proof-1200.webp 1200w, /income-proof.webp 1920w"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
               alt="Скриншот доходов от AI-моделей"
-              loading="lazy"
+              loading="eager"
               decoding="async"
+              fetchpriority="high"
               width="1200"
               height="675"
               class="proof-cover-img"
@@ -1116,8 +1124,12 @@ const DEBUG_MODE = false;
         if (typeof Swiper === 'undefined') {
           const script = document.createElement('script');
           script.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
+          script.async = true; // Load asynchronously
           script.onload = function() {
             createModelsSwiper();
+          };
+          script.onerror = function() {
+            console.error('[Swiper] Failed to load Swiper library');
           };
           document.head.appendChild(script);
         } else {
@@ -1126,15 +1138,35 @@ const DEBUG_MODE = false;
       }
       
       function createModelsSwiper() {
+        console.log('[PAGINATION DEBUG] Starting createModelsSwiper (index.astro)...');
+        
         const swiperContainer = document.querySelector('.student-models-swiper-main');
         const wrapper = document.querySelector('.student-models-swiper-wrapper');
         
         if (!swiperContainer || !wrapper) {
+          console.error('[PAGINATION DEBUG] Swiper container or wrapper not found!', {
+            container: swiperContainer,
+            wrapper: wrapper
+          });
           return;
         }
+        console.log('[PAGINATION DEBUG] Swiper container and wrapper found');
         
         const paginationSelector = '.student-model-pagination';
-        const paginationEl = wrapper.querySelector(paginationSelector);
+        // Ищем пагинацию в wrapper, но также проверим в document
+        let paginationEl = wrapper.querySelector(paginationSelector);
+        if (!paginationEl) {
+          paginationEl = document.querySelector(paginationSelector);
+          console.log('[PAGINATION DEBUG] Pagination not found in wrapper, searching in document:', paginationEl);
+        }
+        console.log('[PAGINATION DEBUG] Pagination element:', paginationEl);
+        console.log('[PAGINATION DEBUG] Pagination element styles:', paginationEl ? {
+          display: getComputedStyle(paginationEl).display,
+          visibility: getComputedStyle(paginationEl).visibility,
+          opacity: getComputedStyle(paginationEl).opacity,
+          zIndex: getComputedStyle(paginationEl).zIndex,
+          position: getComputedStyle(paginationEl).position,
+        } : 'NOT FOUND');
         
         const swiper = new Swiper('.student-models-swiper-main', {
           // Core
@@ -1196,6 +1228,10 @@ const DEBUG_MODE = false;
             clickable: true,
             dynamicBullets: false,
             type: 'bullets',
+            renderBullet: function (index, className) {
+              console.log('[PAGINATION DEBUG] Rendering bullet:', index, className);
+              return '<span class="' + className + '"></span>';
+            },
           },
           
           // Navigation - отключено (используем только пагинацию)
@@ -1223,9 +1259,67 @@ const DEBUG_MODE = false;
           // Events
           on: {
             init: function(swiperInstance) {
+              console.log('[PAGINATION DEBUG] Swiper init event fired (index.astro)');
+              console.log('[PAGINATION DEBUG] Pagination element:', swiperInstance.pagination?.el);
+              console.log('[PAGINATION DEBUG] Pagination bullets count:', swiperInstance.pagination?.bullets?.length || 0);
+              console.log('[PAGINATION DEBUG] Pagination bullets:', swiperInstance.pagination?.bullets);
+              
+              // Проверяем DOM элемент пагинации
+              const pagEl = document.querySelector(paginationSelector);
+              if (pagEl) {
+                console.log('[PAGINATION DEBUG] Pagination DOM element found:', pagEl);
+                console.log('[PAGINATION DEBUG] Pagination DOM innerHTML:', pagEl.innerHTML);
+                console.log('[PAGINATION DEBUG] Pagination DOM children:', pagEl.children.length);
+                console.log('[PAGINATION DEBUG] Pagination DOM children elements:', Array.from(pagEl.children).map(c => ({
+                  tag: c.tagName,
+                  classes: c.className,
+                  display: getComputedStyle(c).display,
+                  visibility: getComputedStyle(c).visibility,
+                  opacity: getComputedStyle(c).opacity,
+                })));
+                
+                // Проверяем родительские элементы на overflow
+                let parent = pagEl.parentElement;
+                let parentLevel = 0;
+                while (parent && parentLevel < 5) {
+                  const overflow = getComputedStyle(parent).overflow;
+                  const position = getComputedStyle(parent).position;
+                  if (overflow !== 'visible' || position !== 'static') {
+                    console.log(`[PAGINATION DEBUG] Parent level ${parentLevel}:`, {
+                      tag: parent.tagName,
+                      class: parent.className,
+                      overflow: overflow,
+                      position: position,
+                    });
+                  }
+                  parent = parent.parentElement;
+                  parentLevel++;
+                }
+                
+                console.log('[PAGINATION DEBUG] Pagination computed styles:', {
+                  display: getComputedStyle(pagEl).display,
+                  visibility: getComputedStyle(pagEl).visibility,
+                  opacity: getComputedStyle(pagEl).opacity,
+                  zIndex: getComputedStyle(pagEl).zIndex,
+                  position: getComputedStyle(pagEl).position,
+                  bottom: getComputedStyle(pagEl).bottom,
+                  left: getComputedStyle(pagEl).left,
+                  width: getComputedStyle(pagEl).width,
+                  height: getComputedStyle(pagEl).height,
+                  overflow: getComputedStyle(pagEl).overflow,
+                });
+              } else {
+                console.error('[PAGINATION DEBUG] Pagination DOM element NOT FOUND!');
+                console.error('[PAGINATION DEBUG] Searching for selector:', paginationSelector);
+                console.error('[PAGINATION DEBUG] All pagination elements:', document.querySelectorAll('.swiper-pagination'));
+              }
+              
               ensurePagination(swiperInstance);
             },
             paginationRender: function(swiperInstance) {
+              console.log('[PAGINATION DEBUG] paginationRender event fired (index.astro)');
+              console.log('[PAGINATION DEBUG] Bullets after render:', swiperInstance.pagination?.bullets?.length || 0);
+              
               // Когда Swiper создает bullets, убеждаемся что они видны
               if (swiperInstance.pagination?.bullets?.length > 0) {
                 ensurePaginationVisibility(swiperInstance);
@@ -1248,6 +1342,10 @@ const DEBUG_MODE = false;
             },
           },
         });
+        
+        console.log('[PAGINATION DEBUG] Swiper created (index.astro):', swiper);
+        console.log('[PAGINATION DEBUG] Swiper pagination:', swiper.pagination);
+        console.log('[PAGINATION DEBUG] Swiper pagination bullets:', swiper.pagination?.bullets?.length || 0);
         
         // Helper functions для ручного создания пагинации если Swiper не создал
         function hasNativeBullets(swiperInstance) {
@@ -1334,21 +1432,10 @@ const DEBUG_MODE = false;
             return;
           }
           
-          // Определяем мобильное устройство
-          const isMobile = window.innerWidth <= 767;
-          const bulletSize = isMobile ? '8px' : '7px';
-          
           // Убеждаемся что элемент виден
           paginationEl.style.display = 'flex';
           paginationEl.style.visibility = 'visible';
           paginationEl.style.opacity = '1';
-          paginationEl.style.pointerEvents = 'auto';
-          paginationEl.style.zIndex = isMobile ? '100' : '10';
-          
-          // На мобильных устанавливаем правильное позиционирование
-          if (isMobile) {
-            paginationEl.style.bottom = window.innerWidth <= 480 ? '0.25rem' : '0.5rem';
-          }
           
           // Проверяем нативные bullets
           const nativeBullets = swiperInstance.pagination?.bullets || [];
@@ -1357,10 +1444,10 @@ const DEBUG_MODE = false;
           if (nativeBullets.length > 0) {
             nativeBullets.forEach((bullet) => {
               if (bullet && bullet.style) {
-                // ПРИНУДИТЕЛЬНО устанавливаем размеры и стили
-                bullet.style.width = bulletSize;
-                bullet.style.height = bulletSize;
-                bullet.style.display = 'inline-block';
+                // ПРИНУДИТЕЛЬНО устанавливаем размеры и стили (как в CSS: 7px)
+                bullet.style.width = '7px';
+                bullet.style.height = '7px';
+                bullet.style.display = 'block';
                 bullet.style.visibility = 'visible';
                 bullet.style.opacity = '1';
                 bullet.style.borderRadius = '50%';
@@ -1377,9 +1464,9 @@ const DEBUG_MODE = false;
           if (domBullets.length > 0) {
             domBullets.forEach((bullet) => {
               // ПРИНУДИТЕЛЬНО устанавливаем размеры и стили
-              bullet.style.width = bulletSize;
-              bullet.style.height = bulletSize;
-              bullet.style.display = 'inline-block';
+              bullet.style.width = '7px';
+              bullet.style.height = '7px';
+              bullet.style.display = 'block';
               bullet.style.visibility = 'visible';
               bullet.style.opacity = '1';
               bullet.style.borderRadius = '50%';
@@ -1416,15 +1503,6 @@ const DEBUG_MODE = false;
         setTimeout(() => {
           ensurePaginationVisibility(swiper);
         }, 2000);
-        
-        // Обработчик изменения размера окна для мобильных устройств
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-          clearTimeout(resizeTimeout);
-          resizeTimeout = setTimeout(() => {
-            ensurePaginationVisibility(swiper);
-          }, 100);
-        });
         
         // Navigation buttons removed - using pagination only
         
@@ -1494,12 +1572,25 @@ const DEBUG_MODE = false;
         });
       }
       
+      // Lazy load Swiper - only when needed (not blocking initial render)
+      function initWhenReady() {
+        // Use requestIdleCallback for better performance
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(() => {
+            initStudentModelsSwiper();
+          }, { timeout: 3000 });
+        } else {
+          // Fallback: delay slightly to not block initial render
+          setTimeout(() => {
+            initStudentModelsSwiper();
+          }, 300);
+        }
+      }
+      
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-          initStudentModelsSwiper();
-        });
+        document.addEventListener('DOMContentLoaded', initWhenReady, { once: true });
       } else {
-        initStudentModelsSwiper();
+        initWhenReady();
       }
     })();
   </script>
@@ -1606,12 +1697,28 @@ const DEBUG_MODE = false;
     }
   };
   
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', domReadyHandler, { once: true });
-    document.addEventListener('DOMContentLoaded', preventOrphans, { once: true });
-  } else {
+  // Non-critical features - load after page is interactive using requestIdleCallback
+  function initNonCriticalFeatures() {
     domReadyHandler();
     preventOrphans();
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      // Use requestIdleCallback for better performance
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(initNonCriticalFeatures, { timeout: 3000 });
+      } else {
+        setTimeout(initNonCriticalFeatures, 200);
+      }
+    }, { once: true });
+  } else {
+    // Use requestIdleCallback for better performance
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(initNonCriticalFeatures, { timeout: 2000 });
+    } else {
+      setTimeout(initNonCriticalFeatures, 200);
+    }
   }
   
   // Prevent orphan words (single words on new line)
@@ -1795,15 +1902,32 @@ const DEBUG_MODE = false;
     }
   }
   
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initLazyImages, { once: true });
-  } else {
+  // Lazy load images/videos - use requestIdleCallback for better performance
+  function initLazyWhenReady() {
     initLazyImages();
     initLazyVideos();
   }
   
-  // Initialize reveal animations (non-blocking, after DOM ready)
-  // Note: Using setTimeout to avoid blocking, import will be handled by Astro's module system
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      // Use requestIdleCallback to not block initial render
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(initLazyWhenReady, { timeout: 2000 });
+      } else {
+        setTimeout(initLazyWhenReady, 100);
+      }
+    }, { once: true });
+  } else {
+    // Use requestIdleCallback to not block initial render
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(initLazyWhenReady, { timeout: 2000 });
+    } else {
+      setTimeout(initLazyWhenReady, 100);
+    }
+  }
+  
+  // Initialize reveal animations (lazy load, non-blocking)
+  // Use requestIdleCallback for better performance, fallback to setTimeout
   (function() {
     function initRevealAnimations() {
       try {
@@ -1816,25 +1940,46 @@ const DEBUG_MODE = false;
         if (typeof window.initReveal === 'function') {
           window.initReveal();
         } else {
-          // Fallback: Try importing reveal module directly
-          import('/src/lib/reveal-init.js').then(() => {
-            if (typeof window.initReveal === 'function') {
-              window.initReveal();
-            }
-          }).catch(() => {
-            // Silently fail - reveal will be initialized by reveal-init.js when it loads
-          });
+          // Lazy load reveal module only when needed (idle time or user interaction)
+          const loadReveal = () => {
+            import('/src/lib/reveal-init.js').then(() => {
+              if (typeof window.initReveal === 'function') {
+                window.initReveal();
+              }
+            }).catch(() => {
+              // Silently fail - reveal will be initialized when available
+            });
+          };
+          
+          // Use requestIdleCallback for better performance, fallback to setTimeout
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(loadReveal, { timeout: 2000 });
+          } else {
+            setTimeout(loadReveal, 100);
+          }
         }
       } catch (e) {
         // Silently fail - reveal will be initialized when available
       }
     }
     
+    // Wait for page to be interactive before loading reveal
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initRevealAnimations, { once: true });
+      document.addEventListener('DOMContentLoaded', () => {
+        // Delay to not block initial render - use requestIdleCallback
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(initRevealAnimations, { timeout: 3000 });
+        } else {
+          setTimeout(initRevealAnimations, 500);
+        }
+      }, { once: true });
     } else {
-      // Delay slightly to not block initial render
-      setTimeout(initRevealAnimations, 100);
+      // Use requestIdleCallback for better performance
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(initRevealAnimations, { timeout: 2000 });
+      } else {
+        setTimeout(initRevealAnimations, 500);
+      }
     }
   })();
 </script>
@@ -4256,46 +4401,28 @@ const DEBUG_MODE = false;
     transform: scale(1);
   }
   
-  /* Медиа-запросы для мобильных устройств - исправление пагинации */
+  /* Mobile fixes for student-model-pagination */
   @media (max-width: 767px) {
-    /* Увеличиваем padding-bottom для wrapper контейнера, чтобы пагинация была видна */
-    .student-models-swiper-wrapper {
-      padding-bottom: 4rem !important;
-      overflow: visible !important;
-    }
-    
-    /* Исправляем позиционирование пагинации на мобильных */
     .student-model-pagination {
-      bottom: 0.5rem !important;
-      z-index: 100 !important;
+      position: absolute !important;
+      bottom: -1rem !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      display: flex !important;
       visibility: visible !important;
       opacity: 1 !important;
-      display: flex !important;
+      z-index: 100 !important;
       pointer-events: auto !important;
     }
     
-    /* Убеждаемся, что bullets видны на мобильных */
-    .student-model-pagination .swiper-pagination-bullet {
-      width: 8px !important;
-      height: 8px !important;
-      opacity: 1 !important;
-      visibility: visible !important;
-      display: inline-block !important;
-    }
-    
-    .student-model-pagination .swiper-pagination-bullet-active {
-      opacity: 1 !important;
-      visibility: visible !important;
-    }
-  }
-  
-  @media (max-width: 480px) {
     .student-models-swiper-wrapper {
-      padding-bottom: 3.5rem !important;
+      padding-bottom: 2rem !important;
+      overflow: visible !important;
+      position: relative !important;
     }
     
-    .student-model-pagination {
-      bottom: 0.25rem !important;
+    .student-models-swiper-main {
+      overflow: visible !important;
     }
   }
   

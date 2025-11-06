@@ -1,0 +1,440 @@
+/* ============================================
+   EXTENDED REVEAL ANIMATIONS
+   Created by Agent #3 for enhanced UX
+   ============================================ */
+
+/* === Slide Animations === */
+.reveal-slide-left {
+  opacity: 0;
+  transform: translateX(-80px) translateZ(0);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.reveal-slide-left.is-revealed {
+  opacity: 1;
+  transform: translateX(0) translateZ(0);
+}
+
+.reveal-slide-right {
+  opacity: 0;
+  transform: translateX(80px) translateZ(0);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.reveal-slide-right.is-revealed {
+  opacity: 1;
+  transform: translateX(0) translateZ(0);
+}
+
+/* === Blur Reveal === */
+.reveal-blur {
+  opacity: 0;
+  filter: blur(10px);
+  transform: scale(0.98) translateZ(0);
+  transition: opacity 0.5s ease-out,
+              filter 0.5s ease-out,
+              transform 0.5s ease-out;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.reveal-blur.is-revealed {
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1) translateZ(0);
+}
+
+/* === Rotate Reveal === */
+.reveal-rotate {
+  opacity: 0;
+  transform: rotateY(15deg) rotateX(5deg) translateZ(0);
+  transform-style: preserve-3d;
+  transition: opacity 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+              transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.reveal-rotate.is-revealed {
+  opacity: 1;
+  transform: rotateY(0) rotateX(0) translateZ(0);
+}
+
+/* === Bounce Reveal === */
+.reveal-bounce {
+  opacity: 0;
+  transform: scale(0.3) translateZ(0);
+  transition: opacity 0.4s ease-out,
+              transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.reveal-bounce.is-revealed {
+  opacity: 1;
+  transform: scale(1) translateZ(0);
+}
+
+/* === Glow Reveal === */
+.reveal-glow {
+  opacity: 0 !important;
+  filter: brightness(0.5);
+  box-shadow: 0 0 0 rgba(96, 165, 250, 0) !important;
+  transition: opacity 0.5s ease-out,
+              filter 0.5s ease-out,
+              box-shadow 0.5s ease-out !important;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+  /* Ensure visibility hidden initially but allow layout */
+  visibility: visible;
+}
+
+.reveal-glow.is-revealed {
+  opacity: 1 !important;
+  filter: brightness(1) !important;
+  box-shadow: 0 0 30px rgba(96, 165, 250, 0.3) !important;
+}
+
+/* Special handling for pricing-card-popular with reveal-glow */
+.pricing-card-popular.reveal-glow {
+  /* Preserve scale transform for popular card */
+  transform: scale(1.05) translateZ(0);
+}
+
+.pricing-card-popular.reveal-glow.is-revealed {
+  transform: scale(1.05) translateZ(0);
+}
+
+/* === Stagger Animation === */
+.reveal-stagger {
+  opacity: 1;
+}
+
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(20px) translateZ(0);
+  transition: opacity 0.5s ease-out,
+              transform 0.5s ease-out;
+  transition-delay: calc(var(--stagger-delay, 0) * 80ms);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.reveal-stagger.is-revealed > * {
+  opacity: 1;
+  transform: translateY(0) translateZ(0);
+}
+
+/* === Parallax Layer === */
+.parallax-layer {
+  will-change: transform;
+  transition: transform 0.1s ease-out;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* === Enhanced Hover Effects === */
+/* Removed pricing-card hover effects to avoid conflicts - using base styles from how-it-works.css */
+
+/* === Button Animations === */
+.btn-capsule {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn-capsule::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+  pointer-events: none;
+}
+
+.btn-capsule:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-capsule:hover {
+  transform: translateY(-2px) scale(1.03) translateZ(0);
+  box-shadow: 0 12px 40px rgba(96, 165, 250, 0.5);
+}
+
+.btn-capsule:active {
+  transform: translateY(0) scale(0.98) translateZ(0);
+}
+
+/* === Image Hover Zoom === */
+.image-wrapper {
+  overflow: hidden;
+  border-radius: var(--radius-lg, 12px);
+}
+
+.image-wrapper img {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+
+.image-wrapper:hover img {
+  transform: scale(1.05) translateZ(0);
+}
+
+/* === FAQ Accordion Enhanced === */
+.faq-question {
+  transition: all 0.3s ease;
+}
+
+.faq-question:hover {
+  background: rgba(96, 165, 250, 0.05);
+}
+
+.faq-question .question-icon {
+  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.faq-question[aria-expanded="true"] .question-icon {
+  transform: rotate(45deg);
+}
+
+/* === Gradient Shimmer Animation === */
+@keyframes gradient-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.gradient-text-animated {
+  background: linear-gradient(
+    90deg,
+    #60a5fa 0%,
+    #22d3ee 25%,
+    #60a5fa 50%,
+    #22d3ee 75%,
+    #60a5fa 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shimmer 4s ease infinite;
+  display: inline-block;
+}
+
+/* === Counter Animation === */
+@keyframes count-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.stat-number {
+  display: inline-block;
+  overflow: hidden;
+  position: relative;
+}
+
+.stat-number.is-counting {
+  animation: count-up 0.3s ease-out;
+}
+
+/* === Pulse Animation for Badges === */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(96, 165, 250, 0.6);
+  }
+}
+
+.popular-badge {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* === VS Divider Animation === */
+@keyframes vs-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+.vs-text {
+  animation: vs-pulse 2s ease-in-out infinite;
+}
+
+/* === Enhanced Shimmer for Images === */
+@keyframes shimmer-wave {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+  }
+}
+
+.shimmer-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 20%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0.1) 80%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmer-wave 2s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.lazy-image.loaded + .shimmer-overlay,
+.lazy-image[data-loaded="true"] ~ .shimmer-overlay {
+  animation: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* === Format Card Hover Effects === */
+.format-card {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.format-card:hover {
+  transform: translateY(-4px) scale(1.02) translateZ(0);
+  box-shadow: 0 12px 40px rgba(96, 165, 250, 0.2);
+}
+
+.format-icon-wrapper {
+  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.format-card:hover .format-icon-wrapper {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* === Path Card Enhancements === */
+.path-card {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.path-card:hover {
+  transform: translateY(-4px) scale(1.01) translateZ(0);
+  box-shadow: 0 16px 48px rgba(96, 165, 250, 0.25);
+}
+
+/* === Performance Optimization === */
+.reveal-slide-left,
+.reveal-slide-right,
+.reveal-blur,
+.reveal-rotate,
+.reveal-bounce,
+.reveal-glow {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Используем will-change только для активных анимаций */
+.is-animating {
+  will-change: transform, opacity;
+}
+
+.is-animating.animation-complete {
+  will-change: auto;
+}
+
+/* === Reduced Motion Support === */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .reveal-slide-left,
+  .reveal-slide-right,
+  .reveal-blur,
+  .reveal-rotate,
+  .reveal-bounce,
+  .reveal-glow,
+  .reveal-stagger > * {
+    transition: opacity 0.01ms !important;
+  }
+  
+  .parallax-layer {
+    transform: none !important;
+  }
+  
+  .gradient-text-animated {
+    animation: none !important;
+  }
+  
+  .popular-badge,
+  .vs-text {
+    animation: none !important;
+  }
+}
+
+/* === Mobile Optimizations === */
+@media (max-width: 768px) {
+  /* Уменьшаем интенсивность анимаций на мобильных для лучшей производительности */
+  .reveal-slide-left,
+  .reveal-slide-right {
+    transform: translateX(-40px) translateZ(0);
+  }
+  
+  .reveal-slide-right {
+    transform: translateX(40px) translateZ(0);
+  }
+  
+  .reveal-bounce {
+    transform: scale(0.5) translateZ(0);
+  }
+  
+  /* Mobile hover - simplified */
+  .pricing-card:hover {
+    transform: translateY(-3px) translateZ(0);
+  }
+  
+  .btn-capsule:hover {
+    transform: translateY(-1px) scale(1.01) translateZ(0);
+  }
+}
+

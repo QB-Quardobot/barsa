@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { parseUTMFromURL } from '../lib/utm';
 import LoadingScreen from '../components/LoadingScreen.astro';
+import criticalCSS from '../styles/critical.css?raw';
 
 interface Props {
   title: string;
@@ -72,9 +73,35 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   <link rel="preload" href="/fonts/inter-medium.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/inter-bold.woff2" as="font" type="font/woff2" crossorigin>
   
+  <!-- Preload Critical Images (page-specific, will be overridden in pages) -->
+  
+  <!-- Critical CSS - Inline for fastest first paint (loads before global.css) -->
+  <style set:html={criticalCSS} />
+  
+  <!-- Polyfill for async CSS loading -->
+  <script is:inline>
+    /*! loadCSS. [c]2017 Filament Group, Inc. MIT License */
+    (function(w){"use strict";var loadCSS=function(href,before,media){var doc=w.document;var ss=doc.createElement("link");var ref;if(before){ref=before}else{var refs=(doc.body||doc.getElementsByTagName("head")[0]).childNodes;ref=refs[refs.length-1]}var sheets=doc.styleSheets;ss.rel="stylesheet";ss.href=href;ss.media="print";ss.onload=function(){ss.media=media||"all";ss.onload=null};ref.parentNode.insertBefore(ss,ref.nextSibling);return ss};if(typeof exports!=="undefined"){exports.loadCSS=loadCSS}else{w.loadCSS=loadCSS}}(typeof global!=="undefined"?global:this));
+  </script>
+  
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.webmanifest">
+  
+  <!-- Service Worker Registration -->
+  <script is:inline>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js')
+          .then(function(registration) {
+            console.log('[SW] Registered:', registration.scope);
+          })
+          .catch(function(error) {
+            console.error('[SW] Registration failed:', error);
+          });
+      });
+    }
+  </script>
   
   <!-- Performance Hints -->
   <link rel="preconnect" href="https://telegram.org" crossorigin>
@@ -82,6 +109,9 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
   <link rel="preconnect" href="https://mc.yandex.ru" crossorigin>
+  <!-- Swiper CDN optimization -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
   
   {/* Analytics configuration - IDs passed to client script */}
   {GA4_MEASUREMENT_ID && (
@@ -1074,6 +1104,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           
           // Function to setup haptics for elements (with retry for dynamic content)
           function setupHapticsForElements() {
+            if (!hapticCache) return; // Safety check
             const clickableSelectors = [
               'button:not([data-cta]):not(.btn-capsule)',
               'a[href]:not([data-cta])',
@@ -1182,24 +1213,26 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           });
           
           // Medium haptic on click for buttons (non-CTA) - use cached query
-          let buttonElements = hapticCache.get('button:not([data-cta]):not(.btn-capsule), [role="button"]:not([data-cta])');
-          if (!buttonElements) {
-            buttonElements = doc.querySelectorAll('button:not([data-cta]):not(.btn-capsule), [role="button"]:not([data-cta])');
-            hapticCache.set('button:not([data-cta]):not(.btn-capsule), [role="button"]:not([data-cta])', buttonElements);
-          }
-          buttonElements.forEach(function(el) {
-            const clickHandler = function() {
-              try {
-                if (rateLimiter.isAllowed()) {
-                  haptics.impactOccurred('medium');
-                }
-              } catch (e) {}
-            };
-            el.addEventListener('click', clickHandler);
-            registerCleanup(function() {
-              el.removeEventListener('click', clickHandler);
+          if (hapticCache) {
+            let buttonElements = hapticCache.get('button:not([data-cta]):not(.btn-capsule), [role="button"]:not([data-cta])');
+            if (!buttonElements) {
+              buttonElements = doc.querySelectorAll('button:not([data-cta]):not(.btn-capsule), [role="button"]:not([data-cta])');
+              hapticCache.set('button:not([data-cta]):not(.btn-capsule), [role="button"]:not([data-cta])', buttonElements);
+            }
+            buttonElements.forEach(function(el) {
+              const clickHandler = function() {
+                try {
+                  if (rateLimiter.isAllowed()) {
+                    haptics.impactOccurred('medium');
+                  }
+                } catch (e) {}
+              };
+              el.addEventListener('click', clickHandler);
+              registerCleanup(function() {
+                el.removeEventListener('click', clickHandler);
+              });
             });
-          });
+          }
         }
         
         // Expose global haptics helper (always available)
@@ -1222,10 +1255,12 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         if (isTouchDevice) {
           // Use cached query if available
           const touchSelector = '.reveal-up, .proof-item, .proof-image-placeholder, .student-photo, .student-circle, .banner-photo, .models-banner > div, .step-card, .path-card, .format-card, .cta-section, button, a[data-cta], .btn-capsule, .timeline-step';
-          let touchElements = hapticCache.get(touchSelector);
+          let touchElements = hapticCache ? hapticCache.get(touchSelector) : null;
           if (!touchElements) {
             touchElements = doc.querySelectorAll(touchSelector);
-            hapticCache.set(touchSelector, touchElements);
+            if (hapticCache) {
+              hapticCache.set(touchSelector, touchElements);
+            }
           }
           const touchOpts = { passive: true };
           

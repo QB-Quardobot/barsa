@@ -1,6 +1,7 @@
 /**
  * Reveal animations using Intersection Observer
- * Applies reveal-fade, reveal-up, and reveal-scale animations
+ * Applies reveal-fade, reveal-up, reveal-scale, and extended animations
+ * Extended by Agent #3 for enhanced UX
  */
 
 interface RevealOptions {
@@ -27,10 +28,15 @@ class RevealAnimations {
   private fastScrollTimeout: number | null = null;
   private scrollThrottleTimeout: number | null = null;
 
+  private parallaxElements: Map<HTMLElement, number> = new Map();
+  private parallaxTicking = false;
+  private parallaxHandler: (() => void) | null = null;
+
   constructor(options?: RevealOptions) {
     this.options = { ...this.options, ...options };
     this.trackScrollVelocity();
     this.init();
+    this.setupParallax();
   }
   
   private rafId: number | null = null;
@@ -122,7 +128,10 @@ class RevealAnimations {
       
       // Observe all reveal elements that haven't been revealed yet
       const elements = document.querySelectorAll(
-        '[class*="reveal-fade"]:not(.is-revealed), [class*="reveal-up"]:not(.is-revealed), [class*="reveal-scale"]:not(.is-revealed)'
+        '[class*="reveal-fade"]:not(.is-revealed), [class*="reveal-up"]:not(.is-revealed), [class*="reveal-scale"]:not(.is-revealed), ' +
+        '[class*="reveal-slide-left"]:not(.is-revealed), [class*="reveal-slide-right"]:not(.is-revealed), [class*="reveal-blur"]:not(.is-revealed), ' +
+        '[class*="reveal-rotate"]:not(.is-revealed), [class*="reveal-bounce"]:not(.is-revealed), [class*="reveal-glow"]:not(.is-revealed), ' +
+        '[class*="reveal-stagger"]:not(.is-revealed)'
       );
       elements.forEach((el) => {
         this.prerenderObserver!.observe(el);
@@ -150,12 +159,21 @@ class RevealAnimations {
       this.options
     );
 
-    // Observe all elements with reveal classes
+    // Observe all elements with reveal classes (including new extended animations)
     const elements = document.querySelectorAll(
-      '[class*="reveal-fade"], [class*="reveal-up"], [class*="reveal-scale"]'
+      '[class*="reveal-fade"], [class*="reveal-up"], [class*="reveal-scale"], ' +
+      '[class*="reveal-slide-left"], [class*="reveal-slide-right"], [class*="reveal-blur"], ' +
+      '[class*="reveal-rotate"], [class*="reveal-bounce"], [class*="reveal-glow"], ' +
+      '[class*="reveal-stagger"]'
     );
 
     elements.forEach((el) => this.observer!.observe(el));
+    
+    // Initialize stagger animations
+    this.initStaggerAnimations();
+    
+    // Initialize counter animations
+    this.initCounterAnimations();
 
     // Check for reduced motion preference
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -189,13 +207,25 @@ class RevealAnimations {
             return;
           }
           
+          // Handle stagger animation
+          if (element.classList.contains('reveal-stagger')) {
+            this.animateStagger(element);
+            return;
+          }
+          
+          // Handle counter animation
+          if (element.classList.contains('stat-number') && element.dataset.counterTarget) {
+            element.classList.add('is-counting');
+            this.animateCounter(element);
+          }
+          
           // During fast scrolling, show immediately without animation
           // This prevents white flashes while maintaining performance
           if (this.isFastScrolling) {
             // Immediate reveal for fast scroll (no animation)
             element.style.transition = 'none';
             element.style.opacity = '1';
-            element.style.transform = 'none';
+            element.style.transform = 'translateZ(0)';
             element.classList.add('is-revealed');
             
             // Clean up after a moment
@@ -205,7 +235,21 @@ class RevealAnimations {
             }, 100);
           } else {
             // Normal reveal animation - plays when element is close to viewport
-            element.style.willChange = 'opacity, transform';
+            // Optimize will-change based on element type for better performance
+            const isPricingCard = element.classList.contains('pricing-card');
+            const isGlow = element.classList.contains('reveal-glow');
+            
+            // Pricing cards don't need will-change - they're optimized separately
+            if (!isPricingCard) {
+              if (isGlow) {
+                element.style.willChange = 'opacity, filter, box-shadow';
+              } else {
+                // Use transform for beautiful GPU-accelerated animations
+                element.style.willChange = 'opacity, transform';
+              }
+            }
+            
+            element.classList.add('is-animating');
             
             // Force a reflow to ensure styles are applied
             element.offsetHeight;
@@ -213,10 +257,14 @@ class RevealAnimations {
             // Trigger animation by adding is-revealed class
             element.classList.add('is-revealed');
             
-            // Clean up will-change after animation completes
+            // Clean up will-change after animation completes (700ms matches CSS duration)
             setTimeout(() => {
-              element.style.willChange = 'auto';
-            }, 600); // Match CSS transition duration
+              if (!isPricingCard) {
+                element.style.willChange = 'auto';
+              }
+              element.classList.remove('is-animating');
+              element.classList.add('animation-complete');
+            }, 700); // Match CSS transition duration
           }
           
           // Unobserve if once is true
@@ -229,6 +277,162 @@ class RevealAnimations {
           }
         }
       });
+    });
+  }
+  
+  private animateStagger(element: HTMLElement) {
+    const children = Array.from(element.children) as HTMLElement[];
+    
+    // Use requestAnimationFrame to ensure smooth rendering
+    requestAnimationFrame(() => {
+      children.forEach((child, index) => {
+        // Set CSS custom property for stagger delay
+        child.style.setProperty('--stagger-delay', index.toString());
+        
+        // CRITICAL: Don't set transform on children to avoid stacking context issues
+        // GPU acceleration is handled by CSS with clip-path animations
+      });
+      
+      element.classList.add('is-revealed');
+      
+      // Observe children if needed
+      if (this.observer) {
+        this.observer.unobserve(element);
+      }
+    });
+  }
+  
+  private initStaggerAnimations() {
+    const staggerElements = document.querySelectorAll('.reveal-stagger');
+    staggerElements.forEach((el) => {
+      if (this.observer) {
+        this.observer.observe(el);
+      }
+    });
+  }
+  
+  /**
+   * Animate counter using requestAnimationFrame for 60fps performance
+   * Based on best practices: https://web.dev/animations-guide/
+   * Uses ease-out cubic easing for natural deceleration
+   */
+  private animateCounter(element: HTMLElement) {
+    const targetText = element.textContent || '0';
+    const target = parseInt(element.dataset.counterTarget || targetText.replace(/[^0-9]/g, '') || '0');
+    const duration = parseInt(element.dataset.counterDuration || '2000');
+    const originalText = element.dataset.originalText || '';
+    const suffix = originalText.match(/[^0-9]+$/)?.[0] || '';
+    
+    // Use easing function for smooth animation (ease-out cubic)
+    // Better than linear animation for perceived smoothness
+    const easeOutCubic = (t: number): number => {
+      return 1 - Math.pow(1 - t, 3);
+    };
+    
+    let startTime: number | null = null;
+    const startValue = 0;
+    
+    const animate = (currentTime: number) => {
+      if (startTime === null) {
+        startTime = currentTime;
+      }
+      
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeOutCubic(progress);
+      
+      const currentValue = Math.floor(startValue + (target - startValue) * easedProgress);
+      element.textContent = currentValue + suffix;
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        element.textContent = target + suffix;
+        element.classList.remove('is-counting');
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }
+  
+  private initCounterAnimations() {
+    const counterElements = document.querySelectorAll('.stat-number[data-counter-target]');
+    counterElements.forEach((el) => {
+      const element = el as HTMLElement;
+      // Store original text
+      element.dataset.originalText = element.textContent || '';
+      element.textContent = '0' + (element.textContent?.match(/[^0-9]+$/)?.[0] || '');
+      
+      if (this.observer) {
+        this.observer.observe(element);
+      }
+    });
+  }
+  
+  private setupParallax() {
+    // Find all parallax elements
+    const parallaxElements = document.querySelectorAll('.parallax-layer');
+    parallaxElements.forEach((el) => {
+      const element = el as HTMLElement;
+      const speed = parseFloat(element.dataset.parallaxSpeed || '0.3');
+      this.parallaxElements.set(element, speed);
+    });
+    
+    if (this.parallaxElements.size > 0) {
+      this.parallaxHandler = this.handleParallax.bind(this);
+      window.addEventListener('scroll', this.parallaxHandler, { passive: true });
+    }
+  }
+  
+  /**
+   * Handle parallax scroll effect with performance optimizations
+   * Best practices:
+   * - Use requestAnimationFrame for smooth 60fps animation
+   * - Throttle with ticking flag to prevent multiple RAF calls
+   * - Calculate positions relative to viewport center for natural effect
+   * - Use will-change only when element is visible
+   * - Use translate3d for GPU acceleration
+   */
+  private handleParallax() {
+    if (this.parallaxTicking) return;
+    
+    this.parallaxTicking = true;
+    requestAnimationFrame(() => {
+      const scrollY = window.scrollY;
+      const viewportHeight = window.innerHeight;
+      
+      this.parallaxElements.forEach((speed, element) => {
+        // Use getBoundingClientRect only once per frame for better performance
+        const rect = element.getBoundingClientRect();
+        const elementTop = rect.top + scrollY;
+        const elementHeight = rect.height;
+        
+        // Only animate if element is visible in viewport (with 200px buffer)
+        const isVisible = (
+          elementTop + elementHeight > scrollY - 200 &&
+          elementTop < scrollY + viewportHeight + 200
+        );
+        
+        if (isVisible) {
+          // Calculate parallax offset based on element's position relative to viewport center
+          const elementCenter = elementTop + elementHeight / 2;
+          const viewportCenter = scrollY + viewportHeight / 2;
+          const distanceFromCenter = elementCenter - viewportCenter;
+          const yPos = distanceFromCenter * speed;
+          
+          // Use will-change only when animating
+          if (!element.style.willChange) {
+            element.style.willChange = 'transform';
+          }
+          
+          element.style.transform = `translate3d(0, ${yPos}px, 0)`;
+        } else {
+          // Remove will-change when element is off-screen
+          element.style.willChange = 'auto';
+        }
+      });
+      
+      this.parallaxTicking = false;
     });
   }
   
@@ -246,7 +450,10 @@ class RevealAnimations {
     
     // Find all reveal elements between current and target
     const allRevealElements = document.querySelectorAll(
-      '[class*="reveal-fade"]:not(.is-revealed), [class*="reveal-up"]:not(.is-revealed), [class*="reveal-scale"]:not(.is-revealed)'
+      '[class*="reveal-fade"]:not(.is-revealed), [class*="reveal-up"]:not(.is-revealed), [class*="reveal-scale"]:not(.is-revealed), ' +
+      '[class*="reveal-slide-left"]:not(.is-revealed), [class*="reveal-slide-right"]:not(.is-revealed), [class*="reveal-blur"]:not(.is-revealed), ' +
+      '[class*="reveal-rotate"]:not(.is-revealed), [class*="reveal-bounce"]:not(.is-revealed), [class*="reveal-glow"]:not(.is-revealed), ' +
+      '[class*="reveal-stagger"]:not(.is-revealed)'
     );
     
     allRevealElements.forEach((el) => {
@@ -258,7 +465,7 @@ class RevealAnimations {
         const element = el as HTMLElement;
         element.style.transition = 'none';
         element.style.opacity = '1';
-        element.style.transform = 'none';
+        element.style.transform = 'translateZ(0)';
         element.classList.add('is-revealed');
         
         // Unobserve if observer exists
@@ -271,11 +478,20 @@ class RevealAnimations {
 
   private showAllImmediately() {
     const elements = document.querySelectorAll(
-      '[class*="reveal-fade"], [class*="reveal-up"], [class*="reveal-scale"]'
+      '[class*="reveal-fade"], [class*="reveal-up"], [class*="reveal-scale"], ' +
+      '[class*="reveal-slide-left"], [class*="reveal-slide-right"], [class*="reveal-blur"], ' +
+      '[class*="reveal-rotate"], [class*="reveal-bounce"], [class*="reveal-glow"], ' +
+      '[class*="reveal-stagger"]'
     );
 
     elements.forEach((el) => {
-      (el as HTMLElement).classList.add('is-revealed');
+      const element = el as HTMLElement;
+      element.classList.add('is-revealed');
+      
+      // Handle stagger elements
+      if (element.classList.contains('reveal-stagger')) {
+        this.animateStagger(element);
+      }
     });
 
     if (this.observer) {
@@ -312,6 +528,13 @@ class RevealAnimations {
       window.removeEventListener('scroll', scrollHandler);
       (this as any).scrollHandler = null;
     }
+    
+    // Remove parallax listener
+    if (this.parallaxHandler) {
+      window.removeEventListener('scroll', this.parallaxHandler);
+      this.parallaxHandler = null;
+    }
+    this.parallaxElements.clear();
     
     // Cleanup reduced motion listener
     const reducedMotionMedia = (this as any).reducedMotionMedia;

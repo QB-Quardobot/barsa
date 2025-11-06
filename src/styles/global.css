@@ -314,6 +314,69 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Global prefers-reduced-motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  html {
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Touch Targets - WCAG 2.5.5 (AAA) - минимум 44x44px для всех интерактивных элементов */
+/* Mobile-first approach */
+@media (max-width: 767px) {
+  button,
+  a[href],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  [role="button"],
+  .btn-capsule,
+  .faq-question,
+  .tariff-btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.75rem 1.5rem;
+  }
+  
+  /* Small icons need padding to reach 44px */
+  .modal-close,
+  button[aria-label] {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.5rem;
+  }
+  
+  /* Links without explicit padding */
+  a:not(.btn-capsule):not([class*="btn"]) {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* Ensure touch targets on all devices for accessibility */
+button:not([disabled]),
+a[href]:not([disabled]),
+input[type="button"]:not([disabled]),
+input[type="submit"]:not([disabled]),
+input[type="reset"]:not([disabled]),
+[role="button"]:not([disabled]),
+.faq-question {
+  /* Minimum touch target size for accessibility */
+  min-height: 44px;
+  min-width: 44px;
+}
+
 /* Card Styles - using improved styles from above */
 /* Button Styles - using improved styles from above */
 .btn-primary:hover {
@@ -375,6 +438,11 @@ main,
     overflow-x: hidden;
   }
   
+  /* CRITICAL: Exclude .about-ilya-section from overflow-x: hidden to allow box-shadow glow */
+  .about-ilya-section {
+    overflow-x: visible;
+  }
+  
   /* Ensure inner content doesn't overflow */
   section > * {
     max-width: 100%;
@@ -395,14 +463,14 @@ main,
    ======================================== */
 
 /* Base reveal classes - start hidden */
-.reveal-fade,
 .reveal-up,
 .reveal-scale {
   opacity: 0;
-  /* Smooth transition for reveal animations (600ms matches JS cleanup) */
-  transition: opacity 0.6s ease, transform 0.6s ease;
-  /* Enable GPU acceleration */
-  will-change: opacity, transform;
+  /* Modern smooth transition with advanced easing - cubic-bezier(0.16, 1, 0.3, 1) is Apple's preferred easing */
+  /* This creates beautiful, natural animations similar to top-tier websites */
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  /* GPU acceleration - will-change is set dynamically by JS only when animating */
   /* Prevent layout shifts */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -410,33 +478,143 @@ main,
   transform: translateZ(0);
 }
 
-/* Reveal fade animation */
+/* .ilya-current can use reveal animations - gradient text inside is isolated */
+/* No special rules needed - isolation handles it */
+
+/* CRITICAL: Exclude .ilya-current-amount from any transitions to prevent gradient text flickering */
+.ilya-current-amount,
+.ilya-current .ilya-current-amount,
+.ilya-current.reveal-up .ilya-current-amount,
+.reveal-up .ilya-current-amount {
+  transition: none;
+  animation: none;
+  filter: none;
+}
+
+/* CRITICAL FIX: Prevent background square artifact on gradient text inside transformed parents */
+/* Solution: Use isolation to create isolated stacking context for gradient text */
+/* This allows parent to use transform while gradient text remains isolated */
+.gradient-text,
+.gradient-text *,
+.gradient-text span,
+.gradient-text strong,
+.gradient-text em,
+.ilya-current-amount,
+.highlight-glow.gradient-text {
+  /* Create isolated stacking context - prevents parent background from bleeding through */
+  /* isolation: isolate creates a new stacking context without affecting layout */
+  isolation: isolate;
+  /* Ensure proper rendering layer */
+  position: relative;
+  /* Prevent background bleeding from parent */
+  background-color: transparent !important;
+  /* Ensure gradient text renders on top layer */
+  z-index: 1;
+  /* CRITICAL: Use translateZ(0) to create stacking context and ensure proper isolation */
+  /* This creates a new stacking context that isolates gradient text from parent */
+  transform: translateZ(0);
+  /* CRITICAL: Use normal blend mode to prevent parent background from showing through */
+  mix-blend-mode: normal !important;
+}
+
+/* CRITICAL: Gradient text issue is fixed using isolation: isolate and transform: translateZ(0) */
+/* This creates an isolated stacking context for gradient text, allowing parent elements to use transform */
+/* for beautiful animations while gradient text remains properly isolated from parent background */
+
+/* For highlight-glow, combine with existing glow effect - override in how-it-works.css */
+
+/* CRITICAL: Additional isolation for elements containing gradient text */
+/* Using :has() for modern browsers - ensures gradient text is properly isolated */
+@supports selector(:has(*)) {
+  .reveal-up:has(.gradient-text),
+  .reveal-scale:has(.gradient-text),
+  .reveal-up:has(.ilya-current-amount),
+  .reveal-scale:has(.ilya-current-amount) {
+    /* Ensure proper will-change for smooth animations with transform */
+    will-change: opacity, transform;
+  }
+  
+  .reveal-fade:has(.gradient-text),
+  .reveal-fade:has(.ilya-current-amount) {
+    /* reveal-fade uses only opacity - no transform to avoid stacking context */
+    will-change: opacity;
+  }
+}
+
+/* Fallback for browsers that don't support :has() - target common patterns directly */
+/* These are the most common places where gradient text appears with reveal animations */
+.comparison-text,
+.item-text,
+.mentorship-title,
+.difference-title,
+.difference-highlight,
+.highlight-zero-competition {
+  /* Ensure parent doesn't create problematic stacking context when it contains gradient text */
+  /* The gradient-text child will handle its own isolation */
+  position: relative;
+}
+
+/* Additional specific fixes for known problematic combinations */
+/* .ilya-current can use transform - gradient text inside is isolated */
+/* No special rules needed - isolation: isolate on gradient text handles it */
+
+.before-after-card.reveal-fade .comparison-text,
+.after-card.reveal-fade .comparison-text {
+  /* reveal-fade doesn't create stacking context, but keep isolation for safety */
+  isolation: isolate;
+}
+
+/* Optimize pricing cards - prevent will-change from being applied during reveal */
+
+/* Reveal fade animation - smooth opacity fade */
+/* Using only opacity to avoid stacking context issues with gradient text */
 .reveal-fade {
-  transform: translateY(0) translateZ(0);
+  /* Smooth transition with modern easing */
+  opacity: 0;
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Enable GPU acceleration */
+  will-change: opacity;
+  /* Prevent layout shifts */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  /* CRITICAL: No transform - only opacity to avoid stacking context */
+  transform: none;
 }
 
 .reveal-fade.is-revealed {
   opacity: 1;
+  transform: none;
 }
 
-/* Reveal up animation */
+/* Reveal up animation - beautiful smooth reveal from bottom */
+/* Using transform for smooth GPU-accelerated animations */
 .reveal-up {
-  transform: translateY(30px);
+  /* Start 40px below final position for smooth reveal */
+  transform: translateY(40px) translateZ(0);
 }
 
 .reveal-up.is-revealed {
   opacity: 1;
-  transform: translateY(0);
+  /* Move to final position with smooth easing */
+  transform: translateY(0) translateZ(0);
 }
 
-/* Reveal scale animation */
+/* .ilya-current can use transform - gradient text inside is isolated with isolation: isolate */
+/* No override needed */
+
+/* Cards with gradient text can use transform - gradient text is isolated */
+/* No special rules needed - isolation: isolate on gradient text handles it */
+
+/* Reveal scale animation - beautiful scale reveal from center */
 .reveal-scale {
-  transform: scale(0.9);
+  /* Start slightly scaled down for smooth reveal */
+  transform: scale(0.92) translateZ(0);
 }
 
 .reveal-scale.is-revealed {
   opacity: 1;
-  transform: scale(1);
+  /* Scale to full size with smooth easing */
+  transform: scale(1) translateZ(0);
 }
 
 /* Staggered delays for child elements (reduced for faster rendering) */
@@ -460,7 +638,7 @@ main,
   .reveal-up,
   .reveal-scale {
     opacity: 1 !important;
-    transform: none !important;
+    transform: translateZ(0) !important;
     transition: none !important;
   }
 }
@@ -479,6 +657,27 @@ section {
   contain: layout style;
   /* Ensure background color to prevent white flash */
   background-color: transparent;
+}
+
+/* CRITICAL: Exclude .about-ilya-section from section contain and overflow rules to allow box-shadow glow */
+.about-ilya-section {
+  contain: none;
+  overflow: visible;
+  overflow-x: visible;
+  overflow-y: visible;
+}
+
+/* Override contain for elements that need gradient rendering */
+/* Use maximum specificity to override any other rules */
+.ilya-current,
+.ilya-current.ilya-current,
+section .ilya-current,
+.about-ilya-section .ilya-current {
+  contain: none !important;
+  overflow: visible !important;
+  backdrop-filter: none !important;
+  /* Prevent contain: content from being applied */
+  contain-intrinsic-size: auto !important;
 }
 
 /* Force GPU acceleration for smooth scrolling */

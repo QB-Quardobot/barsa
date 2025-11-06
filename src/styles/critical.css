@@ -1,0 +1,249 @@
+/* CRITICAL CSS - Above the Fold Only
+   This CSS is inlined in <head> for fastest first paint
+   Non-critical CSS loads asynchronously */
+
+/* CSS Variables - Critical */
+:root {
+  --bg: #0a0a0a;
+  --panel: #0d0d10;
+  --fg: #f5f5f5;
+  --muted: #b3b3b3;
+  --primary: #60a5fa;
+  --primary-2: #22d3ee;
+  --border: rgba(255, 255, 255, 0.08);
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --spacing-unit: 0.5rem;
+  --spacing-sm: calc(var(--spacing-unit) * 1);
+  --spacing-md: calc(var(--spacing-unit) * 2);
+  --spacing-lg: calc(var(--spacing-unit) * 3);
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+/* Base Reset - Critical */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: linear-gradient(300deg, #0a0a0a, #1a1a2e, #16213e, #0f0f23, #0a0a0a);
+  background-size: 240% 240%;
+  animation: body-gradient-animation 20s ease infinite;
+  color: var(--fg);
+  line-height: 1.5;
+  font-size: clamp(0.9375rem, 1vw + 0.5rem, 1rem);
+  min-height: 100vh;
+  background-color: #0a0a0a !important;
+}
+
+@keyframes body-gradient-animation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Typography - Critical for Hero */
+h1 {
+  font-size: clamp(2rem, 5vw + 1rem, 4rem);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--spacing-md);
+  color: var(--fg);
+}
+
+h2 {
+  font-size: clamp(1.5rem, 3vw + 0.5rem, 2.5rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin-bottom: var(--spacing-md);
+  color: var(--fg);
+}
+
+p {
+  font-size: clamp(0.9375rem, 1vw + 0.375rem, 1rem);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-md);
+  color: var(--fg);
+}
+
+/* Container - Critical */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+  /* Removed contain: layout style to prevent size constraints on pricing cards */
+}
+
+/* Hero Section - Critical */
+.hero-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-2xl) 0;
+  position: relative;
+}
+
+.hero-title {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  /* CRITICAL: No transition - it causes flickering with gradient text */
+  transition: none;
+  /* CRITICAL: No animation - it causes flickering */
+  animation: none;
+  /* CRITICAL: No filter - it causes flickering */
+  filter: none;
+  /* Ensure gradient renders properly - prevent clipping */
+  overflow: visible;
+  contain: none; /* Disable containment to allow gradient to render properly */
+  /* CRITICAL FIX: Create new stacking context to prevent parent background square artifact */
+  isolation: isolate;
+  position: relative;
+  background-color: transparent !important;
+  z-index: 1;
+  transform: none !important;
+}
+
+/* Image Optimization - Critical */
+img {
+  height: auto;
+  max-width: 100%;
+  transform: translateZ(0);
+  will-change: contents;
+}
+
+/* Prevent CLS - containers with fixed aspect ratio */
+/* Using aspect-ratio ensures no layout shift when images load */
+.step-image-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9; /* 800x450 = 16:9 - standard for step images */
+  overflow: hidden;
+  background-color: var(--bg);
+  /* Reserve space to prevent CLS */
+  min-height: 0;
+}
+
+/* Prevent CLS - containers with fixed aspect ratio */
+.step-image-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9; /* 800x450 = 16:9 - standard for step images */
+  overflow: hidden;
+  background-color: var(--bg);
+  min-height: 0;
+}
+
+/* Apply aspect-ratio to image-wrapper, but exclude ilya photos and slider containers */
+.image-wrapper {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--bg);
+  min-height: 0;
+}
+
+/* Apply width and aspect-ratio only to step images, not ilya photos or slider containers */
+.image-wrapper:not(.ilya-photo-wrapper):not(.ilya-real-photo):not(.slider-image-container) {
+  width: 100%;
+  aspect-ratio: 16 / 9; /* 800x450 = 16:9 - standard for step images */
+}
+
+/* Explicitly remove aspect-ratio for ilya photos and slider containers - keep natural dimensions */
+.ilya-photo-wrapper.image-wrapper,
+.ilya-real-photo.image-wrapper,
+.slider-image-container.image-wrapper {
+  aspect-ratio: unset !important;
+}
+
+/* Special handling for ilya photos */
+.ilya-photo-wrapper.image-wrapper,
+.ilya-real-photo.image-wrapper {
+  height: auto !important;
+  width: auto !important;
+  max-width: 100%;
+}
+
+img[loading="lazy"] {
+  background-color: var(--bg);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+img.loaded {
+  opacity: 1;
+}
+
+/* Images inside containers fill the space - exclude slider images */
+.step-image-container img,
+.image-wrapper:not(.slider-image-container) img:not(.ilya-photo):not(.real-photo):not(.slider-photo) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Loading Screen - Critical */
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Skip Link - Critical for Accessibility */
+.skip-to-main {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--primary);
+  color: var(--bg);
+  padding: 8px 16px;
+  text-decoration: none;
+  z-index: 100;
+}
+
+.skip-to-main:focus {
+  top: 0;
+}
+
+/* Main Content - Critical */
+#main-content {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Prevent FOUC - Critical */
+.reveal-up:not(.is-revealed),
+.reveal-fade:not(.is-revealed),
+.reveal-scale:not(.is-revealed) {
+  background-color: transparent;
+  visibility: visible;
+}
+
