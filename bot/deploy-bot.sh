@@ -86,6 +86,9 @@ deploy() {
         # Create logs directory
         mkdir -p ../logs
         
+        # Make sure Python interpreter is executable
+        chmod +x .venv/bin/python
+        
         echo "Bot setup completed"
 ENDSSH
     

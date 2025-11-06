@@ -3,12 +3,13 @@ module.exports = {
     {
       name: 'barcelona-bots',
       script: 'barcelona_bots/main.py',
-      interpreter: process.env.PYTHON_INTERPRETER || 'python3',
+      interpreter: 'barcelona_bots/.venv/bin/python',
       exec_mode: 'fork',
       instances: 1,
       watch: false,
       autorestart: true,
       max_restarts: 10,
+      cwd: '/var/www/illariooo.ru/bot',
       env: {
         NODE_ENV: 'production',
         PYTHONUNBUFFERED: '1',
