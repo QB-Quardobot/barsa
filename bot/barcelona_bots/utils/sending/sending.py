@@ -206,7 +206,7 @@ async def universal_broadcast(
 
 from typing import Tuple, Optional, Union, List
 import io
-ALEX_KLYAUZER_ID = int(os.getenv('ALEX_KLYAUZER_ID'))
+# ALEX_KLYAUZER_ID уже импортирован из config.config в начале файла
 
 async def forward_message_with_entities(
         source_message: types.Message,
