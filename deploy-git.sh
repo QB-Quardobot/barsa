@@ -167,6 +167,8 @@ setup_git_repo() {
         echo "📦 Installing dependencies..."
         # Server has only ~1GB RAM, optimize heavily
         export NODE_OPTIONS="--max-old-space-size=512"
+        # Remove node_modules to avoid ENOTEMPTY errors
+        rm -rf node_modules package-lock.json 2>/dev/null || true
         # Clear npm cache to free memory
         npm cache clean --force 2>/dev/null || true
         # Use npm install (less memory intensive than npm ci)
@@ -442,6 +444,8 @@ deploy() {
         echo "📦 Installing dependencies..."
         # Server has only ~1GB RAM, optimize heavily
         export NODE_OPTIONS="--max-old-space-size=512"
+        # Remove node_modules to avoid ENOTEMPTY errors
+        rm -rf node_modules package-lock.json 2>/dev/null || true
         # Clear npm cache to free memory
         npm cache clean --force 2>/dev/null || true
         # Use npm install (less memory intensive than npm ci)
@@ -518,6 +522,8 @@ rollback() {
         echo "📦 Installing dependencies..."
         # Server has only ~1GB RAM, optimize heavily
         export NODE_OPTIONS="--max-old-space-size=512"
+        # Remove node_modules to avoid ENOTEMPTY errors
+        rm -rf node_modules package-lock.json 2>/dev/null || true
         # Clear npm cache to free memory
         npm cache clean --force 2>/dev/null || true
         # Use npm install (less memory intensive than npm ci)
