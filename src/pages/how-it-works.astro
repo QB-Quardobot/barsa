@@ -1709,7 +1709,7 @@ import '../styles/animations-extended.css';
           module.initHowItWorks();
         }
       }).catch((error) => {
-        console.error('[HowItWorks] Failed to load module:', error);
+        // Silently handle module load error
       });
     }
     
@@ -1731,5 +1731,171 @@ import '../styles/animations-extended.css';
         setTimeout(initHowItWorksLazy, 300);
       }
     }
+  })();
+  
+  // Ultra-reliable smooth scroll to pricing - using event delegation and capture phase
+  (function() {
+    'use strict';
+    
+    var mainContentEl = document.getElementById('main-content') || document.querySelector('main');
+    var isScrolling = false;
+    
+    // Check if element is visible in viewport
+    function isElementInViewport(element, container) {
+      if (!element) return false;
+      var rect = element.getBoundingClientRect();
+      var containerRect = container ? container.getBoundingClientRect() : {
+        top: 0,
+        bottom: window.innerHeight || document.documentElement.clientHeight
+      };
+      
+      return rect.top >= containerRect.top - 150 && 
+             rect.bottom <= containerRect.bottom + 150;
+    }
+    
+    function scrollToPricing() {
+      if (isScrolling) return;
+      isScrolling = true;
+      
+      var pricingSection = document.getElementById('pricing');
+      if (!pricingSection) {
+        isScrolling = false;
+        return;
+      }
+      
+      // Find first tariff card (first pricing-card)
+      var firstTariff = pricingSection.querySelector('.pricing-card');
+      if (!firstTariff) {
+        // Fallback to pricing section if no tariff found
+        firstTariff = pricingSection;
+      }
+      
+      // Pre-reveal elements
+      var section = pricingSection.closest('section') || pricingSection;
+      if (section) {
+        var revealInstance = window.revealInstance;
+        if (revealInstance && typeof revealInstance.preRevealToTarget === 'function') {
+          // preRevealToTarget expects a selector string, not an element
+          revealInstance.preRevealToTarget('#pricing');
+        } else {
+          // Manually reveal elements
+          var revealElements = section.querySelectorAll('[class*="reveal-fade"]:not(.is-revealed), [class*="reveal-up"]:not(.is-revealed), [class*="reveal-scale"]:not(.is-revealed), [class*="reveal-glow"]:not(.is-revealed)');
+          for (var i = 0; i < revealElements.length; i++) {
+            var el = revealElements[i];
+            el.style.transition = 'none';
+            el.style.opacity = '1';
+            el.style.transform = 'none';
+            el.classList.add('is-revealed');
+          }
+        }
+      }
+      
+      // Wait for layout, then scroll
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+          var isMainContent = !!mainContentEl;
+          var container = isMainContent ? mainContentEl : null;
+          
+          // PRIMARY METHOD: scrollIntoView - scroll to first tariff
+          try {
+            firstTariff.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+              inline: 'nearest'
+            });
+          } catch (e) {
+            var rect = firstTariff.getBoundingClientRect();
+            var viewportHeight = isMainContent ? mainContentEl.clientHeight : window.innerHeight;
+            var offset = viewportHeight * 0.35;
+            
+            if (isMainContent) {
+              var scrollTop = mainContentEl.scrollTop + rect.top - offset;
+              var maxScroll = mainContentEl.scrollHeight - mainContentEl.clientHeight;
+              mainContentEl.scrollTo({
+                top: Math.max(0, Math.min(scrollTop, maxScroll)),
+                behavior: 'smooth'
+              });
+            } else {
+              var scrollTop = (window.pageYOffset || document.documentElement.scrollTop) + rect.top - offset;
+              var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+              window.scrollTo({
+                top: Math.max(0, Math.min(scrollTop, maxScroll)),
+                behavior: 'smooth'
+              });
+            }
+          }
+          
+          // Verification with retry
+          var checkCount = 0;
+          var maxChecks = 15;
+          
+          function verifyScroll() {
+            checkCount++;
+            var isVisible = isElementInViewport(firstTariff, container);
+            
+            if (isVisible) {
+              isScrolling = false;
+              return;
+            }
+            
+            if (checkCount < maxChecks) {
+              try {
+                firstTariff.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'center',
+                  inline: 'nearest'
+                });
+              } catch (e) {
+                var rect = firstTariff.getBoundingClientRect();
+                var viewportHeight = isMainContent ? mainContentEl.clientHeight : window.innerHeight;
+                var offset = viewportHeight * 0.35;
+                
+                if (isMainContent) {
+                  var scrollTop = mainContentEl.scrollTop + rect.top - offset;
+                  mainContentEl.scrollTo({
+                    top: Math.max(0, Math.min(scrollTop, mainContentEl.scrollHeight - mainContentEl.clientHeight)),
+                    behavior: 'smooth'
+                  });
+                } else {
+                  var scrollTop = (window.pageYOffset || document.documentElement.scrollTop) + rect.top - offset;
+                  window.scrollTo({
+                    top: Math.max(0, Math.min(scrollTop, document.documentElement.scrollHeight - window.innerHeight)),
+                    behavior: 'smooth'
+                  });
+                }
+              }
+              setTimeout(verifyScroll, 200);
+            } else {
+              isScrolling = false;
+            }
+          }
+          
+          setTimeout(verifyScroll, 300);
+          setTimeout(function() { isScrolling = false; }, 4000);
+        });
+      });
+    }
+    
+    // Use event delegation with capture phase to catch events before other handlers
+    function handlePricingButtonClick(e) {
+      var target = e.target;
+      var link = target.closest('a');
+      
+      if (!link) return;
+      
+      // Check if this is one of our target buttons
+      var isButton1 = link.closest('.hero-cta') && link.classList.contains('btn-capsule') && link.getAttribute('href') === '#pricing';
+      var isButton2 = (link.closest('.before-after-cta') || link.classList.contains('btn-want-same')) && link.classList.contains('btn-capsule') && link.getAttribute('href') === '#pricing';
+      
+      if (isButton1 || isButton2) {
+        e.preventDefault();
+        e.stopImmediatePropagation(); // Stop all other handlers
+        scrollToPricing();
+        return false;
+      }
+    }
+    
+    // Add event listener with capture phase (runs before other handlers)
+    document.addEventListener('click', handlePricingButtonClick, true);
   })();
 </script>

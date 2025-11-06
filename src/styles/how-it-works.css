@@ -2318,6 +2318,11 @@ padding: 0 1rem;
 
 .pricing-section {
 padding: 4rem 0;
+/* Optimize rendering for pricing section */
+contain: layout style;
+/* Pre-render pricing section when approaching */
+content-visibility: auto;
+contain-intrinsic-size: auto 2000px;
 }
 
 .pricing-grid {
@@ -2350,6 +2355,14 @@ grid-template-columns: repeat(3, 1fr);
   display: flex;
   flex-direction: column;
   overflow: visible;
+  /* Performance optimizations for smooth scrolling */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+  contain: layout style paint;
+  /* Prevent layout shifts during reveal */
+  min-height: 500px;
+  /* GPU acceleration - will-change managed by JS */
+  transform: translateZ(0);
 }
 
 .pricing-card:hover {

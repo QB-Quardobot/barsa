@@ -103,6 +103,14 @@
   box-shadow: 0 0 30px rgba(96, 165, 250, 0.3) !important;
 }
 
+/* Special optimization for pricing cards with reveal-glow */
+.pricing-card.reveal-glow {
+  /* Batch rendering optimization */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+  contain: layout style paint;
+}
+
 /* Special handling for pricing-card-popular with reveal-glow */
 .pricing-card-popular.reveal-glow {
   /* Preserve scale transform for popular card */

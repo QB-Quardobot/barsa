@@ -169,6 +169,9 @@ class RevealAnimations {
 
     elements.forEach((el) => this.observer!.observe(el));
     
+    // Special optimization for pricing section - preload all cards when section is approaching
+    this.initPricingSectionOptimization();
+    
     // Initialize stagger animations
     this.initStaggerAnimations();
     
@@ -196,17 +199,61 @@ class RevealAnimations {
   }
 
   private handleIntersection(entries: IntersectionObserverEntry[]) {
-    // Use requestAnimationFrame for better performance
-    requestAnimationFrame(() => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const element = entry.target as HTMLElement;
+    // Batch operations for better performance, especially for pricing cards
+    const pricingCards: HTMLElement[] = [];
+    const otherElements: HTMLElement[] = [];
+    
+    // Separate pricing cards from other elements for batch processing
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const element = entry.target as HTMLElement;
+        
+        if (element.classList.contains('is-revealed')) {
+          return;
+        }
+        
+        if (element.classList.contains('pricing-card')) {
+          pricingCards.push(element);
+        } else {
+          otherElements.push(element);
+        }
+      }
+    });
+    
+    // Batch reveal all pricing cards at once to prevent re-rendering
+    if (pricingCards.length > 0) {
+      requestAnimationFrame(() => {
+        pricingCards.forEach((element) => {
+          // Immediate reveal for pricing cards (no animation during scroll)
+          // This prevents partial rendering and re-rendering
+          element.style.transition = 'none';
+          element.style.opacity = '1';
+          element.style.transform = 'translateZ(0)';
+          element.style.filter = 'none';
+          element.classList.add('is-revealed');
           
-          // If already revealed, skip
-          if (element.classList.contains('is-revealed')) {
-            return;
+          // Unobserve immediately
+          if (this.options.once) {
+            this.observer?.unobserve(element);
+            if (this.prerenderObserver) {
+              this.prerenderObserver.unobserve(element);
+            }
           }
-          
+        });
+        
+        // Clean up after batch operation
+        requestAnimationFrame(() => {
+          pricingCards.forEach((element) => {
+            element.style.transition = '';
+          });
+        });
+      });
+    }
+    
+    // Handle other elements normally
+    if (otherElements.length > 0) {
+      requestAnimationFrame(() => {
+        otherElements.forEach((element) => {
           // Handle stagger animation
           if (element.classList.contains('reveal-stagger')) {
             this.animateStagger(element);
@@ -220,64 +267,102 @@ class RevealAnimations {
           }
           
           // During fast scrolling, show immediately without animation
-          // This prevents white flashes while maintaining performance
           if (this.isFastScrolling) {
-            // Immediate reveal for fast scroll (no animation)
             element.style.transition = 'none';
             element.style.opacity = '1';
             element.style.transform = 'translateZ(0)';
             element.classList.add('is-revealed');
             
-            // Clean up after a moment
             setTimeout(() => {
               element.style.transition = '';
               element.style.willChange = 'auto';
             }, 100);
           } else {
-            // Normal reveal animation - plays when element is close to viewport
-            // Optimize will-change based on element type for better performance
-            const isPricingCard = element.classList.contains('pricing-card');
+            // Normal reveal animation
             const isGlow = element.classList.contains('reveal-glow');
             
-            // Pricing cards don't need will-change - they're optimized separately
-            if (!isPricingCard) {
-              if (isGlow) {
-                element.style.willChange = 'opacity, filter, box-shadow';
-              } else {
-                // Use transform for beautiful GPU-accelerated animations
-                element.style.willChange = 'opacity, transform';
-              }
+            if (isGlow) {
+              element.style.willChange = 'opacity, filter, box-shadow';
+            } else {
+              element.style.willChange = 'opacity, transform';
             }
             
             element.classList.add('is-animating');
-            
-            // Force a reflow to ensure styles are applied
-            element.offsetHeight;
-            
-            // Trigger animation by adding is-revealed class
+            element.offsetHeight; // Force reflow
             element.classList.add('is-revealed');
             
-            // Clean up will-change after animation completes (700ms matches CSS duration)
             setTimeout(() => {
-              if (!isPricingCard) {
-                element.style.willChange = 'auto';
-              }
+              element.style.willChange = 'auto';
               element.classList.remove('is-animating');
               element.classList.add('animation-complete');
-            }, 700); // Match CSS transition duration
+            }, 700);
           }
           
           // Unobserve if once is true
           if (this.options.once) {
             this.observer?.unobserve(element);
-            // Also unobserve from prerender observer if it exists
             if (this.prerenderObserver) {
               this.prerenderObserver.unobserve(element);
             }
           }
-        }
+        });
       });
-    });
+    }
+  }
+  
+  /**
+   * Special optimization for pricing section
+   * Preloads all pricing cards when section is approaching viewport
+   */
+  private initPricingSectionOptimization(): void {
+    const pricingSection = document.getElementById('pricing');
+    if (!pricingSection) return;
+    
+    // Create observer with larger rootMargin to trigger earlier
+    const pricingObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // When pricing section is approaching, reveal all cards immediately
+            const pricingCards = pricingSection.querySelectorAll('.pricing-card:not(.is-revealed)');
+            if (pricingCards.length > 0) {
+              // Batch reveal all cards at once
+              requestAnimationFrame(() => {
+                pricingCards.forEach((el) => {
+                  const element = el as HTMLElement;
+                  element.style.transition = 'none';
+                  element.style.opacity = '1';
+                  element.style.transform = 'translateZ(0)';
+                  element.style.filter = 'none';
+                  element.classList.add('is-revealed');
+                  
+                  // Unobserve from main observer
+                  if (this.observer) {
+                    this.observer.unobserve(element);
+                  }
+                });
+                
+                // Clean up transitions after reveal
+                requestAnimationFrame(() => {
+                  pricingCards.forEach((el) => {
+                    (el as HTMLElement).style.transition = '';
+                  });
+                });
+              });
+            }
+            
+            // Unobserve pricing section after first trigger
+            pricingObserver.unobserve(pricingSection);
+          }
+        });
+      },
+      {
+        rootMargin: '300px 0px', // Trigger 300px before section enters viewport
+        threshold: 0
+      }
+    );
+    
+    pricingObserver.observe(pricingSection);
   }
   
   private animateStagger(element: HTMLElement) {
@@ -448,7 +533,32 @@ class RevealAnimations {
     const currentScroll = window.scrollY;
     const targetScroll = targetRect.top + currentScroll;
     
-    // Find all reveal elements between current and target
+    // Special handling for pricing section - reveal all cards at once
+    if (targetSelector === '#pricing' || target.classList.contains('pricing-section')) {
+      const pricingCards = target.querySelectorAll('.pricing-card:not(.is-revealed)');
+      if (pricingCards.length > 0) {
+        // Batch reveal all pricing cards immediately
+        requestAnimationFrame(() => {
+          pricingCards.forEach((el) => {
+            const element = el as HTMLElement;
+            element.style.transition = 'none';
+            element.style.opacity = '1';
+            element.style.transform = 'translateZ(0)';
+            element.style.filter = 'none';
+            element.classList.add('is-revealed');
+            
+            if (this.observer) {
+              this.observer.unobserve(element);
+            }
+            if (this.prerenderObserver) {
+              this.prerenderObserver.unobserve(element);
+            }
+          });
+        });
+      }
+    }
+    
+    // Find all other reveal elements between current and target
     const allRevealElements = document.querySelectorAll(
       '[class*="reveal-fade"]:not(.is-revealed), [class*="reveal-up"]:not(.is-revealed), [class*="reveal-scale"]:not(.is-revealed), ' +
       '[class*="reveal-slide-left"]:not(.is-revealed), [class*="reveal-slide-right"]:not(.is-revealed), [class*="reveal-blur"]:not(.is-revealed), ' +
@@ -456,24 +566,41 @@ class RevealAnimations {
       '[class*="reveal-stagger"]:not(.is-revealed)'
     );
     
+    // Batch process other elements
+    const elementsToReveal: HTMLElement[] = [];
     allRevealElements.forEach((el) => {
       const elRect = (el as HTMLElement).getBoundingClientRect();
       const elScroll = elRect.top + currentScroll;
       
-      // If element is between current scroll and target, reveal it immediately
+      // Skip pricing cards (already handled above)
+      if ((el as HTMLElement).classList.contains('pricing-card')) {
+        return;
+      }
+      
+      // If element is between current scroll and target, add to batch
       if (elScroll >= currentScroll - 200 && elScroll <= targetScroll + 500) {
-        const element = el as HTMLElement;
-        element.style.transition = 'none';
-        element.style.opacity = '1';
-        element.style.transform = 'translateZ(0)';
-        element.classList.add('is-revealed');
-        
-        // Unobserve if observer exists
-        if (this.observer) {
-          this.observer.unobserve(element);
-        }
+        elementsToReveal.push(el as HTMLElement);
       }
     });
+    
+    // Batch reveal all elements at once
+    if (elementsToReveal.length > 0) {
+      requestAnimationFrame(() => {
+        elementsToReveal.forEach((element) => {
+          element.style.transition = 'none';
+          element.style.opacity = '1';
+          element.style.transform = 'translateZ(0)';
+          element.classList.add('is-revealed');
+          
+          if (this.observer) {
+            this.observer.unobserve(element);
+          }
+          if (this.prerenderObserver) {
+            this.prerenderObserver.unobserve(element);
+          }
+        });
+      });
+    }
   }
 
   private showAllImmediately() {

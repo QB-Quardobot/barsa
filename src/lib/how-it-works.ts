@@ -203,64 +203,10 @@ function createSwiperConfig(config: SwiperConfig) {
     },
     on: {
       init: function(swiperInstance: any) {
-        console.log('[PAGINATION DEBUG] Swiper init event fired');
-        console.log('[PAGINATION DEBUG] Pagination element:', swiperInstance.pagination?.el);
-        console.log('[PAGINATION DEBUG] Pagination bullets count:', swiperInstance.pagination?.bullets?.length || 0);
-        console.log('[PAGINATION DEBUG] Pagination bullets:', swiperInstance.pagination?.bullets);
-        
-        // Проверяем DOM элемент пагинации
-        const pagEl = document.querySelector(config.pagination || '') as HTMLElement;
-        if (pagEl) {
-          console.log('[PAGINATION DEBUG] Pagination DOM element found:', pagEl);
-          console.log('[PAGINATION DEBUG] Pagination DOM innerHTML:', pagEl.innerHTML);
-          console.log('[PAGINATION DEBUG] Pagination DOM children:', pagEl.children.length);
-          console.log('[PAGINATION DEBUG] Pagination DOM children elements:', Array.from(pagEl.children).map(c => ({
-            tag: c.tagName,
-            classes: c.className,
-            display: getComputedStyle(c).display,
-            visibility: getComputedStyle(c).visibility,
-            opacity: getComputedStyle(c).opacity,
-          })));
-          
-          // Проверяем родительские элементы на overflow
-          let parent = pagEl.parentElement;
-          let parentLevel = 0;
-          while (parent && parentLevel < 5) {
-            const overflow = getComputedStyle(parent).overflow;
-            const position = getComputedStyle(parent).position;
-            if (overflow !== 'visible' || position !== 'static') {
-              console.log(`[PAGINATION DEBUG] Parent level ${parentLevel}:`, {
-                tag: parent.tagName,
-                class: parent.className,
-                overflow: overflow,
-                position: position,
-              });
-            }
-            parent = parent.parentElement;
-            parentLevel++;
-          }
-          
-          console.log('[PAGINATION DEBUG] Pagination computed styles:', {
-            display: getComputedStyle(pagEl).display,
-            visibility: getComputedStyle(pagEl).visibility,
-            opacity: getComputedStyle(pagEl).opacity,
-            zIndex: getComputedStyle(pagEl).zIndex,
-            position: getComputedStyle(pagEl).position,
-            bottom: getComputedStyle(pagEl).bottom,
-            left: getComputedStyle(pagEl).left,
-            width: getComputedStyle(pagEl).width,
-            height: getComputedStyle(pagEl).height,
-            overflow: getComputedStyle(pagEl).overflow,
-          });
-        } else {
-          console.error('[PAGINATION DEBUG] Pagination DOM element NOT FOUND!');
-          console.error('[PAGINATION DEBUG] Searching for selector:', config.pagination);
-          console.error('[PAGINATION DEBUG] All pagination elements:', document.querySelectorAll('.swiper-pagination'));
-        }
+        // Swiper initialized
       },
       paginationRender: function(swiperInstance: any) {
-        console.log('[PAGINATION DEBUG] paginationRender event fired');
-        console.log('[PAGINATION DEBUG] Bullets after render:', swiperInstance.pagination?.bullets?.length || 0);
+        // Pagination rendered
       },
     },
   };
@@ -509,7 +455,7 @@ function loadSwiperLibrary(callback: () => void): void {
   script.async = true; // Load asynchronously
   script.onload = callback;
   script.onerror = function() {
-    console.error('[Swiper] Failed to load Swiper library');
+    // Swiper library failed to load
   };
   document.head.appendChild(script);
 }
@@ -522,43 +468,21 @@ export function initTestimonialsSwiper(): void {
 }
 
 function createTestimonialsSwiper(): void {
-  console.log('[PAGINATION DEBUG] Starting createTestimonialsSwiper...');
-  
   const swiperContainer = document.querySelector('.testimonials-swiper') as HTMLElement;
   if (!swiperContainer) {
-    console.error('[PAGINATION DEBUG] Swiper container not found!');
     return;
   }
-  console.log('[PAGINATION DEBUG] Swiper container found:', swiperContainer);
   
   const Swiper = (window as any).Swiper;
   if (!Swiper) {
-    console.error('[PAGINATION DEBUG] Swiper library not loaded!');
     return;
   }
-  console.log('[PAGINATION DEBUG] Swiper library loaded');
-  
-  // Проверяем элемент пагинации ДО создания Swiper
-  const paginationSelector = '.testimonial-pagination';
-  const paginationEl = document.querySelector(paginationSelector) as HTMLElement;
-  console.log('[PAGINATION DEBUG] Pagination element:', paginationEl);
-  console.log('[PAGINATION DEBUG] Pagination element styles:', {
-    display: paginationEl?.style.display || getComputedStyle(paginationEl || document.body).display,
-    visibility: paginationEl?.style.visibility || getComputedStyle(paginationEl || document.body).visibility,
-    opacity: paginationEl?.style.opacity || getComputedStyle(paginationEl || document.body).opacity,
-    zIndex: paginationEl?.style.zIndex || getComputedStyle(paginationEl || document.body).zIndex,
-    position: paginationEl?.style.position || getComputedStyle(paginationEl || document.body).position,
-  });
   
   const swiper = new Swiper('.testimonials-swiper', createSwiperConfig({
     container: '.testimonials-swiper',
     pagination: '.testimonial-pagination',
     autoplayDelay: 5000
   }));
-  
-  console.log('[PAGINATION DEBUG] Swiper created:', swiper);
-  console.log('[PAGINATION DEBUG] Swiper pagination:', swiper.pagination);
-  console.log('[PAGINATION DEBUG] Swiper pagination bullets:', swiper.pagination?.bullets?.length || 0);
   
   const wrapper = swiperContainer.querySelector('.swiper-wrapper') as HTMLElement;
   const slides = wrapper?.querySelectorAll('.swiper-slide');
@@ -594,43 +518,21 @@ export function initStudentModelsSwiper(): void {
 }
 
 function createStudentModelsSwiper(): void {
-  console.log('[PAGINATION DEBUG] Starting createStudentModelsSwiper...');
-  
   const swiperContainer = document.querySelector('.student-models-swiper') as HTMLElement;
   if (!swiperContainer) {
-    console.error('[PAGINATION DEBUG] Swiper container not found!');
     return;
   }
-  console.log('[PAGINATION DEBUG] Swiper container found:', swiperContainer);
   
   const Swiper = (window as any).Swiper;
   if (!Swiper) {
-    console.error('[PAGINATION DEBUG] Swiper library not loaded!');
     return;
   }
-  console.log('[PAGINATION DEBUG] Swiper library loaded');
-  
-  // Проверяем элемент пагинации ДО создания Swiper
-  const paginationSelector = '.model-pagination';
-  const paginationEl = document.querySelector(paginationSelector) as HTMLElement;
-  console.log('[PAGINATION DEBUG] Pagination element:', paginationEl);
-  console.log('[PAGINATION DEBUG] Pagination element styles:', {
-    display: paginationEl?.style.display || getComputedStyle(paginationEl || document.body).display,
-    visibility: paginationEl?.style.visibility || getComputedStyle(paginationEl || document.body).visibility,
-    opacity: paginationEl?.style.opacity || getComputedStyle(paginationEl || document.body).opacity,
-    zIndex: paginationEl?.style.zIndex || getComputedStyle(paginationEl || document.body).zIndex,
-    position: paginationEl?.style.position || getComputedStyle(paginationEl || document.body).position,
-  });
   
   const swiper = new Swiper('.student-models-swiper', createSwiperConfig({
     container: '.student-models-swiper',
     pagination: '.model-pagination',
     autoplayDelay: 4000
   }));
-  
-  console.log('[PAGINATION DEBUG] Swiper created:', swiper);
-  console.log('[PAGINATION DEBUG] Swiper pagination:', swiper.pagination);
-  console.log('[PAGINATION DEBUG] Swiper pagination bullets:', swiper.pagination?.bullets?.length || 0);
   
   const wrapper = swiperContainer.querySelector('.swiper-wrapper') as HTMLElement;
   const slides = wrapper?.querySelectorAll('.swiper-slide');
