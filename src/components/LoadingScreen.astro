@@ -37,6 +37,11 @@ const { showInBrowser = false } = Astro.props;
 </div>
 
 <style>
+  /* CRITICAL: Prevent white flash - ensure body/html have dark background immediately */
+  html, body {
+    background-color: #0a0a0a !important;
+  }
+  
   .loading-screen {
     position: fixed;
     top: 0;
@@ -45,6 +50,7 @@ const { showInBrowser = false } = Astro.props;
     height: 100vh;
     height: 100dvh; /* Dynamic viewport height for mobile */
     background: #0a0a0a;
+    background-color: #0a0a0a !important; /* CRITICAL: Prevent white flash */
     z-index: 99999;
     display: flex;
     align-items: center;
@@ -315,24 +321,76 @@ const { showInBrowser = false } = Astro.props;
     
     // Check if should show in browser
     const showInBrowser = loadingScreen.getAttribute('data-show-in-browser') === 'true';
-    const isTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
     
-    // Ensure main content is ALWAYS visible (critical!)
+    // Check for Telegram - wait a bit for Telegram WebApp to initialize
+    // Also check for body.tg-webapp class which is added by Base.astro
+    function checkTelegram() {
+      return typeof window !== 'undefined' && (
+        window.Telegram?.WebApp || 
+        document.body.classList.contains('tg-webapp')
+      );
+    }
+    
+    // Get main content reference first
     const mainContent = document.getElementById('main-content');
+    
+    // CRITICAL: Hide main content initially to prevent white flash
+    // It will be shown when loading screen hides
     if (mainContent) {
-      mainContent.style.visibility = 'visible';
-      mainContent.style.display = 'block';
-      mainContent.style.opacity = '1';
-      mainContent.style.zIndex = '1';
+      mainContent.style.visibility = 'hidden';
+      mainContent.style.opacity = '0';
+    }
+    
+    // Wait a bit for Telegram WebApp to initialize (up to 500ms)
+    let isTelegram = checkTelegram();
+    if (!isTelegram) {
+      let retries = 0;
+      const checkInterval = setInterval(() => {
+        isTelegram = checkTelegram();
+        retries++;
+        if (isTelegram || retries >= 10) { // 10 * 50ms = 500ms max wait
+          clearInterval(checkInterval);
+          if (isTelegram) {
+            // Show loading screen if in Telegram
+            loadingScreen.style.display = 'flex';
+            loadingScreen.style.visibility = 'visible';
+            loadingScreen.style.pointerEvents = 'auto';
+          } else {
+            // Not in Telegram and not enabled for browser - show main content immediately
+            if (mainContent && !showInBrowser) {
+              mainContent.style.visibility = 'visible';
+              mainContent.style.display = 'block';
+              mainContent.style.opacity = '1';
+              mainContent.style.zIndex = '1';
+            }
+          }
+        }
+      }, 50);
+      registerCleanup(() => clearInterval(checkInterval));
     }
     
     // Don't show in regular browser unless explicitly enabled (for SEO)
     if (!isTelegram && !showInBrowser) {
+      // In browser - hide loading screen and show main content immediately
       loadingScreen.style.display = 'none';
       loadingScreen.style.visibility = 'hidden';
       loadingScreen.style.pointerEvents = 'none';
       loadingScreen.style.zIndex = '-1';
+      // Ensure main content is visible in browser
+      if (mainContent) {
+        mainContent.style.visibility = 'visible';
+        mainContent.style.display = 'block';
+        mainContent.style.opacity = '1';
+        mainContent.style.zIndex = '1';
+      }
       return;
+    }
+    
+    // In Telegram - ensure loading screen is visible and main content stays hidden
+    if (isTelegram) {
+      loadingScreen.style.display = 'flex';
+      loadingScreen.style.visibility = 'visible';
+      loadingScreen.style.pointerEvents = 'auto';
     }
     
     // Hide after page is fully loaded
@@ -340,12 +398,15 @@ const { showInBrowser = false } = Astro.props;
       if (loadingScreen && !loadingScreen.classList.contains('loaded')) {
         loadingScreen.classList.add('loaded');
         
-        // Ensure main content is visible when loader hides
+        // Show main content when loader hides (prevent white flash)
         if (mainContent) {
-          mainContent.style.visibility = 'visible';
-          mainContent.style.display = 'block';
-          mainContent.style.opacity = '1';
-          mainContent.style.zIndex = '1';
+          // Use requestAnimationFrame to ensure smooth transition
+          requestAnimationFrame(() => {
+            mainContent.style.visibility = 'visible';
+            mainContent.style.display = 'block';
+            mainContent.style.opacity = '1';
+            mainContent.style.zIndex = '1';
+          });
         }
         
         // Remove from DOM after animation
@@ -360,24 +421,31 @@ const { showInBrowser = false } = Astro.props;
       }
     }
     
-    // Hide on DOMContentLoaded (fast) or after max 2 seconds
-    const timeout1 = setTimeout(hideLoader, 300);
-    registerCleanup(() => clearTimeout(timeout1));
+    // Minimum display time for loading screen (UX best practice - users need to see it)
+    const minDisplayTime = 800; // 800ms minimum to ensure visibility
+    const startTime = Date.now();
+    
+    function hideLoaderWithMinTime() {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, minDisplayTime - elapsed);
+      setTimeout(hideLoader, remaining);
+    }
+    
+    // Hide on DOMContentLoaded (but respect minimum display time)
+    if (document.readyState === 'loading') {
+      const domReadyHandler = hideLoaderWithMinTime;
+      document.addEventListener('DOMContentLoaded', domReadyHandler);
+      registerCleanup(() => document.removeEventListener('DOMContentLoaded', domReadyHandler));
+    } else {
+      hideLoaderWithMinTime();
+    }
     
     // Fallback: hide after max 2.5 seconds (UX best practice)
     const timeout2 = setTimeout(hideLoader, 2500);
     registerCleanup(() => clearTimeout(timeout2));
     
-    if (document.readyState === 'loading') {
-      const domReadyHandler = hideLoader;
-      document.addEventListener('DOMContentLoaded', domReadyHandler);
-      registerCleanup(() => document.removeEventListener('DOMContentLoaded', domReadyHandler));
-    } else {
-      hideLoader();
-    }
-    
-    // Also hide on window load
-    const loadHandler = hideLoader;
+    // Also hide on window load (but respect minimum display time)
+    const loadHandler = hideLoaderWithMinTime;
     window.addEventListener('load', loadHandler);
     registerCleanup(() => window.removeEventListener('load', loadHandler));
   })();
