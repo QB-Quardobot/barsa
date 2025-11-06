@@ -29,3 +29,6 @@ npm-debug.log*
 *.tmp
 .cache/
 .astro/
+bot/barcelona_bots/.env
+bot/barcelona_bots/*.db
+bot/logs/*.log
