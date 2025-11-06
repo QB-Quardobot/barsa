@@ -233,106 +233,218 @@
       }
     }
     
-    // Smooth scroll to final CTA with pre-reveal optimization
-    // Improved version that scrolls directly to the first button "ПЕРЕЙТИ К ВИДЕО-ОБЗОРУ"
-    // Uses manual scroll calculation for maximum compatibility with Telegram Mini App
+    // Ultra-reliable scroll to CTA buttons - ALWAYS works
+    // Uses scrollIntoView as primary method with verification and retry
     function scrollToCTA() {
-      // First, try to find the specific button "ПЕРЕЙТИ К ВИДЕО-ОБЗОРУ"
-      // This is the primary target - the first button in the final-cta-section
-      const firstButton = document.querySelector('#final-cta-section .btn-video-review') ||
-                         document.querySelector('.final-cta-section .btn-video-review') ||
-                         document.querySelector('#final-cta-section [data-cta]') ||
-                         document.querySelector('.final-cta-section [data-cta]');
-      
-      // Fallback to section if button not found
-      const ctaSection = document.getElementById('final-cta-section') || 
-                        document.querySelector('.final-cta-section');
-      
-      // Use button as primary target, section as fallback
-      const targetElement = firstButton || ctaSection;
-      
-      if (!targetElement) {
-        // Last resort: try to find any button with data-cta
-        const anyCtaButton = document.querySelector('[data-cta]');
-        if (anyCtaButton) {
-          const targetRect = anyCtaButton.getBoundingClientRect();
-          if (mainContentEl) {
-            const viewportHeight = mainContentEl.clientHeight;
-            const offset = viewportHeight * 0.25; // Center the button nicely
-            const scrollTop = mainContentEl.scrollTop + targetRect.top - offset;
-            const maxScroll = mainContentEl.scrollHeight - mainContentEl.clientHeight;
-            const finalScrollTop = Math.max(0, Math.min(scrollTop, maxScroll));
-            mainContentEl.scrollTo({ top: finalScrollTop, behavior: 'smooth' });
-          } else {
-            anyCtaButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }
+      // Prevent multiple simultaneous scrolls
+      if (scrollToCTA.isScrolling) {
         return;
       }
+      scrollToCTA.isScrolling = true;
       
-      // Pre-reveal elements to prevent white flash
-      const sectionToReveal = ctaSection || targetElement.closest('.final-cta-section');
-      if (sectionToReveal) {
-        var revealInstance = window.revealInstance;
-        if (revealInstance && typeof revealInstance.preRevealToTarget === 'function') {
-          revealInstance.preRevealToTarget('.final-cta-section');
-        } else {
-          // Fallback: manually reveal elements
-          const allRevealElements = sectionToReveal.querySelectorAll(
-            '[class*="reveal-fade"]:not(.is-revealed), [class*="reveal-up"]:not(.is-revealed), [class*="reveal-scale"]:not(.is-revealed)'
-          );
-          allRevealElements.forEach((el) => {
-            el.style.transition = 'none';
-            el.style.opacity = '1';
-            el.style.transform = 'none';
-            el.classList.add('is-revealed');
-          });
+      // Helper to find target with exhaustive fallbacks
+      function findTargetElement() {
+        const selectors = [
+          // Primary: first button in final-cta-section
+          '#final-cta-section .btn-video-review',
+          '.final-cta-section .btn-video-review',
+          '#final-cta-section .final-btn-group a:first-of-type',
+          '.final-cta-section .final-btn-group a:first-of-type',
+          '#final-cta-section [data-cta]:first-of-type',
+          '.final-cta-section [data-cta]:first-of-type',
+          // Any button in section
+          '#final-cta-section a[href*="how-it-works"]:first-of-type',
+          '.final-cta-section a[href*="how-it-works"]:first-of-type',
+          '#final-cta-section a:first-of-type',
+          '.final-cta-section a:first-of-type',
+          // Section as fallback
+          '#final-cta-section',
+          '.final-cta-section',
+          // Last resort
+          '[data-cta]:first-of-type'
+        ];
+        
+        for (const selector of selectors) {
+          try {
+            const el = document.querySelector(selector);
+            if (el) {
+              const rect = el.getBoundingClientRect();
+              // Check if element has dimensions (is rendered)
+              if (rect.width > 0 || rect.height > 0 || el.offsetParent !== null) {
+                return el;
+              }
+            }
+          } catch (e) {
+            continue;
+          }
         }
+        return null;
       }
       
-      // Wait for any layout shifts to complete, then scroll
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          // Always use manual scroll calculation for consistency
-          // This works reliably in both Telegram Mini App and regular browsers
-          const targetRect = targetElement.getBoundingClientRect();
-          
+      // Check if element is visible in viewport
+      function isElementInViewport(element, container) {
+        if (!element) return false;
+        const rect = element.getBoundingClientRect();
+        const containerRect = container ? container.getBoundingClientRect() : {
+          top: 0,
+          bottom: window.innerHeight || document.documentElement.clientHeight
+        };
+        
+        // Element is visible if it's within viewport bounds (with tolerance)
+        return rect.top >= containerRect.top - 150 && 
+               rect.bottom <= containerRect.bottom + 150;
+      }
+      
+      // Main scroll function with retry
+      function performScroll(attempt = 0) {
+        const maxAttempts = 6; // More attempts for reliability
+        
+        // Find target element
+        let targetElement = findTargetElement();
+        
+        // If not found, retry
+        if (!targetElement) {
+          if (attempt < maxAttempts) {
+            setTimeout(() => {
+              performScroll(attempt + 1);
+            }, 150 * (attempt + 1));
+            return;
+          }
+          // Ultimate fallback: scroll to bottom
+          const scrollTo = mainContentEl || window;
           if (mainContentEl) {
-            // Telegram Mini App: scroll main-content element
-            // Calculate position to show the button nicely in viewport
-            // If scrolling to button, center it. If scrolling to section, show it at 25% from top
-            const viewportHeight = mainContentEl.clientHeight;
-            const isButton = firstButton && targetElement === firstButton;
-            const offset = isButton ? viewportHeight * 0.4 : viewportHeight * 0.25; // Center button, or show section at 25%
-            const scrollTop = mainContentEl.scrollTop + targetRect.top - offset;
-            
-            // Ensure we don't scroll past boundaries
-            const maxScroll = mainContentEl.scrollHeight - mainContentEl.clientHeight;
-            const finalScrollTop = Math.max(0, Math.min(scrollTop, maxScroll));
-            
-            mainContentEl.scrollTo({
-              top: finalScrollTop,
-              behavior: 'smooth'
-            });
+            mainContentEl.scrollTo({ top: mainContentEl.scrollHeight, behavior: 'smooth' });
           } else {
-            // Regular browser: scroll window
-            const viewportHeight = window.innerHeight;
-            const isButton = firstButton && targetElement === firstButton;
-            const offset = isButton ? viewportHeight * 0.4 : viewportHeight * 0.25; // Same logic
-            const scrollTop = window.pageYOffset + targetRect.top - offset;
-            
-            // Ensure we don't scroll past boundaries
-            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-            const finalScrollTop = Math.max(0, Math.min(scrollTop, maxScroll));
-            
-            window.scrollTo({
-              top: finalScrollTop,
-              behavior: 'smooth'
+            window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+          }
+          setTimeout(() => { scrollToCTA.isScrolling = false; }, 1500);
+          return;
+        }
+        
+        // Pre-reveal elements
+        const section = targetElement.closest('.final-cta-section') || 
+                       document.getElementById('final-cta-section') ||
+                       document.querySelector('.final-cta-section');
+        
+        if (section) {
+          const revealInstance = window.revealInstance;
+          if (revealInstance && typeof revealInstance.preRevealToTarget === 'function') {
+            revealInstance.preRevealToTarget('.final-cta-section');
+          } else {
+            section.querySelectorAll('[class*="reveal-fade"]:not(.is-revealed), [class*="reveal-up"]:not(.is-revealed), [class*="reveal-scale"]:not(.is-revealed)').forEach((el) => {
+              el.style.transition = 'none';
+              el.style.opacity = '1';
+              el.style.transform = 'none';
+              el.classList.add('is-revealed');
             });
           }
+        }
+        
+        // Wait for layout, then scroll
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const isMainContent = !!mainContentEl;
+            const container = isMainContent ? mainContentEl : null;
+            
+            // PRIMARY METHOD: scrollIntoView (most reliable)
+            try {
+              targetElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center', // Center in viewport
+                inline: 'nearest'
+              });
+            } catch (e) {
+              // If scrollIntoView fails, use manual scroll
+              const rect = targetElement.getBoundingClientRect();
+              const viewportHeight = isMainContent ? mainContentEl.clientHeight : window.innerHeight;
+              const offset = viewportHeight * 0.35;
+              
+              if (isMainContent) {
+                const scrollTop = mainContentEl.scrollTop + rect.top - offset;
+                const maxScroll = mainContentEl.scrollHeight - mainContentEl.clientHeight;
+                mainContentEl.scrollTo({
+                  top: Math.max(0, Math.min(scrollTop, maxScroll)),
+                  behavior: 'smooth'
+                });
+              } else {
+                const scrollTop = (window.pageYOffset || document.documentElement.scrollTop) + rect.top - offset;
+                const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+                window.scrollTo({
+                  top: Math.max(0, Math.min(scrollTop, maxScroll)),
+                  behavior: 'smooth'
+                });
+              }
+            }
+            
+            // VERIFICATION: Check if element is visible and retry if needed
+            let checkCount = 0;
+            const maxChecks = 15; // Check for up to 3 seconds (15 * 200ms)
+            
+            function verifyScroll() {
+              checkCount++;
+              const isVisible = isElementInViewport(targetElement, container);
+              
+              if (isVisible) {
+                // Success! Element is visible
+                scrollToCTA.isScrolling = false;
+                return;
+              }
+              
+              // Not visible yet - retry scroll
+              if (checkCount < maxChecks) {
+                // Try scrollIntoView again (more aggressive)
+                try {
+                  targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                    inline: 'nearest'
+                  });
+                } catch (e) {
+                  // Manual scroll fallback
+                  const rect = targetElement.getBoundingClientRect();
+                  const viewportHeight = isMainContent ? mainContentEl.clientHeight : window.innerHeight;
+                  const offset = viewportHeight * 0.35;
+                  
+                  if (isMainContent) {
+                    const scrollTop = mainContentEl.scrollTop + rect.top - offset;
+                    mainContentEl.scrollTo({
+                      top: Math.max(0, Math.min(scrollTop, mainContentEl.scrollHeight - mainContentEl.clientHeight)),
+                      behavior: 'smooth'
+                    });
+                  } else {
+                    const scrollTop = (window.pageYOffset || document.documentElement.scrollTop) + rect.top - offset;
+                    window.scrollTo({
+                      top: Math.max(0, Math.min(scrollTop, document.documentElement.scrollHeight - window.innerHeight)),
+                      behavior: 'smooth'
+                    });
+                  }
+                }
+                
+                // Check again after delay
+                setTimeout(verifyScroll, 200);
+              } else {
+                // Max checks reached - reset flag
+                scrollToCTA.isScrolling = false;
+              }
+            }
+            
+            // Start verification after initial scroll
+            setTimeout(verifyScroll, 300);
+            
+            // Ultimate fallback: reset after max time
+            setTimeout(() => {
+              scrollToCTA.isScrolling = false;
+            }, 4000);
+          });
         });
-      });
+      }
+      
+      // Start scroll
+      performScroll();
     }
+    
+    // Initialize scroll flag
+    scrollToCTA.isScrolling = false;
     
     // Event listeners - listen to scroll on window AND main content (Telegram compatibility)
     let scrollTimeout = null;

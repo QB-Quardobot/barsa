@@ -191,13 +191,8 @@ function createSwiperConfig(config: SwiperConfig) {
     touchEventsTarget: 'container',
     preventClicks: true,
     preventClicksPropagation: true,
-    autoplay: {
-      delay: config.autoplayDelay || 5000,
-      disableOnInteraction: true,
-      pauseOnMouseEnter: false,
-      stopOnLastSlide: true,
-      waitForTransition: true,
-    },
+    // Autoplay - disabled
+    autoplay: false,
     pagination: config.pagination ? {
       el: config.pagination,
       clickable: true,
@@ -1073,10 +1068,8 @@ export function initCurrencyModal(): void {
   let isModalOpen = false;
   let currentTariff: string | null = null;
   
-  // Support link (will be updated later)
-  if (supportBtn) {
-    supportBtn.href = 'https://t.me/your_support_account'; // Placeholder
-  }
+  // Support link for tariffs 1 and 2
+  const supportLink = 'https://t.me/illariooo';
   
   function openModal(tariffId: string): void {
     if (isModalOpen || !TARIFFS[tariffId]) return;
@@ -1091,6 +1084,11 @@ export function initCurrencyModal(): void {
     // Update links
     if (rubBtn) rubBtn.href = tariff.rub.url;
     if (eurBtn) eurBtn.href = tariff.eur.url;
+    
+    // Update support link for tariffs 1 and 2
+    if (supportBtn && (tariffId === '1' || tariffId === '2')) {
+      supportBtn.href = supportLink;
+    }
     
     // Show modal with animation
     modal.style.display = 'flex';

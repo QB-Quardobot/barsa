@@ -176,8 +176,13 @@ text-overflow: ellipsis;
 font-size: clamp(1.125rem, 2.5vw, 1.25rem);
 color: var(--muted);
 line-height: 1.6;
-margin: 0;
+margin: 0 auto;
 text-align: center;
+max-width: 600px;
+width: auto;
+padding: 0 1rem;
+display: block;
+box-sizing: border-box;
 }
 
 @media (max-width: 480px) {

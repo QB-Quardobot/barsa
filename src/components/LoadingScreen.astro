@@ -36,44 +36,50 @@ const { showInBrowser = false } = Astro.props;
   <div class="loading-bg"></div>
 </div>
 
-<style>
+<style is:global>
   /* CRITICAL: Prevent white flash - ensure body/html have dark background immediately */
   html, body {
     background-color: #0a0a0a !important;
   }
   
-  .loading-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    height: 100dvh; /* Dynamic viewport height for mobile */
-    background: #0a0a0a;
+  /* CRITICAL: High specificity to override any global styles */
+  #loading-screen.loading-screen,
+  div#loading-screen.loading-screen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important; /* Dynamic viewport height for mobile */
+    background: #0a0a0a !important;
     background-color: #0a0a0a !important; /* CRITICAL: Prevent white flash */
-    z-index: 99999;
-    display: flex;
-    align-items: center;
-    pointer-events: none; /* Allow clicks to pass through when hidden */
-    justify-content: center;
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+    z-index: 99999 !important;
+    display: flex !important;
+    align-items: center !important;
+    pointer-events: none !important; /* Allow clicks to pass through when hidden */
+    justify-content: center !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transition: opacity 0.5s ease-out, visibility 0.5s ease-out !important;
     /* Hide by default in browser for SEO */
-    display: none;
+    display: none !important;
   }
   
   /* Show only in Telegram Mini App by default */
-  body.tg-webapp .loading-screen {
-    display: flex;
+  body.tg-webapp #loading-screen.loading-screen,
+  body.tg-webapp div#loading-screen.loading-screen {
+    display: flex !important;
   }
   
   /* Optionally show in browser if data-show-in-browser="true" */
-  .loading-screen[data-show-in-browser="true"] {
-    display: flex;
+  #loading-screen.loading-screen[data-show-in-browser="true"],
+  div#loading-screen.loading-screen[data-show-in-browser="true"] {
+    display: flex !important;
   }
   
-  .loading-screen.loaded {
+  /* High specificity for loaded state */
+  #loading-screen.loading-screen.loaded,
+  div#loading-screen.loading-screen.loaded {
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
@@ -92,29 +98,33 @@ const { showInBrowser = false } = Astro.props;
   }
   
   /* Show only in Telegram Mini App by default */
-  body.tg-webapp .loading-screen {
-    display: flex;
-    pointer-events: auto; /* Allow interaction when visible */
+  body.tg-webapp #loading-screen.loading-screen,
+  body.tg-webapp div#loading-screen.loading-screen {
+    display: flex !important;
+    pointer-events: auto !important; /* Allow interaction when visible */
   }
   
   /* Optionally show in browser if data-show-in-browser="true" */
-  .loading-screen[data-show-in-browser="true"] {
-    display: flex;
-    pointer-events: auto;
+  #loading-screen.loading-screen[data-show-in-browser="true"],
+  div#loading-screen.loading-screen[data-show-in-browser="true"] {
+    display: flex !important;
+    pointer-events: auto !important;
   }
   
-  .loading-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+  /* High specificity for loading background */
+  #loading-screen .loading-bg,
+  div#loading-screen .loading-bg {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
     background: 
       radial-gradient(ellipse at 20% 30%, rgba(96, 165, 250, 0.15) 0%, transparent 50%),
       radial-gradient(ellipse at 80% 70%, rgba(168, 85, 247, 0.12) 0%, transparent 50%),
-      radial-gradient(ellipse at 40% 90%, rgba(34, 211, 238, 0.1) 0%, transparent 50%);
-    animation: bgPulse 4s ease-in-out infinite;
-    pointer-events: none;
+      radial-gradient(ellipse at 40% 90%, rgba(34, 211, 238, 0.1) 0%, transparent 50%) !important;
+    animation: bgPulse 4s ease-in-out infinite !important;
+    pointer-events: none !important;
   }
   
   @keyframes bgPulse {
@@ -122,56 +132,63 @@ const { showInBrowser = false } = Astro.props;
     50% { opacity: 1; }
   }
   
-  .loading-content {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2rem;
+  /* High specificity for loading content */
+  #loading-screen .loading-content,
+  div#loading-screen .loading-content {
+    position: relative !important;
+    z-index: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 2rem !important;
   }
   
-  .loading-logo {
-    position: relative;
-    width: 120px;
-    height: 120px;
+  #loading-screen .loading-logo,
+  div#loading-screen .loading-logo {
+    position: relative !important;
+    width: 120px !important;
+    height: 120px !important;
   }
   
-  .loading-circle {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #60a5fa 0%, #22d3ee 50%, #a855f7 100%);
-    position: relative;
-    animation: rotate 3s linear infinite;
-    padding: 4px;
+  #loading-screen .loading-circle,
+  div#loading-screen .loading-circle {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #60a5fa 0%, #22d3ee 50%, #a855f7 100%) !important;
+    position: relative !important;
+    animation: rotate 3s linear infinite !important;
+    padding: 4px !important;
   }
   
-  .loading-circle::before {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #60a5fa, #22d3ee, #a855f7);
-    opacity: 0.5;
-    filter: blur(8px);
-    animation: rotate 3s linear infinite reverse;
+  #loading-screen .loading-circle::before,
+  div#loading-screen .loading-circle::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: -2px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #60a5fa, #22d3ee, #a855f7) !important;
+    opacity: 0.5 !important;
+    filter: blur(8px) !important;
+    animation: rotate 3s linear infinite reverse !important;
   }
   
-  .loading-circle-inner {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: #0a0a0a;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  #loading-screen .loading-circle-inner,
+  div#loading-screen .loading-circle-inner {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 50% !important;
+    background: #0a0a0a !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
   
-  .loading-circle-inner::after {
-    content: '🤖';
-    font-size: 3rem;
-    filter: drop-shadow(0 0 10px rgba(96, 165, 250, 0.5));
+  #loading-screen .loading-circle-inner::after,
+  div#loading-screen .loading-circle-inner::after {
+    content: '🤖' !important;
+    font-size: 3rem !important;
+    filter: drop-shadow(0 0 10px rgba(96, 165, 250, 0.5)) !important;
   }
   
   @keyframes rotate {
@@ -179,16 +196,17 @@ const { showInBrowser = false } = Astro.props;
     to { transform: rotate(360deg); }
   }
   
-  .loading-pulse {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    border: 2px solid rgba(96, 165, 250, 0.3);
-    animation: pulse 2s ease-in-out infinite;
+  #loading-screen .loading-pulse,
+  div#loading-screen .loading-pulse {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 120px !important;
+    height: 120px !important;
+    border-radius: 50% !important;
+    border: 2px solid rgba(96, 165, 250, 0.3) !important;
+    animation: pulse 2s ease-in-out infinite !important;
   }
   
   @keyframes pulse {
@@ -202,20 +220,22 @@ const { showInBrowser = false } = Astro.props;
     }
   }
   
-  .loading-text {
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+  #loading-screen .loading-text,
+  div#loading-screen .loading-text {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
   }
   
-  .loading-text .gradient-text {
-    background: linear-gradient(135deg, #60a5fa 0%, #22d3ee 50%, #a855f7 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-size: 200% 200%;
-    animation: gradientShift 3s ease infinite;
+  #loading-screen .loading-text .gradient-text,
+  div#loading-screen .loading-text .gradient-text {
+    background: linear-gradient(135deg, #60a5fa 0%, #22d3ee 50%, #a855f7 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-size: 200% 200% !important;
+    animation: gradientShift 3s ease infinite !important;
   }
   
   @keyframes gradientShift {
@@ -223,18 +243,20 @@ const { showInBrowser = false } = Astro.props;
     50% { background-position: 100% 50%; }
   }
   
-  .loading-dots {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
+  #loading-screen .loading-dots,
+  div#loading-screen .loading-dots {
+    display: flex !important;
+    gap: 0.5rem !important;
+    align-items: center !important;
   }
   
-  .loading-dots .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #60a5fa, #22d3ee);
-    animation: dotBounce 1.4s ease-in-out infinite;
+  #loading-screen .loading-dots .dot,
+  div#loading-screen .loading-dots .dot {
+    width: 8px !important;
+    height: 8px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #60a5fa, #22d3ee) !important;
+    animation: dotBounce 1.4s ease-in-out infinite !important;
   }
   
   .loading-dots .dot:nth-child(1) {
@@ -262,22 +284,26 @@ const { showInBrowser = false } = Astro.props;
   
   /* Mobile optimizations */
   @media (max-width: 640px) {
-    .loading-logo {
-      width: 100px;
-      height: 100px;
+    #loading-screen .loading-logo,
+    div#loading-screen .loading-logo {
+      width: 100px !important;
+      height: 100px !important;
     }
     
-    .loading-circle-inner::after {
-      font-size: 2.5rem;
+    #loading-screen .loading-circle-inner::after,
+    div#loading-screen .loading-circle-inner::after {
+      font-size: 2.5rem !important;
     }
     
-    .loading-text {
-      font-size: 1.25rem;
+    #loading-screen .loading-text,
+    div#loading-screen .loading-text {
+      font-size: 1.25rem !important;
     }
     
-    .loading-dots .dot {
-      width: 6px;
-      height: 6px;
+    #loading-screen .loading-dots .dot,
+    div#loading-screen .loading-dots .dot {
+      width: 6px !important;
+      height: 6px !important;
     }
   }
   
