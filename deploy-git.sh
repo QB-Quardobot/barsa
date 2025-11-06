@@ -165,7 +165,10 @@ setup_git_repo() {
         fi
         
         echo "📦 Installing dependencies..."
-        npm ci --production=false
+        # Optimize memory usage for npm ci
+        export NODE_OPTIONS="--max-old-space-size=2048"
+        # Use npm install with optimizations if npm ci fails
+        npm ci --production=false --prefer-offline --no-audit || npm install --production=false --prefer-offline --no-audit
         
         echo "🔨 Building project..."
         npm run build
@@ -433,7 +436,10 @@ deploy() {
         echo "📍 Deployed commit: \${DEPLOYED_COMMIT}"
         
         echo "📦 Installing dependencies..."
-        npm ci --production=false
+        # Optimize memory usage for npm ci
+        export NODE_OPTIONS="--max-old-space-size=2048"
+        # Use npm install with optimizations if npm ci fails
+        npm ci --production=false --prefer-offline --no-audit || npm install --production=false --prefer-offline --no-audit
         
         echo "🔨 Building project..."
         npm run build
@@ -502,7 +508,10 @@ rollback() {
         git reset --hard \${COMMIT_HASH}
         
         echo "📦 Installing dependencies..."
-        npm ci --production=false
+        # Optimize memory usage for npm ci
+        export NODE_OPTIONS="--max-old-space-size=2048"
+        # Use npm install with optimizations if npm ci fails
+        npm ci --production=false --prefer-offline --no-audit || npm install --production=false --prefer-offline --no-audit
         
         echo "🔨 Building..."
         npm run build
