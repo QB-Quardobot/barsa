@@ -193,16 +193,8 @@ function createSwiperConfig(config: SwiperConfig) {
     preventClicksPropagation: true,
     // Autoplay - disabled
     autoplay: false,
-    pagination: config.pagination ? {
-      el: config.pagination,
-      clickable: true,
-      dynamicBullets: false,
-      type: 'bullets',
-      renderBullet: function (index: number, className: string) {
-        console.log('[PAGINATION DEBUG] Rendering bullet:', index, className);
-        return '<span class="' + className + '"></span>';
-      },
-    } : undefined,
+    // Pagination - disabled, using static pagination
+    pagination: false,
     navigation: false, // Отключена навигация, используем только пагинацию
     breakpoints: {
       320: { slidesPerView: 1, spaceBetween: 0, centeredSlides: true },

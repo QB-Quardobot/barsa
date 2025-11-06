@@ -3569,8 +3569,8 @@ display: none !important;
   contain: layout style paint;
 }
 
-/* Instagram-стиль пагинации для отзывов - вынесена за рамки слайдера */
-.testimonial-pagination {
+/* Static Pagination - 3 dots for testimonials */
+.static-pagination.testimonial-pagination {
 position: absolute !important;
 bottom: calc(-2rem + 80px) !important;
 left: 50% !important;
@@ -3581,26 +3581,28 @@ align-items: center;
 gap: 6px;
 z-index: 10;
 width: auto;
+visibility: visible !important;
+opacity: 1 !important;
 }
 
-.testimonial-pagination .swiper-pagination-bullet {
+.static-pagination .static-pagination-dot {
 width: 7px;
 height: 7px;
 background: rgba(255, 255, 255, 0.4);
 opacity: 1;
 border-radius: 50%;
 margin: 0 !important;
-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+display: block;
+flex-shrink: 0;
 }
 
-.testimonial-pagination .swiper-pagination-bullet-active {
+.static-pagination.testimonial-pagination .static-pagination-dot:first-child {
 background: rgba(255, 255, 255, 0.95);
-transform: scale(1);
 }
 
 /* Mobile fixes for testimonial pagination */
 @media (max-width: 767px) {
-  .testimonial-pagination {
+  .static-pagination.testimonial-pagination {
     position: absolute !important;
     bottom: -1rem !important;
     left: 50% !important;
@@ -3609,7 +3611,6 @@ transform: scale(1);
     visibility: visible !important;
     opacity: 1 !important;
     z-index: 100 !important;
-    pointer-events: auto !important;
   }
   
   .testimonials-swiper-wrapper {
@@ -4056,8 +4057,8 @@ font-size: 1.25rem;
 }
 
 /* Model Pagination */
-/* Instagram-стиль пагинации для моделей - вынесена за рамки слайдера */
-.model-pagination {
+/* Static Pagination - 3 dots for models */
+.static-pagination.model-pagination {
 position: absolute !important;
 bottom: calc(-2rem + 80px) !important;
 left: 50% !important;
@@ -4068,26 +4069,17 @@ align-items: center;
 gap: 6px;
 z-index: 10;
 width: auto;
+visibility: visible !important;
+opacity: 1 !important;
 }
 
-.model-pagination .swiper-pagination-bullet {
-width: 7px;
-height: 7px;
-background: rgba(255, 255, 255, 0.4);
-opacity: 1;
-border-radius: 50%;
-margin: 0 !important;
-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.model-pagination .swiper-pagination-bullet-active {
+.static-pagination.model-pagination .static-pagination-dot:first-child {
 background: rgba(255, 255, 255, 0.95);
-transform: scale(1);
 }
 
 /* Mobile fixes for model pagination */
 @media (max-width: 767px) {
-  .model-pagination {
+  .static-pagination.model-pagination {
     position: absolute !important;
     bottom: -1rem !important;
     left: 50% !important;
@@ -4096,7 +4088,6 @@ transform: scale(1);
     visibility: visible !important;
     opacity: 1 !important;
     z-index: 100 !important;
-    pointer-events: auto !important;
   }
   
   .student-models-swiper-wrapper {

@@ -695,8 +695,12 @@ const DEBUG_MODE = false;
               </div>
             </div>
             
-            <!-- Pagination - вынесена за пределы слайдера (как на how-it-works) -->
-            <div class="swiper-pagination student-model-pagination"></div>
+            <!-- Static Pagination - 3 dots -->
+            <div class="static-pagination student-model-pagination">
+              <span class="static-pagination-dot"></span>
+              <span class="static-pagination-dot"></span>
+              <span class="static-pagination-dot"></span>
+            </div>
           </div>
         </div>
         
@@ -1138,35 +1142,12 @@ const DEBUG_MODE = false;
       }
       
       function createModelsSwiper() {
-        console.log('[PAGINATION DEBUG] Starting createModelsSwiper (index.astro)...');
-        
         const swiperContainer = document.querySelector('.student-models-swiper-main');
         const wrapper = document.querySelector('.student-models-swiper-wrapper');
         
         if (!swiperContainer || !wrapper) {
-          console.error('[PAGINATION DEBUG] Swiper container or wrapper not found!', {
-            container: swiperContainer,
-            wrapper: wrapper
-          });
           return;
         }
-        console.log('[PAGINATION DEBUG] Swiper container and wrapper found');
-        
-        const paginationSelector = '.student-model-pagination';
-        // Ищем пагинацию в wrapper, но также проверим в document
-        let paginationEl = wrapper.querySelector(paginationSelector);
-        if (!paginationEl) {
-          paginationEl = document.querySelector(paginationSelector);
-          console.log('[PAGINATION DEBUG] Pagination not found in wrapper, searching in document:', paginationEl);
-        }
-        console.log('[PAGINATION DEBUG] Pagination element:', paginationEl);
-        console.log('[PAGINATION DEBUG] Pagination element styles:', paginationEl ? {
-          display: getComputedStyle(paginationEl).display,
-          visibility: getComputedStyle(paginationEl).visibility,
-          opacity: getComputedStyle(paginationEl).opacity,
-          zIndex: getComputedStyle(paginationEl).zIndex,
-          position: getComputedStyle(paginationEl).position,
-        } : 'NOT FOUND');
         
         const swiper = new Swiper('.student-models-swiper-main', {
           // Core
@@ -1216,17 +1197,8 @@ const DEBUG_MODE = false;
           // Autoplay - disabled
           autoplay: false,
           
-          // Pagination - используем строковый селектор (как на how-it-works)
-          pagination: {
-            el: paginationSelector,
-            clickable: true,
-            dynamicBullets: false,
-            type: 'bullets',
-            renderBullet: function (index, className) {
-              console.log('[PAGINATION DEBUG] Rendering bullet:', index, className);
-              return '<span class="' + className + '"></span>';
-            },
-          },
+          // Pagination - disabled, using static pagination
+          pagination: false,
           
           // Navigation - отключено (используем только пагинацию)
           navigation: false,
@@ -1250,440 +1222,13 @@ const DEBUG_MODE = false;
             },
           },
           
-          // Events
+          // Events - removed pagination-related handlers since we use static pagination
           on: {
             init: function(swiperInstance) {
-              console.log('[PAGINATION DEBUG] Swiper init event fired (index.astro)');
-              console.log('[PAGINATION DEBUG] Pagination element:', swiperInstance.pagination?.el);
-              console.log('[PAGINATION DEBUG] Pagination bullets count:', swiperInstance.pagination?.bullets?.length || 0);
-              console.log('[PAGINATION DEBUG] Pagination bullets:', swiperInstance.pagination?.bullets);
-              
-              // Проверяем DOM элемент пагинации
-              const pagEl = document.querySelector(paginationSelector);
-              if (pagEl) {
-                console.log('[PAGINATION DEBUG] Pagination DOM element found:', pagEl);
-                console.log('[PAGINATION DEBUG] Pagination DOM innerHTML:', pagEl.innerHTML);
-                console.log('[PAGINATION DEBUG] Pagination DOM children:', pagEl.children.length);
-                console.log('[PAGINATION DEBUG] Pagination DOM children elements:', Array.from(pagEl.children).map(c => ({
-                  tag: c.tagName,
-                  classes: c.className,
-                  display: getComputedStyle(c).display,
-                  visibility: getComputedStyle(c).visibility,
-                  opacity: getComputedStyle(c).opacity,
-                })));
-                
-                // Проверяем родительские элементы на overflow
-                let parent = pagEl.parentElement;
-                let parentLevel = 0;
-                while (parent && parentLevel < 5) {
-                  const overflow = getComputedStyle(parent).overflow;
-                  const position = getComputedStyle(parent).position;
-                  if (overflow !== 'visible' || position !== 'static') {
-                    console.log(`[PAGINATION DEBUG] Parent level ${parentLevel}:`, {
-                      tag: parent.tagName,
-                      class: parent.className,
-                      overflow: overflow,
-                      position: position,
-                    });
-                  }
-                  parent = parent.parentElement;
-                  parentLevel++;
-                }
-                
-                console.log('[PAGINATION DEBUG] Pagination computed styles:', {
-                  display: getComputedStyle(pagEl).display,
-                  visibility: getComputedStyle(pagEl).visibility,
-                  opacity: getComputedStyle(pagEl).opacity,
-                  zIndex: getComputedStyle(pagEl).zIndex,
-                  position: getComputedStyle(pagEl).position,
-                  bottom: getComputedStyle(pagEl).bottom,
-                  left: getComputedStyle(pagEl).left,
-                  width: getComputedStyle(pagEl).width,
-                  height: getComputedStyle(pagEl).height,
-                  overflow: getComputedStyle(pagEl).overflow,
-                });
-              } else {
-                console.error('[PAGINATION DEBUG] Pagination DOM element NOT FOUND!');
-                console.error('[PAGINATION DEBUG] Searching for selector:', paginationSelector);
-                console.error('[PAGINATION DEBUG] All pagination elements:', document.querySelectorAll('.swiper-pagination'));
-              }
-              
-              ensurePagination(swiperInstance);
-            },
-            paginationRender: function(swiperInstance) {
-              console.log('[PAGINATION DEBUG] paginationRender event fired (index.astro)');
-              console.log('[PAGINATION DEBUG] Bullets after render:', swiperInstance.pagination?.bullets?.length || 0);
-              
-              // Когда Swiper создает bullets, убеждаемся что они видны
-              if (swiperInstance.pagination?.bullets?.length > 0) {
-                ensurePaginationVisibility(swiperInstance);
-              }
-            },
-            slidesReady: function(swiperInstance) {
-              // Когда слайды готовы, убеждаемся что пагинация видна
-              ensurePaginationVisibility(swiperInstance);
-            },
-            update: function(swiperInstance) {
-              ensurePaginationVisibility(swiperInstance);
-            },
-            slideChange: function(swiperInstance) {
-              syncActiveBullet(swiperInstance);
-            },
-            resize: function(swiperInstance) {
-              if (!hasNativeBullets(swiperInstance)) {
-                ensurePagination(swiperInstance, { rebuild: true });
-              }
+              // Swiper initialized
             },
           },
         });
-        
-        console.log('[PAGINATION DEBUG] Swiper created (index.astro):', swiper);
-        console.log('[PAGINATION DEBUG] Swiper pagination:', swiper.pagination);
-        console.log('[PAGINATION DEBUG] Swiper pagination bullets:', swiper.pagination?.bullets?.length || 0);
-        
-        // Helper functions для ручного создания пагинации если Swiper не создал
-        function hasNativeBullets(swiperInstance) {
-          return Boolean(swiperInstance?.pagination?.bullets?.length);
-        }
-        
-        // TELEGRAM WEBAPP FIX: Enhanced slide activation for cssMode
-        function activateSlideSafely(swiperInstance, index) {
-          try {
-            // For cssMode, we need to manually scroll to the slide
-            if (swiperInstance.params.cssMode) {
-              const slides = Array.from(swiperInstance.slides || swiperContainer.querySelectorAll('.swiper-slide'))
-                .filter((slide) => !slide.classList.contains('swiper-slide-duplicate'));
-              
-              if (slides[index]) {
-                const container = swiperInstance.el || swiperContainer;
-                const slide = slides[index];
-                
-                // Calculate scroll position
-                const containerRect = container.getBoundingClientRect();
-                const slideRect = slide.getBoundingClientRect();
-                const scrollLeft = container.scrollLeft + (slideRect.left - containerRect.left) - (containerRect.width / 2) + (slideRect.width / 2);
-                
-                // Smooth scroll
-                container.scrollTo({
-                  left: scrollLeft,
-                  behavior: 'smooth'
-                });
-                
-                // Update Swiper's active index manually
-                swiperInstance.activeIndex = index;
-                
-                // Sync pagination immediately
-                setTimeout(() => {
-                  syncActiveBullet(swiperInstance);
-                }, 50);
-                
-                // Also sync after scroll completes
-                setTimeout(() => {
-                  syncActiveBullet(swiperInstance);
-                }, 500);
-              }
-            } else {
-              // Normal mode - use Swiper's slideTo
-              swiperInstance.slideTo(index);
-            }
-          } catch (e) {
-            console.error('[PAGINATION ERROR] Failed to activate slide:', e);
-          }
-        }
-        
-        // TELEGRAM WEBAPP FIX: Add event handlers to bullet
-        function attachBulletHandlers(bullet, swiperInstance, index) {
-          // Use data-slide-index if available (for native bullets)
-          const slideIndex = bullet.hasAttribute('data-slide-index') 
-            ? parseInt(bullet.getAttribute('data-slide-index') || '0', 10)
-            : index;
-          
-          const activateSlide = (e) => {
-            if (e) {
-              e.preventDefault();
-              e.stopPropagation();
-            }
-            activateSlideSafely(swiperInstance, slideIndex);
-            
-            // Haptic feedback for Telegram
-            if (window.Telegram?.WebApp?.HapticFeedback) {
-              window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
-            }
-          };
-          
-          // Click handler
-          bullet.addEventListener('click', activateSlide, { passive: false });
-          
-          // Touch handlers for Telegram WebView
-          let touchStartTime = 0;
-          let touchStartX = 0;
-          let touchStartY = 0;
-          
-          bullet.addEventListener('touchstart', (e) => {
-            touchStartTime = Date.now();
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-          }, { passive: true });
-          
-          bullet.addEventListener('touchend', (e) => {
-            const touchEndTime = Date.now();
-            const touchDuration = touchEndTime - touchStartTime;
-            const touchEndX = e.changedTouches[0].clientX;
-            const touchEndY = e.changedTouches[0].clientY;
-            const deltaX = Math.abs(touchEndX - touchStartX);
-            const deltaY = Math.abs(touchEndY - touchStartY);
-            
-            // Only activate if it's a tap (not a swipe)
-            if (touchDuration < 300 && deltaX < 10 && deltaY < 10) {
-              e.preventDefault();
-              e.stopPropagation();
-              activateSlide(e);
-            }
-          }, { passive: false });
-          
-          // Keyboard handler
-          bullet.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              activateSlide(event);
-            }
-          });
-        }
-        
-        function buildManualBullets(swiperInstance) {
-          if (!paginationEl) {
-            return;
-          }
-          
-          const slides = Array.from(swiperInstance.slides || swiperContainer.querySelectorAll('.swiper-slide'))
-            .filter((slide) => !slide.classList.contains('swiper-slide-duplicate'));
-          
-          if (!slides.length) {
-            return;
-          }
-          
-          paginationEl.innerHTML = '';
-          
-          slides.forEach((_, index) => {
-            const bullet = document.createElement('span');
-            bullet.className = 'swiper-pagination-bullet';
-            if (index === swiperInstance.realIndex) {
-              bullet.classList.add('swiper-pagination-bullet-active');
-            }
-            bullet.setAttribute('role', 'button');
-            bullet.setAttribute('aria-label', `Перейти к слайду ${index + 1}`);
-            bullet.tabIndex = 0;
-            bullet.style.cursor = 'pointer';
-            bullet.style.userSelect = 'none';
-            bullet.style.webkitUserSelect = 'none';
-            bullet.style.touchAction = 'manipulation';
-            
-            // Attach handlers
-            attachBulletHandlers(bullet, swiperInstance, index);
-            
-            paginationEl.appendChild(bullet);
-          });
-        }
-        
-        function ensurePagination(swiperInstance, options = { rebuild: false }) {
-          if (!paginationEl) {
-            return;
-          }
-          
-          paginationEl.style.display = 'flex';
-          paginationEl.style.visibility = 'visible';
-          paginationEl.style.opacity = '1';
-          
-          const hasNative = hasNativeBullets(swiperInstance);
-          
-          if (hasNative && !options.rebuild) {
-            return;
-          }
-          
-          buildManualBullets(swiperInstance);
-          syncActiveBullet(swiperInstance);
-        }
-        
-        // TELEGRAM WEBAPP FIX: Get current slide index for cssMode
-        function getCurrentSlideIndex(swiperInstance) {
-          if (swiperInstance.params.cssMode) {
-            // For cssMode, calculate based on scroll position
-            const slides = Array.from(swiperInstance.slides || swiperContainer.querySelectorAll('.swiper-slide'))
-              .filter((slide) => !slide.classList.contains('swiper-slide-duplicate'));
-            
-            if (slides.length === 0) return 0;
-            
-            const container = swiperInstance.el || swiperContainer;
-            const containerRect = container.getBoundingClientRect();
-            const containerCenter = containerRect.left + containerRect.width / 2;
-            
-            let closestIndex = 0;
-            let closestDistance = Infinity;
-            
-            slides.forEach((slide, index) => {
-              const slideRect = slide.getBoundingClientRect();
-              const slideCenter = slideRect.left + slideRect.width / 2;
-              const distance = Math.abs(slideCenter - containerCenter);
-              
-              if (distance < closestDistance) {
-                closestDistance = distance;
-                closestIndex = index;
-              }
-            });
-            
-            return closestIndex;
-          } else {
-            return swiperInstance.realIndex !== undefined ? swiperInstance.realIndex : swiperInstance.activeIndex;
-          }
-        }
-        
-        function syncActiveBullet(swiperInstance) {
-          if (!paginationEl) {
-            return;
-          }
-          
-          const bullets = paginationEl.querySelectorAll('.swiper-pagination-bullet');
-          const currentIndex = getCurrentSlideIndex(swiperInstance);
-          
-          bullets.forEach((bullet, index) => {
-            const isActive = index === currentIndex;
-            bullet.classList.toggle('swiper-pagination-bullet-active', isActive);
-            // Обновляем background цвет для активного/неактивного состояния
-            bullet.style.background = isActive 
-              ? 'rgba(255, 255, 255, 0.95)' 
-              : 'rgba(255, 255, 255, 0.4)';
-          });
-        }
-        
-        function ensurePaginationVisibility(swiperInstance) {
-          if (!paginationEl) {
-            return;
-          }
-          
-          // Убеждаемся что элемент виден
-          paginationEl.style.display = 'flex';
-          paginationEl.style.visibility = 'visible';
-          paginationEl.style.opacity = '1';
-          
-          // Проверяем нативные bullets
-          const nativeBullets = swiperInstance.pagination?.bullets || [];
-          const domBullets = paginationEl.querySelectorAll('.swiper-pagination-bullet');
-          
-          if (nativeBullets.length > 0) {
-            nativeBullets.forEach((bullet, bulletIndex) => {
-              if (bullet && bullet.style) {
-                // Get the actual slide index from Swiper's pagination
-                let slideIndex = bulletIndex;
-                if (swiperInstance.pagination?.renderBullet) {
-                  // Try to get index from bullet's data attribute or class
-                  const bulletClasses = bullet.className.split(' ');
-                  const indexMatch = bulletClasses.find(cls => cls.startsWith('swiper-pagination-bullet-'));
-                  if (indexMatch) {
-                    const match = indexMatch.match(/\d+/);
-                    if (match) {
-                      slideIndex = parseInt(match[0], 10);
-                    }
-                  }
-                }
-                
-                // ПРИНУДИТЕЛЬНО устанавливаем размеры и стили (как в CSS: 7px)
-                bullet.style.width = '7px';
-                bullet.style.height = '7px';
-                bullet.style.display = 'block';
-                bullet.style.visibility = 'visible';
-                bullet.style.opacity = '1';
-                bullet.style.borderRadius = '50%';
-                bullet.style.margin = '0';
-                bullet.style.background = bullet.classList.contains('swiper-pagination-bullet-active') 
-                  ? 'rgba(255, 255, 255, 0.95)' 
-                  : 'rgba(255, 255, 255, 0.4)';
-                bullet.style.flexShrink = '0';
-                bullet.style.cursor = 'pointer';
-                bullet.style.userSelect = 'none';
-                bullet.style.webkitUserSelect = 'none';
-                bullet.style.touchAction = 'manipulation';
-                
-                // TELEGRAM WEBAPP FIX: Attach handlers to native bullets if not already attached
-                if (!bullet.hasAttribute('data-handlers-attached')) {
-                  bullet.setAttribute('data-handlers-attached', 'true');
-                  bullet.setAttribute('data-slide-index', slideIndex.toString());
-                  attachBulletHandlers(bullet, swiperInstance, slideIndex);
-                }
-              }
-            });
-          }
-          
-          // Проверяем и исправляем DOM bullets
-          if (domBullets.length > 0) {
-            domBullets.forEach((bullet, index) => {
-              // ПРИНУДИТЕЛЬНО устанавливаем размеры и стили
-              bullet.style.width = '7px';
-              bullet.style.height = '7px';
-              bullet.style.display = 'block';
-              bullet.style.visibility = 'visible';
-              bullet.style.opacity = '1';
-              bullet.style.borderRadius = '50%';
-              bullet.style.margin = '0';
-              bullet.style.background = bullet.classList.contains('swiper-pagination-bullet-active') 
-                ? 'rgba(255, 255, 255, 0.95)' 
-                : 'rgba(255, 255, 255, 0.4)';
-              bullet.style.flexShrink = '0';
-              bullet.style.cursor = 'pointer';
-              bullet.style.userSelect = 'none';
-              bullet.style.webkitUserSelect = 'none';
-              bullet.style.touchAction = 'manipulation';
-              
-              // TELEGRAM WEBAPP FIX: Attach handlers to DOM bullets if not already attached
-              if (!bullet.hasAttribute('data-handlers-attached')) {
-                bullet.setAttribute('data-handlers-attached', 'true');
-                attachBulletHandlers(bullet, swiperInstance, index);
-              }
-            });
-          }
-          
-          // Синхронизируем активный bullet
-          syncActiveBullet(swiperInstance);
-        }
-        
-        // Убеждаемся что пагинация создана сразу после инициализации
-        ensurePagination(swiper);
-        
-        // Дополнительная проверка через небольшой таймаут
-        setTimeout(() => {
-          if (paginationEl) {
-            const bullets = paginationEl.querySelectorAll('.swiper-pagination-bullet');
-            
-            // Если bullets созданы Swiper, убеждаемся что они видны
-            if (swiper.pagination?.bullets?.length > 0) {
-              ensurePaginationVisibility(swiper);
-            } else if (bullets.length === 0 && swiper.slides?.length > 0) {
-              ensurePagination(swiper, { rebuild: true });
-            }
-          }
-        }, 500);
-        
-        // Дополнительная проверка когда все загрузится
-        setTimeout(() => {
-          ensurePaginationVisibility(swiper);
-        }, 2000);
-        
-        // TELEGRAM WEBAPP FIX: Track scroll for cssMode to update pagination
-        if (swiper.params.cssMode && swiperContainer) {
-          let scrollTimeout;
-          const handleScroll = () => {
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(() => {
-              syncActiveBullet(swiper);
-            }, 100);
-          };
-          
-          swiperContainer.addEventListener('scroll', handleScroll, { passive: true });
-          
-          // Also listen to swipe events
-          swiperContainer.addEventListener('scrollend', () => {
-            syncActiveBullet(swiper);
-          }, { passive: true });
-        }
         
         // Navigation buttons removed - using pagination only
         
@@ -4554,7 +4099,8 @@ const DEBUG_MODE = false;
     padding-bottom: 3rem;
   }
   
-  .student-model-pagination {
+  /* Static Pagination - 3 dots */
+  .static-pagination {
     position: absolute !important;
     bottom: calc(-2rem + 110px) !important;
     left: 50% !important;
@@ -4562,74 +4108,77 @@ const DEBUG_MODE = false;
     display: flex !important;
     justify-content: center;
     align-items: center;
-    gap: 6px;
+    gap: 6px !important;
     z-index: 10;
-    width: auto;
+    width: auto !important;
+    height: auto !important;
+    min-width: auto !important;
+    min-height: auto !important;
+    max-width: none !important;
+    max-height: none !important;
     visibility: visible !important;
     opacity: 1 !important;
-    min-height: 10px;
-  }
-  
-  .student-model-pagination .swiper-pagination-bullet {
-    width: 7px;
-    height: 7px;
-    background: rgba(255, 255, 255, 0.4);
-    opacity: 1;
-    border-radius: 50%;
+    /* CRITICAL: Reset container properties that could affect children */
+    font-size: 0 !important;
+    line-height: 0 !important;
+    padding: 0 !important;
     margin: 0 !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    /* TELEGRAM WEBAPP FIX: Enhanced touch interaction */
-    cursor: pointer !important;
-    user-select: none !important;
-    -webkit-user-select: none !important;
-    touch-action: manipulation !important;
-    -webkit-tap-highlight-color: transparent !important;
-    pointer-events: auto !important;
-    /* Increase touch target for better usability */
-    padding: 4px;
-    margin: 0 -4px !important;
-    min-width: 15px;
-    min-height: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
   
-  .student-model-pagination .swiper-pagination-bullet::before {
-    content: '';
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: inherit;
-    display: block;
+  .static-pagination.student-model-pagination {
+    bottom: calc(-2rem + 150px) !important;
   }
   
-  .student-model-pagination .swiper-pagination-bullet-active {
-    background: rgba(255, 255, 255, 0.95);
-    transform: scale(1);
+  .static-pagination .static-pagination-dot {
+    width: 7px !important;
+    height: 7px !important;
+    min-width: 7px !important;
+    min-height: 7px !important;
+    max-width: 7px !important;
+    max-height: 7px !important;
+    background: rgba(255, 255, 255, 0.4) !important;
+    opacity: 1 !important;
+    border-radius: 50% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
+    border: none !important;
+    outline: none !important;
+    /* CRITICAL: Static pagination - not clickable */
+    pointer-events: none !important;
+    cursor: default !important;
+    /* CRITICAL: Reset all inherited properties that could affect size */
+    font-size: 0 !important;
+    line-height: 0 !important;
+    vertical-align: baseline !important;
+    text-indent: 0 !important;
+    letter-spacing: 0 !important;
+    word-spacing: 0 !important;
+    /* Force exact size */
+    overflow: hidden !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
   }
   
-  .student-model-pagination .swiper-pagination-bullet-active::before {
-    background: rgba(255, 255, 255, 0.95);
+  .static-pagination .static-pagination-dot:first-child {
+    background: rgba(255, 255, 255, 0.95) !important;
+    width: 7px !important;
+    height: 7px !important;
   }
   
-  /* TELEGRAM WEBAPP FIX: Active state for better feedback */
-  .student-model-pagination .swiper-pagination-bullet:active {
-    transform: scale(0.9);
-  }
-  
-  /* Mobile fixes for student-model-pagination */
+  /* Mobile fixes for static pagination */
   @media (max-width: 767px) {
-    .student-model-pagination {
+    .static-pagination.student-model-pagination {
       position: absolute !important;
-      bottom: -1rem !important;
+      bottom: calc(-1rem + 40px) !important;
       left: 50% !important;
       transform: translateX(-50%) !important;
       display: flex !important;
       visibility: visible !important;
       opacity: 1 !important;
       z-index: 100 !important;
-      pointer-events: auto !important;
     }
     
     .student-models-swiper-wrapper {
