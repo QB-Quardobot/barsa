@@ -15,8 +15,9 @@ section {
   /* GPU acceleration */
   transform: translateZ(0);
   /* Note: will-change removed to avoid creating unnecessary compositing layers */
-  /* Isolate rendering context */
-  contain: layout style paint;
+  /* OPTIMIZED: CSS Containment Strategy - apply contain on SECTIONS, not individual elements */
+  /* Use layout style (not paint) to allow overflow content (badges, shadows, etc.) */
+  contain: layout style;
 }
 
 section::after {
@@ -563,7 +564,8 @@ overflow: visible;
 .work-step {
 position: relative;
 margin-bottom: 1.5rem;
-will-change: transform, opacity;
+/* OPTIMIZED: will-change is now managed dynamically by JS only on active card */
+/* This prevents unnecessary GPU memory allocation for inactive cards */
 width: 100%;
 box-sizing: border-box;
 }
@@ -637,15 +639,20 @@ z-index: 1;
 }
 
 /* Initial state - hidden off-screen to the right */
+/* OPTIMIZED: Using translate3d for GPU acceleration */
 .step-content {
 opacity: 0;
-transform: translateX(120px) scale(0.95);
+transform: translate3d(120px, 0, 0) scale(0.95);
+/* OPTIMIZED: Disable pointer events on inactive cards for better performance */
+pointer-events: none;
 }
 
 /* Active state - card slides in from right */
 .work-step.is-visible .step-content {
 opacity: 1;
-transform: translateX(0) scale(1);
+transform: translate3d(0, 0, 0) scale(1);
+/* OPTIMIZED: Enable pointer events only on active card */
+pointer-events: auto;
 }
 
 /* Fallback for reduced motion preference */
@@ -681,7 +688,8 @@ box-shadow:
   0 30px 90px rgba(96, 165, 250, 0.3),
 inset 0 1px 0 rgba(255, 255, 255, 0.15),
   0 0 0 1px rgba(96, 165, 250, 0.25);
-transform: translateY(-4px);
+/* OPTIMIZED: Using translate3d for GPU acceleration on hover */
+transform: translate3d(0, -4px, 0);
 }
 }
 
@@ -1498,7 +1506,9 @@ white-space: normal;
 text-rendering: optimizeLegibility;
 -webkit-font-smoothing: antialiased;
 -moz-osx-font-smoothing: grayscale;
-contain: layout style paint;
+/* OPTIMIZED: CSS Containment Strategy - removed paint to allow overflow content */
+/* contain is applied on SECTIONS, not individual elements */
+contain: layout style;
 }
 
 
@@ -2318,6 +2328,12 @@ padding: 0 1rem;
 
 .pricing-section {
 padding: 4rem 0;
+/* CRITICAL: Allow badge overflow from cards */
+overflow: visible;
+overflow-x: visible;
+overflow-y: visible;
+/* OPTIMIZED: CSS Layer Optimization - creates new stacking context */
+isolation: isolate;
 /* Optimize rendering for pricing section */
 contain: layout style;
 /* Pre-render pricing section when approaching */
@@ -2331,6 +2347,10 @@ grid-template-columns: 1fr;
 gap: 2rem;
 max-width: 1400px;
 margin: 0 auto;
+/* CRITICAL: Allow badge overflow from cards */
+overflow: visible;
+overflow-x: visible;
+overflow-y: visible;
 }
 
 @media (min-width: 768px) {
@@ -2354,16 +2374,35 @@ grid-template-columns: repeat(3, 1fr);
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
-  overflow: visible;
-  /* Performance optimizations for smooth scrolling */
-  content-visibility: auto;
-  contain-intrinsic-size: auto 500px;
-  contain: layout style paint;
+  overflow: visible; /* CRITICAL: Allow badge to overflow */
+  /* CRITICAL: Ensure popular badge is never clipped */
+  overflow-x: visible;
+  overflow-y: visible;
+  /* OPTIMIZED: GPU acceleration БЕЗ contain: paint */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
   /* Prevent layout shifts during reveal */
   min-height: 500px;
-  /* GPU acceleration - will-change managed by JS */
-  transform: translateZ(0);
 }
+
+/* OPTIMIZED: CSS class for immediate reveal (replaces inline styles for better performance) */
+.pricing-card.is-revealed-immediate {
+  opacity: 1 !important;
+  transform: translate3d(0, 0, 0) !important;
+  filter: none !important;
+  transition: none !important;
+}
+
+/* After reveal, restore transitions */
+.pricing-card.is-revealed-immediate.is-revealed {
+  transition: all 0.3s ease;
+}
+
+/* OPTIMIZED: Isolate inner content for better rendering performance */
+/* OPTIMIZED: Removed contain from .pricing-card > * 
+   CSS Containment Strategy: apply contain on SECTIONS, not individual elements */
 
 .pricing-card:hover {
   border-color: rgba(96, 165, 250, 0.4);
@@ -2387,18 +2426,30 @@ grid-template-columns: repeat(3, 1fr);
     0 0 50px rgba(96, 165, 250, 0.4),
     0 0 80px rgba(251, 191, 36, 0.2),
     inset 0 0 30px rgba(96, 165, 250, 0.1);
-  transform: scale(1.05);
+  /* OPTIMIZED: Create new positioning context with 3D transforms */
+  transform: scale(1.05) translateZ(1px); /* 1px instead of 0 for proper 3D context */
+  transform-style: preserve-3d; /* CRITICAL: Important for 3D transforms */
+  -webkit-transform-style: preserve-3d;
   position: relative;
   padding-top: 3rem;
   background: 
     linear-gradient(rgba(13, 13, 16, 0.6), rgba(13, 13, 16, 0.6)) padding-box,
     linear-gradient(135deg, var(--primary), #fbbf24, var(--primary-2)) border-box;
   border: 3px solid transparent;
+  /* CRITICAL: Ensure badge overflow is visible */
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  /* OPTIMIZED: Elements with overflow content (badge) should not have contain */
+  /* CSS Containment Strategy: contain is applied on SECTIONS, not on elements with overflow */
+  contain: none;
 }
 
 @media (max-width: 1023px) {
   .pricing-card-popular {
-    transform: scale(1);
+    transform: scale(1) translateZ(1px); /* Preserve 3D context even on mobile */
+    transform-style: preserve-3d; /* CRITICAL: Maintain 3D context */
+    -webkit-transform-style: preserve-3d;
   }
 }
 
@@ -2406,10 +2457,11 @@ grid-template-columns: repeat(3, 1fr);
   position: absolute;
   top: -24px;
   left: 50%;
-  transform: translateX(-50%);
+  /* OPTIMIZED: Extract badge to separate layer with 3D transform */
+  transform: translate3d(-50%, 0, 2px); /* Z-axis above parent (2px > 1px) */
   background: linear-gradient(135deg, #fbbf24, #f59e0b, var(--primary));
   color: #fff;
-  padding: 0.625rem 1.75rem;
+  padding: 0.625rem 2.25rem; /* Increased horizontal padding to prevent text cutoff */
   border-radius: 9999px;
   font-size: 0.875rem;
   font-weight: 800;
@@ -2423,18 +2475,26 @@ grid-template-columns: repeat(3, 1fr);
   animation: badge-pulse 2s ease-in-out infinite;
   z-index: 10;
   white-space: nowrap;
+  /* CRITICAL: Ensure text is never cut off */
+  min-width: max-content;
+  width: auto;
+  overflow: visible;
+  /* OPTIMIZED: will-change removed - badge animation is handled by CSS animations */
+  /* Static will-change can cause unnecessary GPU memory allocation */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 @keyframes badge-pulse {
   0%, 100% {
-    transform: translateX(-50%) scale(1);
+    transform: translate3d(-50%, 0, 2px) scale(1);
     box-shadow: 
       0 4px 20px rgba(251, 191, 36, 0.5),
       0 0 30px rgba(96, 165, 250, 0.3),
       inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
   50% {
-    transform: translateX(-50%) scale(1.05);
+    transform: translate3d(-50%, 0, 2px) scale(1.05);
     box-shadow: 
       0 6px 30px rgba(251, 191, 36, 0.7),
       0 0 40px rgba(96, 165, 250, 0.5),
@@ -3047,7 +3107,8 @@ scroll-snap-align: center;
 scroll-snap-stop: always;
 transform: translateZ(0);
 -webkit-transform: translateZ(0);
-contain: layout style paint;
+/* OPTIMIZED: CSS Containment Strategy - removed paint, contain is applied on SECTIONS */
+contain: layout style;
 will-change: transform;
 
 /* Full width on mobile */
@@ -3153,7 +3214,8 @@ cursor: pointer;
 display: flex;
 align-items: center;
 justify-content: center;
-contain: layout style paint;
+/* OPTIMIZED: CSS Containment Strategy - removed paint, contain is applied on SECTIONS */
+contain: layout style;
 will-change: contents;
 transform: translateZ(0);
 }
@@ -3575,8 +3637,8 @@ display: none !important;
   /* GPU acceleration for smooth scrolling */
   transform: translateZ(0);
   will-change: transform;
-  /* Isolate rendering context */
-  contain: layout style paint;
+  /* OPTIMIZED: CSS Containment Strategy - removed paint, contain is applied on SECTIONS */
+  contain: layout style;
 }
 
 /* Static Pagination - 3 dots for testimonials */
@@ -3899,7 +3961,8 @@ cursor: pointer;
 display: flex;
 align-items: center;
 justify-content: center;
-contain: layout style paint;
+/* OPTIMIZED: CSS Containment Strategy - removed paint, contain is applied on SECTIONS */
+contain: layout style;
 will-change: contents;
 transform: translateZ(0);
 }
@@ -4365,7 +4428,8 @@ opacity: 1;
 /* Optimizations */
 .lazy-image {
 content-visibility: auto;
-contain: layout style paint;
+/* OPTIMIZED: CSS Containment Strategy - removed paint, contain is applied on SECTIONS */
+contain: layout style;
 }
 
 /* Reduce motion for accessibility */
@@ -4451,18 +4515,23 @@ transform: rotate(45deg);
 }
 
 .faq-answer {
+/* OPTIMIZED: Use max-height with fixed large value instead of scrollHeight */
+/* This prevents layout shift and allows smooth transitions */
 max-height: 0;
 opacity: 0;
 overflow: hidden;
 transition: 
-max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-opacity 0.3s ease,
-padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height 0.3s ease,
+  opacity 0.3s ease,
+  padding 0.3s ease;
 padding: 0 2rem;
 }
 
-.faq-item[aria-expanded="true"] .faq-answer {
+/* OPTIMIZED: Open state with fixed max-height (prevents layout shift) */
+.faq-item[aria-expanded="true"] .faq-answer,
+.faq-answer.open {
 opacity: 1;
+max-height: 1000px; /* Sufficiently large value to accommodate any content */
 padding: 0 2rem 1.5rem 2rem;
 }
 

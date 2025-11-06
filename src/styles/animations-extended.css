@@ -105,10 +105,9 @@
 
 /* Special optimization for pricing cards with reveal-glow */
 .pricing-card.reveal-glow {
-  /* Batch rendering optimization */
-  content-visibility: auto;
-  contain-intrinsic-size: auto 500px;
-  contain: layout style paint;
+  /* CRITICAL: Don't use content-visibility or contain - they clip overflow content like badges */
+  /* These optimizations were removed because they cause the popular badge to be clipped */
+  /* The badge is positioned absolutely and needs to overflow the card boundaries */
 }
 
 /* Special handling for pricing-card-popular with reveal-glow */
@@ -143,7 +142,8 @@
 
 /* === Parallax Layer === */
 .parallax-layer {
-  will-change: transform;
+  /* OPTIMIZED: will-change is managed dynamically by JS (added when visible, removed when off-screen) */
+  /* This prevents unnecessary GPU memory allocation for off-screen elements */
   transition: transform 0.1s ease-out;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;

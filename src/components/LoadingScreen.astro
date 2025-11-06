@@ -336,38 +336,78 @@ const { showInBrowser = false } = Astro.props;
 <script is:inline>
   // Auto-hide loading screen after page load
   (function() {
-    const loadingScreen = document.getElementById('loading-screen');
-    if (!loadingScreen) return;
+    // CRITICAL: Check sessionStorage IMMEDIATELY, even before DOM is ready
+    // This prevents content flash by hiding content before it renders
+    const wasShownByNavigation = typeof sessionStorage !== 'undefined' && 
+                                   sessionStorage.getItem('showLoadingScreen') === 'true';
     
-    // Cleanup registry
-    const cleanupFunctions = [];
-    function registerCleanup(fn) {
-      cleanupFunctions.push(fn);
-    }
-    
-    // Check if should show in browser
-    const showInBrowser = loadingScreen.getAttribute('data-show-in-browser') === 'true';
-    
-    // Check for Telegram - wait a bit for Telegram WebApp to initialize
-    // Also check for body.tg-webapp class which is added by Base.astro
-    function checkTelegram() {
-      return typeof window !== 'undefined' && (
-        window.Telegram?.WebApp || 
-        document.body.classList.contains('tg-webapp')
-      );
-    }
-    
-    // Get main content reference first
-    const mainContent = document.getElementById('main-content');
-    
-    // CRITICAL: Check if loading screen was already shown by navigation
-    // (Base.astro sets sessionStorage and shows loader before navigation)
-    const wasShownByNavigation = sessionStorage.getItem('showLoadingScreen') === 'true';
-    
-    // Remove sessionStorage flag after checking (cleanup)
+    // If navigating, ensure loader is visible and content is hidden RIGHT NOW
     if (wasShownByNavigation) {
-      sessionStorage.removeItem('showLoadingScreen');
+      // Inject styles immediately to prevent any flash
+      // CRITICAL: Use maximum specificity to override critical.css
+      if (document.head) {
+        const criticalStyle = document.getElementById('loading-screen-critical') || document.createElement('style');
+        criticalStyle.id = 'loading-screen-critical';
+        criticalStyle.textContent = `
+          /* Maximum specificity to override critical.css */
+          html body #main-content {
+            visibility: hidden !important;
+            opacity: 0 !important;
+          }
+          html body #loading-screen.loading-screen,
+          html body div#loading-screen.loading-screen {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: 99999 !important;
+            pointer-events: auto !important;
+          }
+        `;
+        // Only append if not already in DOM
+        if (!document.getElementById('loading-screen-critical')) {
+          document.head.insertBefore(criticalStyle, document.head.firstChild);
+        }
+      }
     }
+    
+    // Wait for DOM to be ready
+    function initLoadingScreen() {
+      const loadingScreen = document.getElementById('loading-screen');
+      if (!loadingScreen) {
+        // Retry if DOM not ready yet
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initLoadingScreen, { once: true });
+        } else {
+          setTimeout(initLoadingScreen, 10);
+        }
+        return;
+      }
+      
+      // Cleanup registry
+      const cleanupFunctions = [];
+      function registerCleanup(fn) {
+        cleanupFunctions.push(fn);
+      }
+      
+      // Check if should show in browser
+      const showInBrowser = loadingScreen.getAttribute('data-show-in-browser') === 'true';
+      
+      // Check for Telegram - wait a bit for Telegram WebApp to initialize
+      // Also check for body.tg-webapp class which is added by Base.astro
+      function checkTelegram() {
+        return typeof window !== 'undefined' && (
+          window.Telegram?.WebApp || 
+          document.body.classList.contains('tg-webapp')
+        );
+      }
+      
+      // Get main content reference first
+      const mainContent = document.getElementById('main-content');
+      
+      // Remove sessionStorage flag after checking (cleanup)
+      if (wasShownByNavigation && typeof sessionStorage !== 'undefined') {
+        sessionStorage.removeItem('showLoadingScreen');
+      }
     
     // CRITICAL: Hide main content initially to prevent white flash
     // It will be shown when loading screen hides
@@ -377,14 +417,21 @@ const { showInBrowser = false } = Astro.props;
       mainContent.style.opacity = '0';
     }
     
-    // If loader was shown by navigation, it's already visible - skip initialization
+    // If loader was shown by navigation, it's already visible via critical styles
+    // Just ensure it stays visible until page loads
     if (wasShownByNavigation) {
-      // Loading screen is already visible from Base.astro
+      // Loading screen is already visible from critical styles injected earlier
       // Just ensure it stays visible until page loads
       loadingScreen.style.display = 'flex';
       loadingScreen.style.visibility = 'visible';
       loadingScreen.style.pointerEvents = 'auto';
       loadingScreen.style.opacity = '1';
+      
+      // Ensure main content stays hidden
+      if (mainContent) {
+        mainContent.style.visibility = 'hidden';
+        mainContent.style.opacity = '0';
+      }
     } else {
       // Normal initialization (first page load or direct URL)
       // Wait a bit for Telegram WebApp to initialize (up to 500ms)
@@ -445,6 +492,12 @@ const { showInBrowser = false } = Astro.props;
       if (loadingScreen && !loadingScreen.classList.contains('loaded')) {
         loadingScreen.classList.add('loaded');
         
+        // Remove critical styles if they exist
+        const criticalStyle = document.getElementById('loading-screen-critical');
+        if (criticalStyle) {
+          criticalStyle.remove();
+        }
+        
         // Show main content when loader hides (prevent white flash)
         if (mainContent) {
           // Use requestAnimationFrame to ensure smooth transition
@@ -495,6 +548,15 @@ const { showInBrowser = false } = Astro.props;
     const loadHandler = hideLoaderWithMinTime;
     window.addEventListener('load', loadHandler);
     registerCleanup(() => window.removeEventListener('load', loadHandler));
+    }
+    
+    // Initialize immediately if DOM is ready, otherwise wait
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initLoadingScreen, { once: true });
+    } else {
+      // DOM already ready, initialize immediately
+      initLoadingScreen();
+    }
   })();
 </script>
 

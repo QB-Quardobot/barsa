@@ -1,6 +1,11 @@
 /**
  * How It Works Page - Consolidated JavaScript Module
+ * 
+ * OPTIMIZED: All scroll/touch event listeners must use { passive: true } for better performance
+ * This prevents blocking the main thread during scroll/touch events
  */
+
+import { scheduleRAF } from './reveal';
 
 function isDocumentReady(): boolean {
   return document.readyState !== 'loading';
@@ -20,35 +25,118 @@ export function initHorizontalCardReveal(): void {
   
   if (cards.length === 0) return;
   
+  // OPTIMIZED: Increased rootMargin to 200px for better pre-loading
+  // Added progressive thresholds [0, 0.25, 0.5] for gradual reveal
   const observerOptions = {
     root: null,
-    rootMargin: '-10% 0px -20% 0px',
-    threshold: [0, 0.1, 0.3, 0.5]
+    rootMargin: '200px 0px 200px 0px', // Pre-load 200px before and after viewport
+    threshold: [0, 0.25, 0.5] // Progressive reveal at 0%, 25%, and 50% visibility
   };
   
+  // Track active card for will-change optimization
+  let activeCard: HTMLElement | null = null;
+  
   const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      const card = entry.target as HTMLElement;
-      const cardIndex = parseInt(card.dataset.step || '1') - 1;
-      const delay = cardIndex * 150;
-      
-      if (entry.isIntersecting && entry.intersectionRatio > 0.1) {
-        setTimeout(() => {
-          card.classList.add('is-visible');
-        }, delay);
-      } else if (entry.boundingClientRect.top > window.innerHeight) {
-        card.classList.remove('is-visible');
-      }
+    // Batch processing for better performance using RAF pooling
+    scheduleRAF(() => {
+      entries.forEach((entry) => {
+        const card = entry.target as HTMLElement;
+        const cardIndex = parseInt(card.dataset.step || '1') - 1;
+        const stepContent = card.querySelector('.step-content') as HTMLElement;
+        
+        if (entry.isIntersecting) {
+          // Progressive reveal based on intersection ratio
+          const ratio = entry.intersectionRatio;
+          
+          // Start revealing at 25% visibility
+          if (ratio >= 0.25 && !card.classList.contains('is-visible')) {
+            const delay = cardIndex * 100; // Reduced delay for faster reveal
+            
+            setTimeout(() => {
+              // OPTIMIZED: Remove will-change from previous active card BEFORE switching
+              // This frees GPU memory immediately
+              if (activeCard && activeCard !== card) {
+                const prevContent = activeCard.querySelector('.step-content') as HTMLElement;
+                if (prevContent) {
+                  prevContent.style.willChange = 'auto'; // Free GPU memory
+                }
+              }
+              
+              // Set active card
+              activeCard = card;
+              
+              // OPTIMIZED: Add will-change ONLY before animation starts
+              if (stepContent) {
+                stepContent.style.willChange = 'transform, opacity';
+              }
+              
+              // Enable pointer events on active card (CSS handles this, but ensure it's set)
+              card.style.pointerEvents = 'auto';
+              
+              card.classList.add('is-visible');
+              
+              // OPTIMIZED: Remove will-change after animation completes
+              // Listen for transition end to free GPU memory immediately
+              const removeWillChange = () => {
+                if (stepContent && stepContent.style.willChange !== 'auto') {
+                  stepContent.style.willChange = 'auto'; // Free GPU memory
+                }
+                stepContent?.removeEventListener('transitionend', removeWillChange);
+              };
+              
+              if (stepContent) {
+                stepContent.addEventListener('transitionend', removeWillChange, { once: true });
+                // Fallback: remove after reasonable animation duration
+                setTimeout(() => {
+                  if (stepContent && stepContent.style.willChange !== 'auto') {
+                    removeWillChange();
+                  }
+                }, 500);
+              }
+            }, delay);
+          }
+          
+          // Full reveal at 50% visibility
+          // Note: will-change is already set at 25% visibility, no need to set again
+          // This prevents unnecessary GPU memory allocation
+        } else {
+          // Card is out of viewport
+          if (card.classList.contains('is-visible')) {
+            // Remove will-change when card is not visible
+            if (stepContent) {
+              stepContent.style.willChange = 'auto';
+            }
+            
+            // Disable pointer events on inactive cards for performance
+            card.style.pointerEvents = 'none';
+            
+            // Only remove is-visible if card is far above viewport
+            if (entry.boundingClientRect.top > window.innerHeight) {
+              card.classList.remove('is-visible');
+              
+              // Clear active card if it's this one
+              if (activeCard === card) {
+                activeCard = null;
+              }
+            }
+          }
+        }
+      });
     });
   }, observerOptions);
   
-  cards.forEach((card) => {
+  // Initialize: disable pointer events on all cards except first
+  cards.forEach((card, index) => {
+    if (index > 0) {
+      card.style.pointerEvents = 'none';
+    }
     observer.observe(card);
   });
   
+  // Cleanup on page unload
   window.addEventListener('beforeunload', () => {
     observer.disconnect();
-  });
+  }, { passive: true });
 }
 
 export function initRevealAnimations(): void {
@@ -90,21 +178,16 @@ export function initFAQ(): void {
   const faqItems = document.querySelectorAll('.faq-item');
   if (faqItems.length === 0) return;
   
+  // OPTIMIZED: Initialize all answers as closed (CSS handles the styling)
   faqItems.forEach(item => {
     const answer = item.querySelector('.faq-answer') as HTMLElement;
     if (!answer) return;
     
-    if (item.getAttribute('aria-expanded') !== 'true') {
-      answer.style.maxHeight = '0px';
-      answer.style.opacity = '0';
-    }
+    // Remove any inline styles that might interfere
+    answer.style.maxHeight = '';
+    answer.style.opacity = '';
     
-    const resizeObserver = new ResizeObserver(() => {
-      if (item.getAttribute('aria-expanded') === 'true') {
-        answer.style.maxHeight = answer.scrollHeight + 'px';
-      }
-    });
-    resizeObserver.observe(answer);
+    // CSS handles the initial state via max-height: 0
   });
   
   faqSection.addEventListener('click', (e) => {
@@ -121,14 +204,17 @@ export function initFAQ(): void {
     
     const isExpanded = item.getAttribute('aria-expanded') === 'true';
     
+    // OPTIMIZED: Close all other items using CSS classes (no inline styles)
     faqItems.forEach(otherItem => {
       if (otherItem !== item) {
         const otherQuestion = otherItem.querySelector('.faq-question') as HTMLElement;
         const otherAnswer = otherItem.querySelector('.faq-answer') as HTMLElement;
         
         if (otherAnswer) {
-          otherAnswer.style.maxHeight = '0px';
-          otherAnswer.style.opacity = '0';
+          // Remove inline styles and use CSS classes
+          otherAnswer.style.maxHeight = '';
+          otherAnswer.style.opacity = '';
+          otherAnswer.classList.remove('open');
         }
         
         otherItem.setAttribute('aria-expanded', 'false');
@@ -138,18 +224,21 @@ export function initFAQ(): void {
       }
     });
     
+    // OPTIMIZED: Toggle using CSS classes instead of inline styles
+    // This prevents layout shift and allows browser to optimize transitions
     if (isExpanded) {
-      answer.style.maxHeight = '0px';
-      answer.style.opacity = '0';
+      // Close: remove open class and update aria attributes
+      answer.classList.remove('open');
       item.setAttribute('aria-expanded', 'false');
       question.setAttribute('aria-expanded', 'false');
     } else {
-      answer.style.maxHeight = answer.scrollHeight + 'px';
-      answer.style.opacity = '1';
+      // Open: add open class and update aria attributes
+      // CSS handles max-height transition smoothly
+      answer.classList.add('open');
       item.setAttribute('aria-expanded', 'true');
       question.setAttribute('aria-expanded', 'true');
     }
-  });
+  }, { passive: true }); // Use passive listener for better performance
 }
 
 
@@ -166,7 +255,8 @@ function createSwiperConfig(config: SwiperConfig) {
     direction: 'horizontal' as const,
     loop: false,
     speed: 300,
-    watchOverflow: true,
+    // OPTIMIZED: Disable watchOverflow if only 1-3 slides (most cases)
+    watchOverflow: false,
     slidesPerView: 1,
     spaceBetween: 0,
     centeredSlides: true,
@@ -196,6 +286,19 @@ function createSwiperConfig(config: SwiperConfig) {
     // Pagination - disabled, using static pagination
     pagination: false,
     navigation: false, // Отключена навигация, используем только пагинацию
+    // OPTIMIZED: Disable unnecessary watchers for better performance
+    watchSlidesProgress: false,
+    watchSlidesVisibility: false,
+    // OPTIMIZED: Disable preload images - use lazy loading instead
+    preloadImages: false,
+    // OPTIMIZED: Enable lazy loading for images
+    lazy: {
+      loadPrevNext: true,
+      loadPrevNextAmount: 1,
+    },
+    // OPTIMIZED: Disable MutationObserver if DOM doesn't change
+    observer: false,
+    observeParents: false,
     breakpoints: {
       320: { slidesPerView: 1, spaceBetween: 0, centeredSlides: true },
       768: { slidesPerView: 1, spaceBetween: 0, centeredSlides: true },
@@ -303,7 +406,7 @@ function setupSwiperNavigation(
     
     if (targetScroll === currentScroll) return;
     
-    requestAnimationFrame(() => {
+    scheduleRAF(() => {
       try {
         wrapper.scrollTo({
           left: targetScroll,
@@ -415,8 +518,9 @@ function setupSwiperNavigation(
   wrapper.addEventListener('scroll', handleScroll, { passive: true });
   
   if ('onscrollend' in wrapper) {
+    // OPTIMIZED: All scroll/touch listeners must be passive for better performance
     wrapper.addEventListener('scrollend', () => {
-      requestAnimationFrame(() => {
+      scheduleRAF(() => {
         updateNavButtons();
         preloadNearbyImages(wrapper, slides);
       });
@@ -424,7 +528,7 @@ function setupSwiperNavigation(
   }
   
   setTimeout(() => {
-    requestAnimationFrame(() => {
+    scheduleRAF(() => {
       updateNavButtons();
       preloadNearbyImages(wrapper, slides);
     });
@@ -434,7 +538,7 @@ function setupSwiperNavigation(
   const resizeObserver = new ResizeObserver(() => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-      requestAnimationFrame(() => {
+      scheduleRAF(() => {
         updateNavButtons();
       });
     }, 150);
@@ -461,15 +565,119 @@ function loadSwiperLibrary(callback: () => void): void {
 }
 
 
-export function initTestimonialsSwiper(): void {
-  loadSwiperLibrary(() => {
-    createTestimonialsSwiper();
+// Store Swiper instances for destroy management
+const swiperInstances = new Map<HTMLElement, any>();
+
+// OPTIMIZED: Global destroy observer for all Swipers (created once)
+let globalDestroyObserver: IntersectionObserver | null = null;
+
+// OPTIMIZED: Destroy Swipers when they go far out of viewport to free memory
+function setupSwiperDestroyObserver(): void {
+  // Create global observer if it doesn't exist
+  if (!globalDestroyObserver) {
+    globalDestroyObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const container = entry.target as HTMLElement;
+        const swiper = swiperInstances.get(container);
+        
+        if (!swiper) return;
+        
+        // If Swiper is far above viewport (more than 1000px), destroy it
+        if (!entry.isIntersecting && entry.boundingClientRect.top < -1000) {
+          try {
+            // Destroy Swiper instance to free memory and remove event listeners
+            if (swiper.destroy && typeof swiper.destroy === 'function') {
+              swiper.destroy(true, false); // destroy(true, false) - destroy but keep DOM
+            }
+            
+            // Remove from instances map
+            swiperInstances.delete(container);
+            
+            // Remove lazy attributes to allow re-initialization if needed
+            container.removeAttribute('data-swiper-lazy');
+            container.removeAttribute('data-swiper-type');
+            
+            // Unobserve this container
+            if (globalDestroyObserver) {
+              globalDestroyObserver.unobserve(container);
+            }
+          } catch (e) {
+            // Silently handle destroy errors
+          }
+        }
+      });
+    }, {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0
+    });
+  }
+  
+  // Observe the newly added Swiper container
+  swiperInstances.forEach((swiper, container) => {
+    // Check if already observed
+    if (!container.hasAttribute('data-destroy-observed')) {
+      if (globalDestroyObserver) {
+        globalDestroyObserver.observe(container);
+        container.setAttribute('data-destroy-observed', 'true');
+      }
+    }
   });
 }
 
-function createTestimonialsSwiper(): void {
+// OPTIMIZED: Lazy Swiper initialization with IntersectionObserver
+export function initTestimonialsSwiper(): void {
   const swiperContainer = document.querySelector('.testimonials-swiper') as HTMLElement;
   if (!swiperContainer) {
+    return;
+  }
+  
+  // Find parent section for viewport detection
+  const section = swiperContainer.closest('section') || swiperContainer.parentElement;
+  if (!section) {
+    // Fallback: initialize immediately if no section found
+    loadSwiperLibrary(() => {
+      createTestimonialsSwiper(swiperContainer);
+    });
+    return;
+  }
+  
+  // Mark container for lazy initialization
+  swiperContainer.setAttribute('data-swiper-lazy', 'true');
+  swiperContainer.setAttribute('data-swiper-type', 'testimonials');
+  
+  // Use IntersectionObserver for lazy initialization
+  const swiperObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const container = entry.target as HTMLElement;
+        const swiperType = container.getAttribute('data-swiper-type');
+        
+        // Initialize Swiper when section enters viewport
+        loadSwiperLibrary(() => {
+          if (swiperType === 'testimonials') {
+            createTestimonialsSwiper(container);
+          }
+        });
+        
+        // Unobserve after initialization
+        swiperObserver.unobserve(container);
+      }
+    });
+  }, { 
+    rootMargin: '200px', // Pre-load 200px before viewport
+    threshold: 0.01 
+  });
+  
+  swiperObserver.observe(swiperContainer);
+  
+  // Store observer for cleanup
+  (swiperContainer as any).__swiperObserver = swiperObserver;
+}
+
+function createTestimonialsSwiper(swiperContainer: HTMLElement): void {
+  // Check if already initialized
+  if (swiperInstances.has(swiperContainer)) {
     return;
   }
   
@@ -478,11 +686,17 @@ function createTestimonialsSwiper(): void {
     return;
   }
   
-  const swiper = new Swiper('.testimonials-swiper', createSwiperConfig({
+  const swiper = new Swiper(swiperContainer, createSwiperConfig({
     container: '.testimonials-swiper',
     pagination: '.testimonial-pagination',
     autoplayDelay: 5000
   }));
+  
+  // Store instance for destroy management
+  swiperInstances.set(swiperContainer, swiper);
+  
+  // Setup destroy observer for this Swiper
+  setupSwiperDestroyObserver();
   
   const wrapper = swiperContainer.querySelector('.swiper-wrapper') as HTMLElement;
   const slides = wrapper?.querySelectorAll('.swiper-slide');
@@ -495,7 +709,7 @@ function createTestimonialsSwiper(): void {
   wrapper.addEventListener('touchstart', (e) => {
     touchStartY = e.touches[0].clientY;
     if (window.scrollY === 0) {
-      requestAnimationFrame(() => {
+      scheduleRAF(() => {
         window.scrollTo(0, 1);
       });
     }
@@ -511,15 +725,59 @@ function createTestimonialsSwiper(): void {
 }
 
 
+// OPTIMIZED: Lazy Swiper initialization with IntersectionObserver
 export function initStudentModelsSwiper(): void {
-  loadSwiperLibrary(() => {
-    createStudentModelsSwiper();
-  });
-}
-
-function createStudentModelsSwiper(): void {
   const swiperContainer = document.querySelector('.student-models-swiper') as HTMLElement;
   if (!swiperContainer) {
+    return;
+  }
+  
+  // Find parent section for viewport detection
+  const section = swiperContainer.closest('section') || swiperContainer.parentElement;
+  if (!section) {
+    // Fallback: initialize immediately if no section found
+    loadSwiperLibrary(() => {
+      createStudentModelsSwiper(swiperContainer);
+    });
+    return;
+  }
+  
+  // Mark container for lazy initialization
+  swiperContainer.setAttribute('data-swiper-lazy', 'true');
+  swiperContainer.setAttribute('data-swiper-type', 'models');
+  
+  // Use IntersectionObserver for lazy initialization
+  const swiperObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const container = entry.target as HTMLElement;
+        const swiperType = container.getAttribute('data-swiper-type');
+        
+        // Initialize Swiper when section enters viewport
+        loadSwiperLibrary(() => {
+          if (swiperType === 'models') {
+            createStudentModelsSwiper(container);
+          }
+        });
+        
+        // Unobserve after initialization
+        swiperObserver.unobserve(container);
+      }
+    });
+  }, { 
+    rootMargin: '200px', // Pre-load 200px before viewport
+    threshold: 0.01 
+  });
+  
+  swiperObserver.observe(swiperContainer);
+  
+  // Store observer for cleanup
+  (swiperContainer as any).__swiperObserver = swiperObserver;
+}
+
+function createStudentModelsSwiper(swiperContainer: HTMLElement): void {
+  // Check if already initialized
+  if (swiperInstances.has(swiperContainer)) {
     return;
   }
   
@@ -528,11 +786,17 @@ function createStudentModelsSwiper(): void {
     return;
   }
   
-  const swiper = new Swiper('.student-models-swiper', createSwiperConfig({
+  const swiper = new Swiper(swiperContainer, createSwiperConfig({
     container: '.student-models-swiper',
     pagination: '.model-pagination',
     autoplayDelay: 4000
   }));
+  
+  // Store instance for destroy management
+  swiperInstances.set(swiperContainer, swiper);
+  
+  // Setup destroy observer for this Swiper
+  setupSwiperDestroyObserver();
   
   const wrapper = swiperContainer.querySelector('.swiper-wrapper') as HTMLElement;
   const slides = wrapper?.querySelectorAll('.swiper-slide');
@@ -568,7 +832,7 @@ function createStudentModelsSwiper(): void {
   wrapper.addEventListener('touchstart', (e) => {
     touchStartY = e.touches[0].clientY;
     if (window.scrollY === 0) {
-      requestAnimationFrame(() => {
+      scheduleRAF(() => {
         window.scrollTo(0, 1);
       });
     }
@@ -688,7 +952,7 @@ export function initLazyLoading(): void {
     });
   }, {
     root: null,
-    rootMargin: '50px', // Start loading images 50px before they enter viewport
+    rootMargin: '200px', // OPTIMIZED: Increased to 200px for better pre-loading (matches card reveal observer)
     threshold: 0.01
   });
   
@@ -989,7 +1253,7 @@ export function initCurrencyModal(): void {
     document.body.style.overflow = 'hidden';
     
     // Trigger animation
-    requestAnimationFrame(() => {
+    scheduleRAF(() => {
       modal.classList.add('is-open');
       backdrop?.classList.add('is-active');
     });

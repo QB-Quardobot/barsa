@@ -223,10 +223,11 @@ img.loaded {
 }
 
 /* Main Content - Critical */
+/* NOTE: Visibility/opacity controlled by LoadingScreen component during navigation */
+/* Only set display here to prevent layout shift */
 #main-content {
   display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+  /* visibility and opacity are controlled by LoadingScreen.astro and navigation scripts */
 }
 
 /* Prevent FOUC - Critical */

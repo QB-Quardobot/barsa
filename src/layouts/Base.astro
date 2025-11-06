@@ -78,6 +78,58 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   <!-- Critical CSS - Inline for fastest first paint (loads before global.css) -->
   <style set:html={criticalCSS} />
   
+  <!-- CRITICAL: Blocking script to hide content IMMEDIATELY if navigating -->
+  <!-- This MUST run before any content renders to prevent flash -->
+  <!-- This script has HIGHEST priority and runs before critical.css applies -->
+  <script is:inline>
+    (function() {
+      // Check sessionStorage IMMEDIATELY (before DOM is ready)
+      if (typeof sessionStorage !== 'undefined') {
+        const shouldShowLoader = sessionStorage.getItem('showLoadingScreen') === 'true';
+        if (shouldShowLoader) {
+          // Inject critical styles IMMEDIATELY to hide content
+          // CRITICAL: Use maximum specificity to override critical.css
+          const style = document.createElement('style');
+          style.id = 'navigation-loading-critical';
+          style.textContent = `
+            /* Maximum specificity to override critical.css */
+            html body #main-content {
+              visibility: hidden !important;
+              opacity: 0 !important;
+            }
+            html body #loading-screen.loading-screen,
+            html body div#loading-screen.loading-screen {
+              display: flex !important;
+              visibility: visible !important;
+              opacity: 1 !important;
+              z-index: 99999 !important;
+              pointer-events: auto !important;
+            }
+          `;
+          // Insert at the very beginning of head to ensure highest priority
+          if (document.head) {
+            document.head.insertBefore(style, document.head.firstChild);
+          } else {
+            // If head doesn't exist yet, wait for it
+            const observer = new MutationObserver(function(mutations, obs) {
+              if (document.head) {
+                document.head.insertBefore(style, document.head.firstChild);
+                obs.disconnect();
+              }
+            });
+            observer.observe(document.documentElement, { childList: true, subtree: true });
+            // Fallback: try again after a short delay
+            setTimeout(function() {
+              if (document.head && !document.getElementById('navigation-loading-critical')) {
+                document.head.insertBefore(style, document.head.firstChild);
+              }
+            }, 0);
+          }
+        }
+      }
+    })();
+  </script>
+  
   <!-- Polyfill for async CSS loading -->
   <script is:inline>
     /*! loadCSS. [c]2017 Filament Group, Inc. MIT License */
@@ -449,11 +501,20 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               // Second priority: if on second page, go back to first page
               if (!isFirstPage()) {
                 try {
-                  win.history.back();
+                  // CRITICAL: Clear sessionStorage before navigation to prevent loading screen flash
+                  // Do this synchronously, not in setTimeout, to ensure it happens before navigation
+                  if (typeof sessionStorage !== 'undefined') {
+                    sessionStorage.removeItem('showLoadingScreen');
+                  }
                   triggerHaptic('light');
+                  // Navigate back immediately (synchronously)
+                  win.history.back();
                   return;
                 } catch (e) {
                   // Fallback: navigate to home
+                  if (typeof sessionStorage !== 'undefined') {
+                    sessionStorage.removeItem('showLoadingScreen');
+                  }
                   win.location.href = '/';
                   return;
                 }
@@ -728,6 +789,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       
       // Global handler for ALL internal links (not just data-cta)
       // This ensures loading screen shows for any internal navigation
+      // CRITICAL: Must NOT interfere with back button navigation
       function setupGlobalInternalLinks() {
         const isTelegram = !!tg;
         
@@ -740,12 +802,24 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           // Skip if already handled by setupCTALinks (data-cta links)
           if (link.hasAttribute('data-cta')) return;
           
+          // CRITICAL: Skip if this is a back button or history navigation
+          // Check if link is a back button or has special navigation attribute
+          if (link.hasAttribute('data-back') || link.hasAttribute('data-history-back')) {
+            return; // Let back button handler process this
+          }
+          
           const href = link.getAttribute('href') || '';
+          
+          // CRITICAL: Skip if href is empty or just '#' (anchor links)
+          // These should be handled by smooth scroll, not navigation
+          if (!href || href === '#' || href.startsWith('#')) {
+            return;
+          }
           
           // Check if internal link
           const isInternalLink = href.startsWith('/') || 
                                  href.startsWith(window.location.origin) || 
-                                 (!href.includes('://') && !href.includes('t.me/') && !href.startsWith('#'));
+                                 (!href.includes('://') && !href.includes('t.me/'));
           
           if (!isInternalLink) return;
           

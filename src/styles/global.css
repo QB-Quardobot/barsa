@@ -526,19 +526,9 @@ main,
 /* CRITICAL: Additional isolation for elements containing gradient text */
 /* Using :has() for modern browsers - ensures gradient text is properly isolated */
 @supports selector(:has(*)) {
-  .reveal-up:has(.gradient-text),
-  .reveal-scale:has(.gradient-text),
-  .reveal-up:has(.ilya-current-amount),
-  .reveal-scale:has(.ilya-current-amount) {
-    /* Ensure proper will-change for smooth animations with transform */
-    will-change: opacity, transform;
-  }
-  
-  .reveal-fade:has(.gradient-text),
-  .reveal-fade:has(.ilya-current-amount) {
-    /* reveal-fade uses only opacity - no transform to avoid stacking context */
-    will-change: opacity;
-  }
+  /* OPTIMIZED: will-change for reveal animations is managed dynamically by JS */
+  /* Static will-change removed from .reveal-up:has(.gradient-text), .reveal-scale:has(.gradient-text), etc. */
+  /* This prevents unnecessary GPU memory allocation - will-change is added before animation, removed after */
 }
 
 /* Fallback for browsers that don't support :has() - target common patterns directly */
@@ -572,8 +562,8 @@ main,
   /* Smooth transition with modern easing */
   opacity: 0;
   transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-  /* Enable GPU acceleration */
-  will-change: opacity;
+  /* OPTIMIZED: will-change is managed dynamically by JS (added before animation, removed after) */
+  /* This prevents unnecessary GPU memory allocation */
   /* Prevent layout shifts */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;

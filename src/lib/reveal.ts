@@ -2,18 +2,123 @@
  * Reveal animations using Intersection Observer
  * Applies reveal-fade, reveal-up, reveal-scale, and extended animations
  * Extended by Agent #3 for enhanced UX
+ * OPTIMIZED: Uses global IntersectionObserver for better performance
+ * OPTIMIZED: All scroll/touch event listeners use { passive: true } for better performance
+ * OPTIMIZED: will-change management - added ONLY before animation, removed immediately after
+ *   - Prevents unnecessary GPU memory allocation
+ *   - Uses transitionend event for precise timing
+ *   - Fallback to setTimeout for safety
  */
 
 interface RevealOptions {
   root?: Element | null;
   rootMargin?: string;
-  threshold?: number;
+  threshold?: number | number[];
   once?: boolean;
 }
 
+// OPTIMIZED: Request Animation Frame Pooling
+// Instead of multiple RAF calls, batch all callbacks into a single RAF per frame
+// This reduces CPU load and improves performance by synchronizing all animations
+const rafQueue: (() => void)[] = [];
+let rafScheduled = false;
+let rafId: number | null = null;
+
+/**
+ * Schedule a callback to run in the next animation frame
+ * All callbacks are batched into a single RAF call for better performance
+ */
+export function scheduleRAF(callback: () => void): void {
+  rafQueue.push(callback);
+  if (!rafScheduled) {
+    rafScheduled = true;
+    rafId = requestAnimationFrame(() => {
+      rafScheduled = false;
+      // Copy queue and clear it before executing to allow new callbacks to be added during execution
+      const queue = [...rafQueue];
+      rafQueue.length = 0;
+      // Execute all callbacks in the queue
+      queue.forEach(cb => {
+        try {
+          cb();
+        } catch (error) {
+          // Silently handle errors to prevent one callback from breaking others
+          console.error('Error in RAF callback:', error);
+        }
+      });
+      rafId = null;
+    });
+  }
+}
+
+/**
+ * Cancel scheduled RAF if needed (for cleanup)
+ */
+export function cancelScheduledRAF(): void {
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+    rafScheduled = false;
+    rafQueue.length = 0;
+  }
+}
+
+// OPTIMIZED: Global IntersectionObserver for entire page (virtualization)
+// This reduces memory usage and improves performance by batching all intersection calculations
+let globalIntersectionObserver: IntersectionObserver | null = null;
+const globalObserverHandlers = new Map<HTMLElement, (entry: IntersectionObserverEntry) => void>();
+
+function getGlobalObserver(): IntersectionObserver | null {
+  if (typeof IntersectionObserver === 'undefined') {
+    return null;
+  }
+  
+  if (!globalIntersectionObserver) {
+    // OPTIMIZED: Single observer with detailed threshold tracking
+    globalIntersectionObserver = new IntersectionObserver(
+      (entries) => {
+        // OPTIMIZED: Use RAF pooling for batch processing
+        scheduleRAF(() => {
+          entries.forEach((entry) => {
+            const element = entry.target as HTMLElement;
+            const handler = globalObserverHandlers.get(element);
+            if (handler) {
+              handler(entry);
+            }
+          });
+        });
+      },
+      {
+        root: null,
+        rootMargin: '200px 0px', // Pre-load 200px before and after viewport
+        threshold: [0, 0.25, 0.5, 0.75, 1], // Detailed tracking for progressive reveals
+      }
+    );
+  }
+  
+  return globalIntersectionObserver;
+}
+
+function registerGlobalObserver(element: HTMLElement, handler: (entry: IntersectionObserverEntry) => void): void {
+  const observer = getGlobalObserver();
+  if (!observer) return;
+  
+  globalObserverHandlers.set(element, handler);
+  observer.observe(element);
+}
+
+function unregisterGlobalObserver(element: HTMLElement): void {
+  const observer = getGlobalObserver();
+  if (!observer) return;
+  
+  globalObserverHandlers.delete(element);
+  observer.unobserve(element);
+}
+
 class RevealAnimations {
-  private observer: IntersectionObserver | null = null;
+  private observer: IntersectionObserver | null = null; // Kept for backward compatibility
   private prerenderObserver: IntersectionObserver | null = null; // For fast scroll prerendering
+  private useGlobalObserver: boolean = true; // Use global observer by default
   private options: RevealOptions = {
     root: null,
     // Normal rootMargin for reveal animations (element triggers when ~100px from viewport)
@@ -53,6 +158,7 @@ class RevealAnimations {
       }
       
       // Throttle to every frame (16ms at 60fps)
+      // Note: Using direct RAF here for cancelable throttling (critical for scroll performance)
       this.scrollThrottleTimeout = requestAnimationFrame(() => {
         const currentScrollY = window.scrollY;
         const currentTime = performance.now();
@@ -109,8 +215,8 @@ class RevealAnimations {
               // Only prerender if not already revealed
               // We prepare the element but don't reveal it yet
               if (!element.classList.contains('is-revealed')) {
-                // Force layout calculation to prevent white flash
-                // This ensures browser has calculated the element's layout
+                // OPTIMIZED: Add will-change only before animation starts
+                // This will be removed after reveal animation completes
                 element.style.willChange = 'opacity, transform';
                 element.offsetHeight; // Force reflow - ensures layout is calculated
                 // Make sure element is in render tree but still hidden
@@ -154,10 +260,26 @@ class RevealAnimations {
       return;
     }
 
-    this.observer = new IntersectionObserver(
-      (entries) => this.handleIntersection(entries),
-      this.options
-    );
+    // OPTIMIZED: Use global observer for better performance
+    if (this.useGlobalObserver) {
+      const globalObserver = getGlobalObserver();
+      if (globalObserver) {
+        // Use global observer instead of creating a new one
+        this.observer = globalObserver;
+      } else {
+        // Fallback to local observer if global is not available
+        this.observer = new IntersectionObserver(
+          (entries) => this.handleIntersection(entries),
+          this.options
+        );
+      }
+    } else {
+      // Legacy: create local observer (for backward compatibility)
+      this.observer = new IntersectionObserver(
+        (entries) => this.handleIntersection(entries),
+        this.options
+      );
+    }
 
     // Observe all elements with reveal classes (including new extended animations)
     const elements = document.querySelectorAll(
@@ -167,7 +289,20 @@ class RevealAnimations {
       '[class*="reveal-stagger"]'
     );
 
-    elements.forEach((el) => this.observer!.observe(el));
+    // OPTIMIZED: Register elements with global observer
+    elements.forEach((el) => {
+      const element = el as HTMLElement;
+      if (this.useGlobalObserver && globalIntersectionObserver) {
+        // Register with global observer
+        registerGlobalObserver(element, (entry) => {
+          // Create a batch of entries for handleIntersection
+          this.handleIntersection([entry]);
+        });
+      } else if (this.observer) {
+        // Use local observer
+        this.observer.observe(element);
+      }
+    });
     
     // Special optimization for pricing section - preload all cards when section is approaching
     this.initPricingSectionOptimization();
@@ -208,7 +343,15 @@ class RevealAnimations {
       if (entry.isIntersecting) {
         const element = entry.target as HTMLElement;
         
-        if (element.classList.contains('is-revealed')) {
+        // CRITICAL: Skip if already revealed OR already processed by pricing observer
+        if (element.classList.contains('is-revealed') || 
+            element.getAttribute('data-reveal-processed') === 'true') {
+          // Also unobserve to prevent future processing
+          if (this.useGlobalObserver) {
+            unregisterGlobalObserver(element);
+          } else if (this.observer) {
+            this.observer.unobserve(element);
+          }
           return;
         }
         
@@ -220,39 +363,48 @@ class RevealAnimations {
       }
     });
     
-    // Batch reveal all pricing cards at once to prevent re-rendering
+    // OPTIMIZED: Batch reveal all pricing cards at once to prevent re-rendering
+    // Using CSS classes instead of inline styles for better performance
     if (pricingCards.length > 0) {
-      requestAnimationFrame(() => {
-        pricingCards.forEach((element) => {
-          // Immediate reveal for pricing cards (no animation during scroll)
-          // This prevents partial rendering and re-rendering
-          element.style.transition = 'none';
-          element.style.opacity = '1';
-          element.style.transform = 'translateZ(0)';
-          element.style.filter = 'none';
-          element.classList.add('is-revealed');
-          
-          // Unobserve immediately
-          if (this.options.once) {
-            this.observer?.unobserve(element);
-            if (this.prerenderObserver) {
-              this.prerenderObserver.unobserve(element);
-            }
-          }
-        });
+      // CRITICAL: Unobserve ALL pricing cards SYNCHRONOUSLY before any DOM changes
+      // This prevents them from being processed again by observers
+      pricingCards.forEach((element) => {
+        if (this.useGlobalObserver) {
+          unregisterGlobalObserver(element);
+        } else if (this.observer) {
+          this.observer.unobserve(element);
+        }
+        if (this.prerenderObserver) {
+          this.prerenderObserver.unobserve(element);
+        }
+      });
+      
+      // OPTIMIZED: Batch reveal with delay to give browser time to paint each card
+      // This prevents re-rendering and ensures smooth reveal
+      pricingCards.forEach((element, index) => {
+        // Skip if already processed (safety check)
+        if (element.classList.contains('is-revealed') || 
+            element.getAttribute('data-reveal-processed') === 'true') {
+          return;
+        }
         
-        // Clean up after batch operation
-        requestAnimationFrame(() => {
-          pricingCards.forEach((element) => {
-            element.style.transition = '';
+        // OPTIMIZED: Reveal with 50ms delay between cards
+        // This gives browser time to paint each card individually
+        setTimeout(() => {
+          scheduleRAF(() => {
+            // OPTIMIZED: Use CSS class instead of inline styles
+            // This is much faster and allows browser to optimize rendering
+            element.classList.add('is-revealed-immediate');
+            element.classList.add('is-revealed');
+            element.setAttribute('data-reveal-processed', 'true');
           });
-        });
+        }, index * 50); // 50ms delay between cards
       });
     }
     
     // Handle other elements normally
     if (otherElements.length > 0) {
-      requestAnimationFrame(() => {
+      scheduleRAF(() => {
         otherElements.forEach((element) => {
           // Handle stagger animation
           if (element.classList.contains('reveal-stagger')) {
@@ -281,6 +433,7 @@ class RevealAnimations {
             // Normal reveal animation
             const isGlow = element.classList.contains('reveal-glow');
             
+            // OPTIMIZED: Add will-change ONLY before animation starts
             if (isGlow) {
               element.style.willChange = 'opacity, filter, box-shadow';
             } else {
@@ -291,16 +444,33 @@ class RevealAnimations {
             element.offsetHeight; // Force reflow
             element.classList.add('is-revealed');
             
-            setTimeout(() => {
-              element.style.willChange = 'auto';
+            // OPTIMIZED: Remove will-change immediately after animation completes
+            // Use transitionend event for precise timing, fallback to setTimeout
+            const removeWillChange = () => {
+              element.style.willChange = 'auto'; // Free GPU memory
               element.classList.remove('is-animating');
               element.classList.add('animation-complete');
+              element.removeEventListener('transitionend', removeWillChange);
+            };
+            
+            // Listen for transition end (more precise than setTimeout)
+            element.addEventListener('transitionend', removeWillChange, { once: true });
+            
+            // Fallback timeout in case transitionend doesn't fire
+            setTimeout(() => {
+              if (element.style.willChange !== 'auto') {
+                removeWillChange();
+              }
             }, 700);
           }
           
           // Unobserve if once is true
           if (this.options.once) {
-            this.observer?.unobserve(element);
+            if (this.useGlobalObserver) {
+              unregisterGlobalObserver(element);
+            } else if (this.observer) {
+              this.observer.unobserve(element);
+            }
             if (this.prerenderObserver) {
               this.prerenderObserver.unobserve(element);
             }
@@ -313,46 +483,66 @@ class RevealAnimations {
   /**
    * Special optimization for pricing section
    * Preloads all pricing cards when section is approaching viewport
+   * CRITICAL: This must unobserve elements from main observer BEFORE revealing
+   * to prevent double-processing and re-rendering
    */
   private initPricingSectionOptimization(): void {
     const pricingSection = document.getElementById('pricing');
     if (!pricingSection) return;
     
+    // Store pricing observer for cleanup
+    let pricingObserver: IntersectionObserver | null = null;
+    
     // Create observer with larger rootMargin to trigger earlier
-    const pricingObserver = new IntersectionObserver(
+    pricingObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             // When pricing section is approaching, reveal all cards immediately
             const pricingCards = pricingSection.querySelectorAll('.pricing-card:not(.is-revealed)');
             if (pricingCards.length > 0) {
-              // Batch reveal all cards at once
-              requestAnimationFrame(() => {
-                pricingCards.forEach((el) => {
-                  const element = el as HTMLElement;
-                  element.style.transition = 'none';
-                  element.style.opacity = '1';
-                  element.style.transform = 'translateZ(0)';
-                  element.style.filter = 'none';
-                  element.classList.add('is-revealed');
-                  
-                  // Unobserve from main observer
-                  if (this.observer) {
-                    this.observer.unobserve(element);
-                  }
-                });
+              // CRITICAL: Unobserve from main observer FIRST to prevent double-processing
+              pricingCards.forEach((el) => {
+                const element = el as HTMLElement;
+                // Unobserve from main observer BEFORE any processing
+                if (this.useGlobalObserver) {
+                  unregisterGlobalObserver(element);
+                } else if (this.observer) {
+                  this.observer.unobserve(element);
+                }
+              });
+              
+              // OPTIMIZED: Batch reveal with delay to give browser time to paint each card
+              // This prevents re-rendering and ensures smooth reveal
+              const cardsArray = Array.from(pricingCards) as HTMLElement[];
+              cardsArray.forEach((element, index) => {
+                // Skip if already revealed (safety check)
+                if (element.classList.contains('is-revealed')) {
+                  return;
+                }
                 
-                // Clean up transitions after reveal
-                requestAnimationFrame(() => {
-                  pricingCards.forEach((el) => {
-                    (el as HTMLElement).style.transition = '';
+                // OPTIMIZED: Reveal with 50ms delay between cards
+                // This gives browser time to paint each card individually
+                setTimeout(() => {
+                  scheduleRAF(() => {
+                    // OPTIMIZED: Use CSS class instead of inline styles
+                    // This is much faster and allows browser to optimize rendering
+                    element.classList.add('is-revealed-immediate');
+                    element.classList.add('is-revealed');
+                    
+                    // Mark as processed to prevent any future re-processing
+                    element.setAttribute('data-reveal-processed', 'true');
                   });
-                });
+                }, index * 50); // 50ms delay between cards
               });
             }
             
             // Unobserve pricing section after first trigger
-            pricingObserver.unobserve(pricingSection);
+            if (pricingObserver) {
+              pricingObserver.unobserve(pricingSection);
+              pricingObserver.disconnect();
+              pricingObserver = null;
+            }
           }
         });
       },
@@ -363,13 +553,16 @@ class RevealAnimations {
     );
     
     pricingObserver.observe(pricingSection);
+    
+    // Store for cleanup
+    (this as any).pricingObserver = pricingObserver;
   }
   
   private animateStagger(element: HTMLElement) {
     const children = Array.from(element.children) as HTMLElement[];
     
-    // Use requestAnimationFrame to ensure smooth rendering
-    requestAnimationFrame(() => {
+    // Use RAF pooling to ensure smooth rendering
+    scheduleRAF(() => {
       children.forEach((child, index) => {
         // Set CSS custom property for stagger delay
         child.style.setProperty('--stagger-delay', index.toString());
@@ -380,8 +573,10 @@ class RevealAnimations {
       
       element.classList.add('is-revealed');
       
-      // Observe children if needed
-      if (this.observer) {
+      // Unobserve element after reveal
+      if (this.useGlobalObserver) {
+        unregisterGlobalObserver(element);
+      } else if (this.observer) {
         this.observer.unobserve(element);
       }
     });
@@ -482,7 +677,7 @@ class RevealAnimations {
     if (this.parallaxTicking) return;
     
     this.parallaxTicking = true;
-    requestAnimationFrame(() => {
+    scheduleRAF(() => {
       const scrollY = window.scrollY;
       const viewportHeight = window.innerHeight;
       
@@ -505,15 +700,19 @@ class RevealAnimations {
           const distanceFromCenter = elementCenter - viewportCenter;
           const yPos = distanceFromCenter * speed;
           
-          // Use will-change only when animating
-          if (!element.style.willChange) {
+          // OPTIMIZED: Add will-change ONLY when animating (before transform change)
+          if (element.style.willChange !== 'transform') {
             element.style.willChange = 'transform';
           }
           
           element.style.transform = `translate3d(0, ${yPos}px, 0)`;
         } else {
-          // Remove will-change when element is off-screen
-          element.style.willChange = 'auto';
+          // OPTIMIZED: Remove will-change immediately when element is off-screen
+          // This frees GPU memory when parallax is not needed
+          if (element.style.willChange !== 'auto') {
+            element.style.willChange = 'auto';
+            element.style.willChange = ''; // Also clear inline style
+          }
         }
       });
       
@@ -537,23 +736,32 @@ class RevealAnimations {
     if (targetSelector === '#pricing' || target.classList.contains('pricing-section')) {
       const pricingCards = target.querySelectorAll('.pricing-card:not(.is-revealed)');
       if (pricingCards.length > 0) {
-        // Batch reveal all pricing cards immediately
-        requestAnimationFrame(() => {
-          pricingCards.forEach((el) => {
-            const element = el as HTMLElement;
-            element.style.transition = 'none';
-            element.style.opacity = '1';
-            element.style.transform = 'translateZ(0)';
-            element.style.filter = 'none';
-            element.classList.add('is-revealed');
-            
-            if (this.observer) {
-              this.observer.unobserve(element);
-            }
-            if (this.prerenderObserver) {
-              this.prerenderObserver.unobserve(element);
-            }
-          });
+        // CRITICAL: Unobserve ALL pricing cards SYNCHRONOUSLY before any DOM changes
+        pricingCards.forEach((el) => {
+          const element = el as HTMLElement;
+          if (this.useGlobalObserver) {
+            unregisterGlobalObserver(element);
+          } else if (this.observer) {
+            this.observer.unobserve(element);
+          }
+          if (this.prerenderObserver) {
+            this.prerenderObserver.unobserve(element);
+          }
+        });
+        
+        // OPTIMIZED: Batch reveal with delay to give browser time to paint each card
+        const cardsArray = Array.from(pricingCards) as HTMLElement[];
+        cardsArray.forEach((element, index) => {
+          // OPTIMIZED: Reveal with 50ms delay between cards
+          // This gives browser time to paint each card individually
+          setTimeout(() => {
+            scheduleRAF(() => {
+              // OPTIMIZED: Use CSS class instead of inline styles
+              element.classList.add('is-revealed-immediate');
+              element.classList.add('is-revealed');
+              element.setAttribute('data-reveal-processed', 'true');
+            });
+          }, index * 50); // 50ms delay between cards
         });
       }
     }
@@ -585,14 +793,16 @@ class RevealAnimations {
     
     // Batch reveal all elements at once
     if (elementsToReveal.length > 0) {
-      requestAnimationFrame(() => {
+      scheduleRAF(() => {
         elementsToReveal.forEach((element) => {
           element.style.transition = 'none';
           element.style.opacity = '1';
           element.style.transform = 'translateZ(0)';
           element.classList.add('is-revealed');
           
-          if (this.observer) {
+          if (this.useGlobalObserver) {
+            unregisterGlobalObserver(element);
+          } else if (this.observer) {
             this.observer.unobserve(element);
           }
           if (this.prerenderObserver) {
@@ -621,13 +831,32 @@ class RevealAnimations {
       }
     });
 
-    if (this.observer) {
+    if (this.useGlobalObserver) {
+      elements.forEach((el) => unregisterGlobalObserver(el as HTMLElement));
+    } else if (this.observer) {
       elements.forEach((el) => this.observer!.unobserve(el));
     }
   }
 
   public destroy() {
-    if (this.observer) {
+    // OPTIMIZED: Cleanup global observer handlers for this instance
+    if (this.useGlobalObserver) {
+      // Remove all handlers registered by this instance
+      // Note: We don't disconnect global observer as other instances might use it
+      const elements = document.querySelectorAll(
+        '[class*="reveal-fade"], [class*="reveal-up"], [class*="reveal-scale"], ' +
+        '[class*="reveal-slide-left"], [class*="reveal-slide-right"], [class*="reveal-blur"], ' +
+        '[class*="reveal-rotate"], [class*="reveal-bounce"], [class*="reveal-glow"], ' +
+        '[class*="reveal-stagger"]'
+      );
+      elements.forEach((el) => {
+        const element = el as HTMLElement;
+        // Only unregister if handler exists (was registered by this instance)
+        if (globalObserverHandlers.has(element)) {
+          unregisterGlobalObserver(element);
+        }
+      });
+    } else if (this.observer) {
       this.observer.disconnect();
       this.observer = null;
     }
@@ -635,6 +864,13 @@ class RevealAnimations {
     if (this.fastScrollTimeout) {
       clearTimeout(this.fastScrollTimeout);
       this.fastScrollTimeout = null;
+    }
+    
+    // Cleanup pricing observer if exists
+    const pricingObserver = (this as any).pricingObserver;
+    if (pricingObserver) {
+      pricingObserver.disconnect();
+      (this as any).pricingObserver = null;
     }
     
     // Cancel animation frame
