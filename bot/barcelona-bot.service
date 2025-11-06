@@ -1,0 +1,18 @@
+[Unit]
+Description=Barcelona Telegram Bot
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www/illariooo.ru/bot/barcelona_bots
+Environment="PATH=/var/www/illariooo.ru/bot/barcelona_bots/.venv/bin"
+ExecStart=/var/www/illariooo.ru/bot/barcelona_bots/.venv/bin/python /var/www/illariooo.ru/bot/barcelona_bots/main.py
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/www/illariooo.ru/bot/logs/bot.log
+StandardError=append:/var/www/illariooo.ru/bot/logs/bot-error.log
+
+[Install]
+WantedBy=multi-user.target
+

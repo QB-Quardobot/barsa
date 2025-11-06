@@ -66,12 +66,51 @@ nano .env
 # Добавьте токены и другие переменные
 ```
 
-4. **Запустить через PM2:**
+4. **Установить PM2 (если не установлен):**
+```bash
+npm install -g pm2
+```
+
+5. **Запустить через PM2:**
 ```bash
 cd /var/www/illariooo.ru/bot
 pm2 start ecosystem.config.js
 pm2 save
 ```
+
+## Альтернативные способы запуска
+
+### Вариант 1: Через systemd (рекомендуется, если PM2 недоступен)
+
+1. Скопируйте service файл:
+```bash
+sudo cp bot/barcelona-bot.service /etc/systemd/system/
+```
+
+2. Перезагрузите systemd и запустите:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable barcelona-bot
+sudo systemctl start barcelona-bot
+```
+
+3. Проверка статуса:
+```bash
+sudo systemctl status barcelona-bot
+sudo journalctl -u barcelona-bot -f
+```
+
+### Вариант 2: Через screen (простой способ)
+
+```bash
+cd /var/www/illariooo.ru/bot/barcelona_bots
+source .venv/bin/activate
+screen -S barcelona-bot
+python main.py
+# Нажмите Ctrl+A, затем D для отсоединения
+```
+
+Вернуться к сессии: `screen -r barcelona-bot`
 
 ## Управление ботом
 

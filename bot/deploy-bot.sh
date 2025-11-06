@@ -91,6 +91,17 @@ ENDSSH
     
     log_success "Bot setup completed"
     
+    # Install PM2 if not exists
+    log_step "Checking PM2 installation..."
+    ssh ${SERVER_USER}@${SERVER_IP} << 'ENDSSH'
+        if ! command -v pm2 &> /dev/null; then
+            echo "Installing PM2..."
+            npm install -g pm2
+        else
+            echo "PM2 already installed"
+        fi
+ENDSSH
+    
     # Start/restart with PM2
     log_step "Starting bot with PM2..."
     ssh ${SERVER_USER}@${SERVER_IP} << 'ENDSSH'
