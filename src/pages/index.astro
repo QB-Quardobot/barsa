@@ -1346,6 +1346,110 @@ const DEBUG_MODE = false;
           return Boolean(swiperInstance?.pagination?.bullets?.length);
         }
         
+        // TELEGRAM WEBAPP FIX: Enhanced slide activation for cssMode
+        function activateSlideSafely(swiperInstance, index) {
+          try {
+            // For cssMode, we need to manually scroll to the slide
+            if (swiperInstance.params.cssMode) {
+              const slides = Array.from(swiperInstance.slides || swiperContainer.querySelectorAll('.swiper-slide'))
+                .filter((slide) => !slide.classList.contains('swiper-slide-duplicate'));
+              
+              if (slides[index]) {
+                const container = swiperInstance.el || swiperContainer;
+                const slide = slides[index];
+                
+                // Calculate scroll position
+                const containerRect = container.getBoundingClientRect();
+                const slideRect = slide.getBoundingClientRect();
+                const scrollLeft = container.scrollLeft + (slideRect.left - containerRect.left) - (containerRect.width / 2) + (slideRect.width / 2);
+                
+                // Smooth scroll
+                container.scrollTo({
+                  left: scrollLeft,
+                  behavior: 'smooth'
+                });
+                
+                // Update Swiper's active index manually
+                swiperInstance.activeIndex = index;
+                
+                // Sync pagination immediately
+                setTimeout(() => {
+                  syncActiveBullet(swiperInstance);
+                }, 50);
+                
+                // Also sync after scroll completes
+                setTimeout(() => {
+                  syncActiveBullet(swiperInstance);
+                }, 500);
+              }
+            } else {
+              // Normal mode - use Swiper's slideTo
+              swiperInstance.slideTo(index);
+            }
+          } catch (e) {
+            console.error('[PAGINATION ERROR] Failed to activate slide:', e);
+          }
+        }
+        
+        // TELEGRAM WEBAPP FIX: Add event handlers to bullet
+        function attachBulletHandlers(bullet, swiperInstance, index) {
+          // Use data-slide-index if available (for native bullets)
+          const slideIndex = bullet.hasAttribute('data-slide-index') 
+            ? parseInt(bullet.getAttribute('data-slide-index') || '0', 10)
+            : index;
+          
+          const activateSlide = (e) => {
+            if (e) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+            activateSlideSafely(swiperInstance, slideIndex);
+            
+            // Haptic feedback for Telegram
+            if (window.Telegram?.WebApp?.HapticFeedback) {
+              window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+            }
+          };
+          
+          // Click handler
+          bullet.addEventListener('click', activateSlide, { passive: false });
+          
+          // Touch handlers for Telegram WebView
+          let touchStartTime = 0;
+          let touchStartX = 0;
+          let touchStartY = 0;
+          
+          bullet.addEventListener('touchstart', (e) => {
+            touchStartTime = Date.now();
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+          }, { passive: true });
+          
+          bullet.addEventListener('touchend', (e) => {
+            const touchEndTime = Date.now();
+            const touchDuration = touchEndTime - touchStartTime;
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const deltaX = Math.abs(touchEndX - touchStartX);
+            const deltaY = Math.abs(touchEndY - touchStartY);
+            
+            // Only activate if it's a tap (not a swipe)
+            if (touchDuration < 300 && deltaX < 10 && deltaY < 10) {
+              e.preventDefault();
+              e.stopPropagation();
+              activateSlide(e);
+            }
+          }, { passive: false });
+          
+          // Keyboard handler
+          bullet.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              activateSlide(event);
+            }
+          });
+        }
+        
         function buildManualBullets(swiperInstance) {
           if (!paginationEl) {
             return;
@@ -1369,17 +1473,13 @@ const DEBUG_MODE = false;
             bullet.setAttribute('role', 'button');
             bullet.setAttribute('aria-label', `Перейти к слайду ${index + 1}`);
             bullet.tabIndex = 0;
+            bullet.style.cursor = 'pointer';
+            bullet.style.userSelect = 'none';
+            bullet.style.webkitUserSelect = 'none';
+            bullet.style.touchAction = 'manipulation';
             
-            const activateSlide = () => {
-              swiperInstance.slideTo(index);
-            };
-            bullet.addEventListener('click', activateSlide);
-            bullet.addEventListener('keydown', (event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                activateSlide();
-              }
-            });
+            // Attach handlers
+            attachBulletHandlers(bullet, swiperInstance, index);
             
             paginationEl.appendChild(bullet);
           });
@@ -1404,15 +1504,49 @@ const DEBUG_MODE = false;
           syncActiveBullet(swiperInstance);
         }
         
+        // TELEGRAM WEBAPP FIX: Get current slide index for cssMode
+        function getCurrentSlideIndex(swiperInstance) {
+          if (swiperInstance.params.cssMode) {
+            // For cssMode, calculate based on scroll position
+            const slides = Array.from(swiperInstance.slides || swiperContainer.querySelectorAll('.swiper-slide'))
+              .filter((slide) => !slide.classList.contains('swiper-slide-duplicate'));
+            
+            if (slides.length === 0) return 0;
+            
+            const container = swiperInstance.el || swiperContainer;
+            const containerRect = container.getBoundingClientRect();
+            const containerCenter = containerRect.left + containerRect.width / 2;
+            
+            let closestIndex = 0;
+            let closestDistance = Infinity;
+            
+            slides.forEach((slide, index) => {
+              const slideRect = slide.getBoundingClientRect();
+              const slideCenter = slideRect.left + slideRect.width / 2;
+              const distance = Math.abs(slideCenter - containerCenter);
+              
+              if (distance < closestDistance) {
+                closestDistance = distance;
+                closestIndex = index;
+              }
+            });
+            
+            return closestIndex;
+          } else {
+            return swiperInstance.realIndex !== undefined ? swiperInstance.realIndex : swiperInstance.activeIndex;
+          }
+        }
+        
         function syncActiveBullet(swiperInstance) {
           if (!paginationEl) {
             return;
           }
           
           const bullets = paginationEl.querySelectorAll('.swiper-pagination-bullet');
+          const currentIndex = getCurrentSlideIndex(swiperInstance);
           
           bullets.forEach((bullet, index) => {
-            const isActive = index === swiperInstance.realIndex;
+            const isActive = index === currentIndex;
             bullet.classList.toggle('swiper-pagination-bullet-active', isActive);
             // Обновляем background цвет для активного/неактивного состояния
             bullet.style.background = isActive 
@@ -1436,8 +1570,22 @@ const DEBUG_MODE = false;
           const domBullets = paginationEl.querySelectorAll('.swiper-pagination-bullet');
           
           if (nativeBullets.length > 0) {
-            nativeBullets.forEach((bullet) => {
+            nativeBullets.forEach((bullet, bulletIndex) => {
               if (bullet && bullet.style) {
+                // Get the actual slide index from Swiper's pagination
+                let slideIndex = bulletIndex;
+                if (swiperInstance.pagination?.renderBullet) {
+                  // Try to get index from bullet's data attribute or class
+                  const bulletClasses = bullet.className.split(' ');
+                  const indexMatch = bulletClasses.find(cls => cls.startsWith('swiper-pagination-bullet-'));
+                  if (indexMatch) {
+                    const match = indexMatch.match(/\d+/);
+                    if (match) {
+                      slideIndex = parseInt(match[0], 10);
+                    }
+                  }
+                }
+                
                 // ПРИНУДИТЕЛЬНО устанавливаем размеры и стили (как в CSS: 7px)
                 bullet.style.width = '7px';
                 bullet.style.height = '7px';
@@ -1450,13 +1598,24 @@ const DEBUG_MODE = false;
                   ? 'rgba(255, 255, 255, 0.95)' 
                   : 'rgba(255, 255, 255, 0.4)';
                 bullet.style.flexShrink = '0';
+                bullet.style.cursor = 'pointer';
+                bullet.style.userSelect = 'none';
+                bullet.style.webkitUserSelect = 'none';
+                bullet.style.touchAction = 'manipulation';
+                
+                // TELEGRAM WEBAPP FIX: Attach handlers to native bullets if not already attached
+                if (!bullet.hasAttribute('data-handlers-attached')) {
+                  bullet.setAttribute('data-handlers-attached', 'true');
+                  bullet.setAttribute('data-slide-index', slideIndex.toString());
+                  attachBulletHandlers(bullet, swiperInstance, slideIndex);
+                }
               }
             });
           }
           
           // Проверяем и исправляем DOM bullets
           if (domBullets.length > 0) {
-            domBullets.forEach((bullet) => {
+            domBullets.forEach((bullet, index) => {
               // ПРИНУДИТЕЛЬНО устанавливаем размеры и стили
               bullet.style.width = '7px';
               bullet.style.height = '7px';
@@ -1469,6 +1628,16 @@ const DEBUG_MODE = false;
                 ? 'rgba(255, 255, 255, 0.95)' 
                 : 'rgba(255, 255, 255, 0.4)';
               bullet.style.flexShrink = '0';
+              bullet.style.cursor = 'pointer';
+              bullet.style.userSelect = 'none';
+              bullet.style.webkitUserSelect = 'none';
+              bullet.style.touchAction = 'manipulation';
+              
+              // TELEGRAM WEBAPP FIX: Attach handlers to DOM bullets if not already attached
+              if (!bullet.hasAttribute('data-handlers-attached')) {
+                bullet.setAttribute('data-handlers-attached', 'true');
+                attachBulletHandlers(bullet, swiperInstance, index);
+              }
             });
           }
           
@@ -1497,6 +1666,24 @@ const DEBUG_MODE = false;
         setTimeout(() => {
           ensurePaginationVisibility(swiper);
         }, 2000);
+        
+        // TELEGRAM WEBAPP FIX: Track scroll for cssMode to update pagination
+        if (swiper.params.cssMode && swiperContainer) {
+          let scrollTimeout;
+          const handleScroll = () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+              syncActiveBullet(swiper);
+            }, 100);
+          };
+          
+          swiperContainer.addEventListener('scroll', handleScroll, { passive: true });
+          
+          // Also listen to swipe events
+          swiperContainer.addEventListener('scrollend', () => {
+            syncActiveBullet(swiper);
+          }, { passive: true });
+        }
         
         // Navigation buttons removed - using pagination only
         
@@ -4391,11 +4578,44 @@ const DEBUG_MODE = false;
     border-radius: 50%;
     margin: 0 !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* TELEGRAM WEBAPP FIX: Enhanced touch interaction */
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+    pointer-events: auto !important;
+    /* Increase touch target for better usability */
+    padding: 4px;
+    margin: 0 -4px !important;
+    min-width: 15px;
+    min-height: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .student-model-pagination .swiper-pagination-bullet::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: inherit;
+    display: block;
   }
   
   .student-model-pagination .swiper-pagination-bullet-active {
     background: rgba(255, 255, 255, 0.95);
     transform: scale(1);
+  }
+  
+  .student-model-pagination .swiper-pagination-bullet-active::before {
+    background: rgba(255, 255, 255, 0.95);
+  }
+  
+  /* TELEGRAM WEBAPP FIX: Active state for better feedback */
+  .student-model-pagination .swiper-pagination-bullet:active {
+    transform: scale(0.9);
   }
   
   /* Mobile fixes for student-model-pagination */
