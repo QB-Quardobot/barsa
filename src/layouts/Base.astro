@@ -632,7 +632,24 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             
             if (isTelegram) {
               if (isInternalLink) {
-                // Internal link in Telegram - allow normal navigation (stay in WebApp)
+                // Internal link in Telegram - show loading screen before navigation
+                const loadingScreen = doc.getElementById('loading-screen');
+                if (loadingScreen) {
+                  // Mark that next page should show loader
+                  sessionStorage.setItem('showLoadingScreen', 'true');
+                  // Show loader immediately
+                  loadingScreen.style.display = 'flex';
+                  loadingScreen.style.visibility = 'visible';
+                  loadingScreen.style.pointerEvents = 'auto';
+                  loadingScreen.style.opacity = '1';
+                  // Hide main content
+                  const mainContent = doc.getElementById('main-content');
+                  if (mainContent) {
+                    mainContent.style.visibility = 'hidden';
+                    mainContent.style.opacity = '0';
+                  }
+                }
+                // Allow normal navigation (stay in WebApp)
                 this.href = urlWithUtm;
                 // Don't prevent default - let browser handle internal navigation
                 return;
@@ -659,7 +676,25 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             } else {
               // Not in Telegram
               if (isInternalLink) {
-                // Internal link - open in same tab (normal navigation)
+                // Internal link - show loading screen before navigation (if enabled)
+                const loadingScreen = doc.getElementById('loading-screen');
+                const showInBrowser = loadingScreen && loadingScreen.getAttribute('data-show-in-browser') === 'true';
+                if (showInBrowser && loadingScreen) {
+                  // Mark that next page should show loader
+                  sessionStorage.setItem('showLoadingScreen', 'true');
+                  // Show loader immediately
+                  loadingScreen.style.display = 'flex';
+                  loadingScreen.style.visibility = 'visible';
+                  loadingScreen.style.pointerEvents = 'auto';
+                  loadingScreen.style.opacity = '1';
+                  // Hide main content
+                  const mainContent = doc.getElementById('main-content');
+                  if (mainContent) {
+                    mainContent.style.visibility = 'hidden';
+                    mainContent.style.opacity = '0';
+                  }
+                }
+                // Open in same tab (normal navigation)
                 this.href = urlWithUtm;
                 this.target = '_self';
                 // Don't prevent default - let browser handle navigation normally
@@ -690,6 +725,53 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           });
         });
       }
+      
+      // Global handler for ALL internal links (not just data-cta)
+      // This ensures loading screen shows for any internal navigation
+      function setupGlobalInternalLinks() {
+        const isTelegram = !!tg;
+        
+        // Use event delegation on document for all internal links
+        doc.addEventListener('click', function(e) {
+          const target = e.target as HTMLElement;
+          const link = target.closest('a[href]') as HTMLAnchorElement;
+          if (!link) return;
+          
+          // Skip if already handled by setupCTALinks (data-cta links)
+          if (link.hasAttribute('data-cta')) return;
+          
+          const href = link.getAttribute('href') || '';
+          
+          // Check if internal link
+          const isInternalLink = href.startsWith('/') || 
+                                 href.startsWith(window.location.origin) || 
+                                 (!href.includes('://') && !href.includes('t.me/') && !href.startsWith('#'));
+          
+          if (!isInternalLink) return;
+          
+          // Show loading screen before navigation
+          const loadingScreen = doc.getElementById('loading-screen');
+          if (loadingScreen) {
+            // Mark that next page should show loader
+            sessionStorage.setItem('showLoadingScreen', 'true');
+            // Show loader immediately
+            loadingScreen.style.display = 'flex';
+            loadingScreen.style.visibility = 'visible';
+            loadingScreen.style.pointerEvents = 'auto';
+            loadingScreen.style.opacity = '1';
+            // Hide main content
+            const mainContent = doc.getElementById('main-content');
+            if (mainContent) {
+              mainContent.style.visibility = 'hidden';
+              mainContent.style.opacity = '0';
+            }
+          }
+          
+          // Don't prevent default - let browser handle navigation normally
+        }, true); // Use capture phase to run before other handlers
+      }
+      
+      setupGlobalInternalLinks();
 
       function updateLinksOnLoad() {
         if (tg) return;
@@ -878,12 +960,37 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         cleanupFunctions.length = 0;
       });
       
-      // Ensure main-content is always visible
-      const mainContent = doc.getElementById('main-content');
-      if (mainContent) {
-        mainContent.style.visibility = 'visible';
-        mainContent.style.display = 'block';
-        mainContent.style.opacity = '1';
+      // CRITICAL: Check if we should show loading screen immediately (from navigation)
+      // This prevents content flash when navigating between pages
+      // Note: Don't remove sessionStorage here - LoadingScreen will handle it
+      const shouldShowLoader = sessionStorage.getItem('showLoadingScreen') === 'true';
+      if (shouldShowLoader) {
+        const loadingScreen = doc.getElementById('loading-screen');
+        if (loadingScreen) {
+          loadingScreen.style.display = 'flex';
+          loadingScreen.style.visibility = 'visible';
+          loadingScreen.style.pointerEvents = 'auto';
+          loadingScreen.style.opacity = '1';
+        }
+        // Keep main-content hidden until loader hides
+        const mainContent = doc.getElementById('main-content');
+        if (mainContent) {
+          mainContent.style.visibility = 'hidden';
+          mainContent.style.opacity = '0';
+        }
+      } else {
+        // Only show main-content if not navigating (first page load or direct URL)
+        const mainContent = doc.getElementById('main-content');
+        if (mainContent) {
+          // LoadingScreen script will handle visibility for Telegram
+          // For browser, show immediately if not in Telegram
+          const isInTelegram = !!(win.Telegram && win.Telegram.WebApp);
+          if (!isInTelegram) {
+            mainContent.style.visibility = 'visible';
+            mainContent.style.display = 'block';
+            mainContent.style.opacity = '1';
+          }
+        }
       }
       
       // Check if in Telegram (immediate check)

@@ -164,13 +164,17 @@ setup_git_repo() {
             git reset --hard origin/\${BRANCH}
         fi
         
-        echo "📦 Installing dependencies..."
-        # Server has only ~1GB RAM, optimize heavily
-        export NODE_OPTIONS="--max-old-space-size=512"
+        echo "🧹 Cleaning up before installation..."
         # Remove node_modules to avoid ENOTEMPTY errors
         rm -rf node_modules package-lock.json 2>/dev/null || true
         # Clear npm cache to free memory
         npm cache clean --force 2>/dev/null || true
+        # Clean temporary files
+        rm -rf /tmp/npm-* 2>/dev/null || true
+        
+        echo "📦 Installing dependencies..."
+        # Server has only ~1GB RAM, optimize heavily
+        export NODE_OPTIONS="--max-old-space-size=512"
         # Use npm install (less memory intensive than npm ci)
         npm install --production=false --prefer-offline --no-audit --legacy-peer-deps
         
@@ -441,13 +445,17 @@ deploy() {
         DEPLOYED_COMMIT=\$(git rev-parse --short HEAD)
         echo "📍 Deployed commit: \${DEPLOYED_COMMIT}"
         
-        echo "📦 Installing dependencies..."
-        # Server has only ~1GB RAM, optimize heavily
-        export NODE_OPTIONS="--max-old-space-size=512"
+        echo "🧹 Cleaning up before installation..."
         # Remove node_modules to avoid ENOTEMPTY errors
         rm -rf node_modules package-lock.json 2>/dev/null || true
         # Clear npm cache to free memory
         npm cache clean --force 2>/dev/null || true
+        # Clean temporary files
+        rm -rf /tmp/npm-* 2>/dev/null || true
+        
+        echo "📦 Installing dependencies..."
+        # Server has only ~1GB RAM, optimize heavily
+        export NODE_OPTIONS="--max-old-space-size=512"
         # Use npm install (less memory intensive than npm ci)
         npm install --production=false --prefer-offline --no-audit --legacy-peer-deps
         
@@ -519,13 +527,17 @@ rollback() {
         
         git reset --hard \${COMMIT_HASH}
         
-        echo "📦 Installing dependencies..."
-        # Server has only ~1GB RAM, optimize heavily
-        export NODE_OPTIONS="--max-old-space-size=512"
+        echo "🧹 Cleaning up before installation..."
         # Remove node_modules to avoid ENOTEMPTY errors
         rm -rf node_modules package-lock.json 2>/dev/null || true
         # Clear npm cache to free memory
         npm cache clean --force 2>/dev/null || true
+        # Clean temporary files
+        rm -rf /tmp/npm-* 2>/dev/null || true
+        
+        echo "📦 Installing dependencies..."
+        # Server has only ~1GB RAM, optimize heavily
+        export NODE_OPTIONS="--max-old-space-size=512"
         # Use npm install (less memory intensive than npm ci)
         npm install --production=false --prefer-offline --no-audit --legacy-peer-deps
         

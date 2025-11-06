@@ -360,63 +360,84 @@ const { showInBrowser = false } = Astro.props;
     // Get main content reference first
     const mainContent = document.getElementById('main-content');
     
+    // CRITICAL: Check if loading screen was already shown by navigation
+    // (Base.astro sets sessionStorage and shows loader before navigation)
+    const wasShownByNavigation = sessionStorage.getItem('showLoadingScreen') === 'true';
+    
+    // Remove sessionStorage flag after checking (cleanup)
+    if (wasShownByNavigation) {
+      sessionStorage.removeItem('showLoadingScreen');
+    }
+    
     // CRITICAL: Hide main content initially to prevent white flash
     // It will be shown when loading screen hides
-    if (mainContent) {
+    // BUT: if loader was already shown by navigation, main-content is already hidden
+    if (mainContent && !wasShownByNavigation) {
       mainContent.style.visibility = 'hidden';
       mainContent.style.opacity = '0';
     }
     
-    // Wait a bit for Telegram WebApp to initialize (up to 500ms)
-    let isTelegram = checkTelegram();
-    if (!isTelegram) {
-      let retries = 0;
-      const checkInterval = setInterval(() => {
-        isTelegram = checkTelegram();
-        retries++;
-        if (isTelegram || retries >= 10) { // 10 * 50ms = 500ms max wait
-          clearInterval(checkInterval);
-          if (isTelegram) {
-            // Show loading screen if in Telegram
-            loadingScreen.style.display = 'flex';
-            loadingScreen.style.visibility = 'visible';
-            loadingScreen.style.pointerEvents = 'auto';
-          } else {
-            // Not in Telegram and not enabled for browser - show main content immediately
-            if (mainContent && !showInBrowser) {
-              mainContent.style.visibility = 'visible';
-              mainContent.style.display = 'block';
-              mainContent.style.opacity = '1';
-              mainContent.style.zIndex = '1';
-            }
-          }
-        }
-      }, 50);
-      registerCleanup(() => clearInterval(checkInterval));
-    }
-    
-    // Don't show in regular browser unless explicitly enabled (for SEO)
-    if (!isTelegram && !showInBrowser) {
-      // In browser - hide loading screen and show main content immediately
-      loadingScreen.style.display = 'none';
-      loadingScreen.style.visibility = 'hidden';
-      loadingScreen.style.pointerEvents = 'none';
-      loadingScreen.style.zIndex = '-1';
-      // Ensure main content is visible in browser
-      if (mainContent) {
-        mainContent.style.visibility = 'visible';
-        mainContent.style.display = 'block';
-        mainContent.style.opacity = '1';
-        mainContent.style.zIndex = '1';
-      }
-      return;
-    }
-    
-    // In Telegram - ensure loading screen is visible and main content stays hidden
-    if (isTelegram) {
+    // If loader was shown by navigation, it's already visible - skip initialization
+    if (wasShownByNavigation) {
+      // Loading screen is already visible from Base.astro
+      // Just ensure it stays visible until page loads
       loadingScreen.style.display = 'flex';
       loadingScreen.style.visibility = 'visible';
       loadingScreen.style.pointerEvents = 'auto';
+      loadingScreen.style.opacity = '1';
+    } else {
+      // Normal initialization (first page load or direct URL)
+      // Wait a bit for Telegram WebApp to initialize (up to 500ms)
+      let isTelegram = checkTelegram();
+      if (!isTelegram) {
+        let retries = 0;
+        const checkInterval = setInterval(() => {
+          isTelegram = checkTelegram();
+          retries++;
+          if (isTelegram || retries >= 10) { // 10 * 50ms = 500ms max wait
+            clearInterval(checkInterval);
+            if (isTelegram) {
+              // Show loading screen if in Telegram
+              loadingScreen.style.display = 'flex';
+              loadingScreen.style.visibility = 'visible';
+              loadingScreen.style.pointerEvents = 'auto';
+            } else {
+              // Not in Telegram and not enabled for browser - show main content immediately
+              if (mainContent && !showInBrowser) {
+                mainContent.style.visibility = 'visible';
+                mainContent.style.display = 'block';
+                mainContent.style.opacity = '1';
+                mainContent.style.zIndex = '1';
+              }
+            }
+          }
+        }, 50);
+        registerCleanup(() => clearInterval(checkInterval));
+      }
+      
+      // Don't show in regular browser unless explicitly enabled (for SEO)
+      if (!isTelegram && !showInBrowser) {
+        // In browser - hide loading screen and show main content immediately
+        loadingScreen.style.display = 'none';
+        loadingScreen.style.visibility = 'hidden';
+        loadingScreen.style.pointerEvents = 'none';
+        loadingScreen.style.zIndex = '-1';
+        // Ensure main content is visible in browser
+        if (mainContent) {
+          mainContent.style.visibility = 'visible';
+          mainContent.style.display = 'block';
+          mainContent.style.opacity = '1';
+          mainContent.style.zIndex = '1';
+        }
+        return;
+      }
+      
+      // In Telegram - ensure loading screen is visible and main content stays hidden
+      if (isTelegram) {
+        loadingScreen.style.display = 'flex';
+        loadingScreen.style.visibility = 'visible';
+        loadingScreen.style.pointerEvents = 'auto';
+      }
     }
     
     // Hide after page is fully loaded
