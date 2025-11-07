@@ -405,13 +405,24 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       name: 'AI Model 2.0',
       url: Astro.url.origin
     }
-  })}></script>
+  })} onerror="console.error('[TG-BackButton] TEST: JSON-LD Schema script error');" onload="console.log('[TG-BackButton] TEST: JSON-LD Schema script loaded');"></script>
+  
+  <!-- CRITICAL DEBUG: Test script execution between JSON-LD and UTM -->
+  <script is:inline>
+    console.log('[TG-BackButton] TEST: Script between JSON-LD and UTM executing');
+  </script>
   
   <!-- Pass UTM params to client -->
   <script define:vars={{ utmParams: JSON.stringify(utmParams) }}>
     // CRITICAL DEBUG: Test if this script executes
     console.log('[TG-BackButton] TEST: UTM params script executing');
     window.utmParams = utmParams;
+  </script>
+  
+  <!-- CRITICAL DEBUG: Test script execution between UTM and main script -->
+  <script is:inline>
+    console.log('[TG-BackButton] TEST: Script between UTM and main script executing');
+    console.log('[TG-BackButton] TEST: About to load main script');
   </script>
   
   <!-- Initialize UTM, Telegram WebApp and CTA links (consolidated) -->
