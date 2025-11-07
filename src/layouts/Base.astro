@@ -1150,6 +1150,21 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
     <slot />
   </main>
   
+  <!-- TEMPORARY: BackButton Debug Panel (will be removed later) -->
+  <div id="backbutton-debug-panel" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0, 0, 0, 0.95); color: #0f0; font-family: 'Courier New', monospace; font-size: 11px; z-index: 999999; max-height: 50vh; border-top: 2px solid #0f0; box-shadow: 0 -4px 20px rgba(0, 255, 0, 0.3); user-select: text; -webkit-user-select: text; touch-action: pan-y;">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(0, 50, 0, 0.5); border-bottom: 1px solid #0f0; flex-wrap: wrap; gap: 8px;">
+      <strong style="color: #0ff; font-size: 12px; user-select: none;">🔧 BackButton Debug Panel</strong>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+        <button id="backbutton-debug-copy" style="background: #008; color: #fff; border: 1px solid #0ff; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 11px; min-height: 32px; touch-action: manipulation;">📋 Copy Logs</button>
+        <button id="backbutton-debug-clear" style="background: #800; color: #fff; border: 1px solid #f00; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 11px; min-height: 32px; touch-action: manipulation;">🗑️ Clear</button>
+        <button id="backbutton-debug-toggle" style="background: #080; color: #fff; border: 1px solid #0f0; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 11px; min-height: 32px; touch-action: manipulation;">▼ Hide</button>
+      </div>
+    </div>
+    <div id="backbutton-debug-content" style="padding: 8px 12px; max-height: calc(50vh - 50px); overflow-y: auto; overflow-x: hidden; line-height: 1.5; word-wrap: break-word; -webkit-overflow-scrolling: touch;">
+      <div style="color: #0ff; margin-bottom: 8px;">Waiting for logs...</div>
+    </div>
+  </div>
+  
   <!-- Telegram WebApp initialization script - MUST be at end of body -->
   <script is:inline>
     (function() {
@@ -1708,6 +1723,228 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       overflow-scrolling: touch;
     }
   </style>
+  
+  <!-- TEMPORARY: BackButton Debug Panel Script (will be removed later) -->
+  <script is:inline>
+    (function() {
+      'use strict';
+      
+      const panel = document.getElementById('backbutton-debug-panel');
+      const content = document.getElementById('backbutton-debug-content');
+      const copyBtn = document.getElementById('backbutton-debug-copy');
+      const clearBtn = document.getElementById('backbutton-debug-clear');
+      const toggleBtn = document.getElementById('backbutton-debug-toggle');
+      
+      if (!panel || !content) return;
+      
+      // Show panel immediately
+      panel.style.display = 'block';
+      
+      const logs = [];
+      const maxLogs = 200; // Limit to prevent memory issues
+      let isCollapsed = false;
+      
+      // Function to add log entry
+      function addLog(message, type) {
+        type = type || 'info';
+        const timestamp = new Date().toLocaleTimeString('ru-RU', { 
+          hour12: false, 
+          hour: '2-digit', 
+          minute: '2-digit', 
+          second: '2-digit',
+          fractionalSecondDigits: 3
+        });
+        
+        const colors = {
+          info: '#0f0',
+          success: '#0ff',
+          warn: '#ff0',
+          error: '#f00',
+          event: '#f0f'
+        };
+        
+        const color = colors[type] || colors.info;
+        const icon = type === 'error' ? '❌' : type === 'warn' ? '⚠️' : type === 'success' ? '✅' : type === 'event' ? '🔔' : 'ℹ️';
+        
+        const logEntry = {
+          timestamp,
+          message: String(message),
+          type,
+          color,
+          icon
+        };
+        
+        logs.push(logEntry);
+        
+        // Limit logs
+        if (logs.length > maxLogs) {
+          logs.shift();
+        }
+        
+        updateDisplay();
+      }
+      
+      // Update display
+      function updateDisplay() {
+        if (isCollapsed) return;
+        
+        const recentLogs = logs.slice(-50); // Show last 50 logs
+        content.innerHTML = recentLogs.map(function(log) {
+          return '<div style="color: ' + log.color + '; margin-bottom: 2px; padding: 2px 0; border-bottom: 1px solid rgba(0,255,0,0.1);">' +
+            '<span style="color: #888; font-size: 9px;">[' + log.timestamp + ']</span> ' + log.icon + ' ' + log.message +
+          '</div>';
+        }).join('');
+        
+        // Auto-scroll to bottom
+        content.scrollTop = content.scrollHeight;
+      }
+      
+      // Copy logs to clipboard
+      function copyLogs() {
+        try {
+          const logText = logs.map(function(log) {
+            return '[' + log.timestamp + '] ' + log.icon + ' ' + log.message;
+          }).join('\n');
+          
+          // Use Clipboard API (modern browsers)
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(logText).then(function() {
+              copyBtn.textContent = '✅ Copied!';
+              copyBtn.style.background = '#080';
+              setTimeout(function() {
+                copyBtn.textContent = '📋 Copy Logs';
+                copyBtn.style.background = '#008';
+              }, 2000);
+            }).catch(function(err) {
+              console.error('Failed to copy logs:', err);
+              copyBtn.textContent = '❌ Error';
+              copyBtn.style.background = '#800';
+              setTimeout(function() {
+                copyBtn.textContent = '📋 Copy Logs';
+                copyBtn.style.background = '#008';
+              }, 2000);
+            });
+            return;
+          } else {
+            // Fallback for older browsers
+            const textarea = document.createElement('textarea');
+            textarea.value = logText;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            copyBtn.textContent = '✅ Copied!';
+            copyBtn.style.background = '#080';
+            setTimeout(function() {
+              copyBtn.textContent = '📋 Copy Logs';
+              copyBtn.style.background = '#008';
+            }, 2000);
+          }
+        } catch (err) {
+          console.error('Failed to copy logs:', err);
+          copyBtn.textContent = '❌ Error';
+          copyBtn.style.background = '#800';
+          setTimeout(function() {
+            copyBtn.textContent = '📋 Copy Logs';
+            copyBtn.style.background = '#008';
+          }, 2000);
+        }
+      }
+      
+      // Clear logs
+      function clearLogs() {
+        logs.length = 0;
+        content.innerHTML = '<div style="color: #0ff;">Logs cleared...</div>';
+      }
+      
+      // Toggle collapse
+      function toggleCollapse() {
+        isCollapsed = !isCollapsed;
+        if (isCollapsed) {
+          content.style.display = 'none';
+          toggleBtn.textContent = '▲ Show';
+          panel.style.maxHeight = '50px';
+        } else {
+          content.style.display = 'block';
+          toggleBtn.textContent = '▼ Hide';
+          panel.style.maxHeight = '50vh';
+          updateDisplay();
+        }
+      }
+      
+      // Event listeners
+      copyBtn.addEventListener('click', copyLogs);
+      clearBtn.addEventListener('click', clearLogs);
+      toggleBtn.addEventListener('click', toggleCollapse);
+      
+      // Intercept logger calls for [TG-BackButton] prefix
+      const originalLogger = window.logger;
+      if (originalLogger) {
+        const originalLog = originalLogger.log;
+        const originalWarn = originalLogger.warn;
+        const originalError = originalLogger.error;
+        
+        originalLogger.log = function(...args) {
+          const message = args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ');
+          if (message.includes('[TG-BackButton]')) {
+            addLog(message, 'info');
+          }
+          originalLog.apply(originalLogger, args);
+        };
+        
+        originalLogger.warn = function(...args) {
+          const message = args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ');
+          if (message.includes('[TG-BackButton]')) {
+            addLog(message, 'warn');
+          }
+          originalWarn.apply(originalLogger, args);
+        };
+        
+        originalLogger.error = function(...args) {
+          const message = args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ');
+          if (message.includes('[TG-BackButton]')) {
+            addLog(message, 'error');
+          }
+          originalError.apply(originalLogger, args);
+        };
+      }
+      
+      // Also intercept console methods for [TG-BackButton]
+      const originalConsoleLog = console.log;
+      const originalConsoleWarn = console.warn;
+      const originalConsoleError = console.error;
+      
+      console.log = function(...args) {
+        const message = args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ');
+        if (message.includes('[TG-BackButton]')) {
+          addLog(message, 'info');
+        }
+        originalConsoleLog.apply(console, args);
+      };
+      
+      console.warn = function(...args) {
+        const message = args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ');
+        if (message.includes('[TG-BackButton]')) {
+          addLog(message, 'warn');
+        }
+        originalConsoleWarn.apply(console, args);
+      };
+      
+      console.error = function(...args) {
+        const message = args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ');
+        if (message.includes('[TG-BackButton]')) {
+          addLog(message, 'error');
+        }
+        originalConsoleError.apply(console, args);
+      };
+      
+      // Initial message
+      addLog('BackButton Debug Panel initialized', 'success');
+      addLog('Monitoring [TG-BackButton] logs...', 'info');
+    })();
+  </script>
 </body>
 </html>
 
