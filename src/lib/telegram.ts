@@ -86,6 +86,7 @@ export interface WebApp {
 export interface BackButton {
   isVisible: boolean;
   onClick(callback: () => void): void;
+  offClick(callback: () => void): void; // CRITICAL: Added for proper cleanup (may exist in real API even if not in docs)
   show(): void;
   hide(): void;
 }

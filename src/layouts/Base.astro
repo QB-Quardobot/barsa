@@ -348,6 +348,19 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           logger.log('[TG-Init] Calling enableClosingConfirmation()...');
           tg.enableClosingConfirmation();
           
+          // CRITICAL FIX: Wait for SDK to fully initialize before setting up BackButton
+          // This is especially important for multi-page apps where page reloads happen
+          // The delay ensures that:
+          // 1. SDK has time to process ready() and expand() calls
+          // 2. All internal SDK state is properly initialized
+          // 3. BackButton API is fully available and ready to accept handlers
+          // According to internet resources, 100-200ms delay is recommended
+          logger.log('[TG-Init] Waiting for SDK to fully initialize before setting up BackButton...');
+          setTimeout(() => {
+            logger.log('[TG-Init] SDK should be ready, setting up BackButton...');
+            setupBackButtonHandler();
+          }, 150);
+          
           // Bot API 7.7+: Disable vertical swipes to prevent accidental closing
           if (typeof tg.disableVerticalSwipes === 'function') {
             logger.log('[TG-Init] Calling disableVerticalSwipes()...');
@@ -437,9 +450,51 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         };
         win.triggerAppHaptic = triggerHaptic;
 
-        // Back button navigation handler
-        try {
-          if (tg.BackButton) {
+        // CRITICAL FIX: Global variables to store BackButton handlers
+        // This allows us to unsubscribe from old handlers when page reloads
+        // We store both onEvent and onClick handlers separately for proper cleanup
+        if (!win._telegramBackButtonHandler) {
+          win._telegramBackButtonHandler = null;
+        }
+        if (!win._telegramBackButtonOnClickHandler) {
+          win._telegramBackButtonOnClickHandler = null;
+        }
+        
+        // CRITICAL FIX: Back button setup function - called with delay after SDK initialization
+        // This function MUST be declared before it's called in setTimeout
+        // The delay ensures SDK is fully ready before registering handlers
+        function setupBackButtonHandler() {
+          try {
+            // CRITICAL: Double-check that SDK is still available (may have changed during delay)
+            if (!tg) {
+              logger.warn('[TG-BackButton] Telegram WebApp not available, skipping setup');
+              return;
+            }
+            
+            if (!tg.BackButton) {
+              logger.warn('[TG-BackButton] BackButton not available, skipping setup');
+              // CRITICAL FIX: Retry after a short delay if SDK might still be initializing
+              // This handles cases where SDK needs more time to fully initialize
+              setTimeout(() => {
+                if (tg && tg.BackButton) {
+                  logger.log('[TG-BackButton] Retrying setup after delay (SDK now ready)...');
+                  setupBackButtonHandler();
+                } else {
+                  logger.error('[TG-BackButton] BackButton still not available after retry');
+                }
+              }, 100);
+              return;
+            }
+            
+            logger.log('[TG-BackButton] Setting up handler (multi-page app fix)...');
+            logger.log('[TG-BackButton] SDK state check:', {
+              isReady: tg.isReady,
+              isExpanded: tg.isExpanded,
+              version: tg.version,
+              platform: tg.platform,
+              backButtonAvailable: !!tg.BackButton
+            });
+            
             let backButtonVisible = false;
             
             function isPhotoModalOpen() {
@@ -525,8 +580,22 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                   logger.log('[TG-BackButton] Navigation attempt:', {
                     currentPath,
                     historyLength,
-                    historyState: win.history.state
+                    historyState: win.history.state,
+                    canUseHistoryBack: historyLength > 1
                   });
+                  
+                  // CRITICAL: If history.length <= 1, history.back() won't work
+                  // This means navigation happened via location.href instead of <a href>
+                  // In this case, we must use direct navigation as fallback
+                  if (historyLength <= 1) {
+                    logger.warn('[TG-BackButton] History not available (length <= 1), using direct navigation');
+                    logger.warn('[TG-BackButton] This suggests navigation used location.href instead of <a href>');
+                    if (typeof sessionStorage !== 'undefined') {
+                      sessionStorage.removeItem('showLoadingScreen');
+                    }
+                    win.location.href = '/';
+                    return;
+                  }
                   
                   // CRITICAL FIX: Use multiple strategies for navigation
                   // Strategy 1: Try history.back() first (preferred method)
@@ -620,21 +689,49 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               }
             }
             
-            // CRITICAL FIX: Set up back button click handler with proper error handling
-            // Ensure handler is not overwritten by other code
-            // IMPORTANT: Register handler AFTER ready() and expand() are called
+            // CRITICAL FIX: Use onEvent('back_button_pressed') instead of onClick()
+            // This is the RECOMMENDED approach according to Telegram documentation
+            // Reasons:
+            // 1. More reliable and stable API
+            // 2. Works consistently for all events
+            // 3. Better compatibility with multi-page apps
+            // 4. Can unsubscribe via offEvent()
             try {
-              // Verify BackButton is available
-              if (!tg.BackButton) {
-                logger.error('[TG-BackButton] BackButton is not available');
-                return;
+              // CRITICAL: Unsubscribe from ALL old handlers before registering new ones
+              // This prevents multiple handlers from being registered and causing conflicts
+              
+              // 1. Unsubscribe from old onEvent handler (if exists)
+              if (win._telegramBackButtonHandler && typeof tg.offEvent === 'function') {
+                logger.log('[TG-BackButton] Unsubscribing from old onEvent handler...');
+                try {
+                  tg.offEvent('back_button_pressed', win._telegramBackButtonHandler);
+                  logger.log('[TG-BackButton] Old onEvent handler unsubscribed successfully');
+                } catch (e) {
+                  logger.warn('[TG-BackButton] Error unsubscribing old onEvent handler:', e);
+                }
               }
               
-              logger.log('[TG-BackButton] Registering onClick handler...');
+              // 2. Unsubscribe from old onClick handler (if exists and was used as fallback)
+              if (win._telegramBackButtonOnClickHandler && tg.BackButton) {
+                // Try offClick if it exists (may not be in types but could exist in runtime)
+                if (typeof tg.BackButton.offClick === 'function') {
+                  logger.log('[TG-BackButton] Unsubscribing from old onClick handler via offClick...');
+                  try {
+                    tg.BackButton.offClick(win._telegramBackButtonOnClickHandler);
+                    logger.log('[TG-BackButton] Old onClick handler unsubscribed successfully');
+                  } catch (e) {
+                    logger.warn('[TG-BackButton] Error unsubscribing old onClick handler:', e);
+                  }
+                } else {
+                  logger.log('[TG-BackButton] offClick not available, old onClick handler may persist');
+                }
+                // Clear the reference
+                win._telegramBackButtonOnClickHandler = null;
+              }
               
-              // Store reference to handler for debugging
+              // Create new handler
               const backButtonHandler = () => {
-                logger.log('[TG-BackButton] onClick handler called');
+                logger.log('[TG-BackButton] back_button_pressed event fired');
                 // Wrap in try-catch to prevent errors from breaking navigation
                 try {
                   handleBackClick();
@@ -651,82 +748,149 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                 }
               };
               
-              // Register the handler
-              tg.BackButton.onClick(backButtonHandler);
+              // CRITICAL FIX: Use ONLY onEvent('back_button_pressed') - the recommended method
+              // DO NOT use onClick() as it's less reliable for multi-page apps
+              logger.log('[TG-BackButton] Registering onEvent("back_button_pressed") handler...');
+              
+              // Verify onEvent is available
+              if (typeof tg.onEvent !== 'function') {
+                logger.error('[TG-BackButton] tg.onEvent is not available! Falling back to onClick...');
+                // Fallback only if onEvent is not available
+                if (tg.BackButton && typeof tg.BackButton.onClick === 'function') {
+                  // CRITICAL: Store onClick handler reference for future cleanup
+                  tg.BackButton.onClick(backButtonHandler);
+                  win._telegramBackButtonOnClickHandler = backButtonHandler;
+                  logger.warn('[TG-BackButton] Using onClick as fallback (onEvent not available)');
+                } else {
+                  logger.error('[TG-BackButton] Neither onEvent nor onClick is available!');
+                  return;
+                }
+              } else {
+                // Use the recommended method
+                tg.onEvent('back_button_pressed', backButtonHandler);
+                logger.log('[TG-BackButton] onEvent handler registered successfully');
+                // Clear onClick handler reference since we're using onEvent
+                win._telegramBackButtonOnClickHandler = null;
+              }
+              
+              // Store handler reference for cleanup on next page load
+              win._telegramBackButtonHandler = backButtonHandler;
               
               // Verify handler was registered
               logger.log('[TG-BackButton] Handler registered successfully');
-              logger.log('[TG-BackButton] BackButton.isVisible:', tg.BackButton.isVisible);
+              logger.log('[TG-BackButton] BackButton.isVisible:', tg.BackButton?.isVisible);
               
               // CRITICAL: Show back button after handler is registered
               // This ensures button is visible and ready to receive clicks
               updateBackButton();
               
+              // Also update button visibility periodically (for multi-page apps)
+              setTimeout(updateBackButton, 500);
+              setTimeout(updateBackButton, 1000);
+              
+              // CRITICAL: Expose test function for debugging
+              win.testBackButton = function() {
+                logger.log('[TG-BackButton] Test function called');
+                logger.log('[TG-BackButton] BackButton available:', !!tg.BackButton);
+                logger.log('[TG-BackButton] BackButton.isVisible:', tg.BackButton?.isVisible);
+                logger.log('[TG-BackButton] Current path:', win.location.pathname);
+                logger.log('[TG-BackButton] isFirstPage:', isFirstPage());
+                logger.log('[TG-BackButton] History length:', win.history.length);
+                logger.log('[TG-BackButton] Can go back:', canGoBack());
+                
+                // Test handler call
+                if (tg.BackButton) {
+                  logger.log('[TG-BackButton] Testing handler call...');
+                  try {
+                    handleBackClick();
+                  } catch (e) {
+                    logger.error('[TG-BackButton] Test handler error:', e);
+                  }
+                }
+              };
+              
+              // Monitor scroll position to show/hide button
+              const scrollable = doc.getElementById('main-content') || doc.documentElement;
+              let scrollTimeout;
+              
+              scrollable.addEventListener('scroll', () => {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(updateBackButton, 100);
+              }, { passive: true });
+              
+              // Monitor popstate for history changes
+              win.addEventListener('popstate', (e) => {
+                logger.log('[TG-BackButton] popstate event fired:', {
+                  pathname: win.location.pathname,
+                  historyLength: win.history.length,
+                  state: win.history.state
+                });
+                setTimeout(updateBackButton, 100);
+              });
+              
+              // Monitor location changes (for navigation between pages)
+              // CRITICAL: Track history length to detect if history is created properly
+              let currentPath = win.location.pathname;
+              let currentHistoryLength = win.history.length;
+              
+              // Log initial state
+              logger.log('[TG-BackButton] Initial state:', {
+                pathname: currentPath,
+                historyLength: currentHistoryLength
+              });
+              
+              const checkPathChange = () => {
+                const newPath = win.location.pathname;
+                const newHistoryLength = win.history.length;
+                
+                if (newPath !== currentPath) {
+                  logger.log('[TG-BackButton] Path changed:', {
+                    from: currentPath,
+                    to: newPath,
+                    historyLengthBefore: currentHistoryLength,
+                    historyLengthAfter: newHistoryLength,
+                    historyCreated: newHistoryLength > currentHistoryLength
+                  });
+                  
+                  // CRITICAL: Check if history was created properly
+                  // If history.length didn't increase, navigation used location.href instead of <a href>
+                  if (newHistoryLength <= currentHistoryLength) {
+                    logger.warn('[TG-BackButton] ⚠️ WARNING: History length did not increase!');
+                    logger.warn('[TG-BackButton] This suggests navigation used location.href instead of <a href>');
+                    logger.warn('[TG-BackButton] history.back() may not work correctly');
+                    logger.warn('[TG-BackButton] Solution: Ensure all internal links use <a href> tags, not location.href');
+                  } else {
+                    logger.log('[TG-BackButton] ✅ History created successfully - history.back() should work');
+                  }
+                  
+                  currentPath = newPath;
+                  currentHistoryLength = newHistoryLength;
+                  updateBackButton();
+                }
+              };
+              
+              // Check path changes periodically (for SPA-like navigation)
+              setInterval(checkPathChange, 500);
+              
+              // Initial check with delay to ensure WebApp is fully initialized
+              setTimeout(() => {
+                logger.log('[TG-BackButton] Initial updateBackButton call');
+                updateBackButton();
+              }, 1000);
+              
+              // Update on viewport changes
+              win.addEventListener('resize', () => {
+                setTimeout(updateBackButton, 100);
+              });
+              
             } catch (error) {
-              logger.error('[TG-BackButton] Failed to register onClick handler:', error);
+              logger.error('[TG-BackButton] Failed to register handler:', error);
               logger.error('[TG-BackButton] Error details:', error.message, error.stack);
             }
-            
-            // CRITICAL: Expose test function for debugging
-            win.testBackButton = function() {
-              logger.log('[TG-BackButton] Test function called');
-              logger.log('[TG-BackButton] BackButton available:', !!tg.BackButton);
-              logger.log('[TG-BackButton] BackButton.isVisible:', tg.BackButton?.isVisible);
-              logger.log('[TG-BackButton] Current path:', win.location.pathname);
-              logger.log('[TG-BackButton] isFirstPage:', isFirstPage());
-              logger.log('[TG-BackButton] History length:', win.history.length);
-              logger.log('[TG-BackButton] Can go back:', canGoBack());
-              
-              // Test handler call
-              if (tg.BackButton) {
-                logger.log('[TG-BackButton] Testing handler call...');
-                try {
-                  handleBackClick();
-                } catch (e) {
-                  logger.error('[TG-BackButton] Test handler error:', e);
-                }
-              }
-            };
-            
-            // Monitor scroll position to show/hide button
-            const scrollable = doc.getElementById('main-content') || doc.documentElement;
-            let scrollTimeout;
-            
-            scrollable.addEventListener('scroll', () => {
-              clearTimeout(scrollTimeout);
-              scrollTimeout = setTimeout(updateBackButton, 100);
-            }, { passive: true });
-            
-            // Monitor popstate for history changes
-            win.addEventListener('popstate', (e) => {
-              logger.log('[TG-BackButton] popstate event fired:', win.location.pathname);
-              setTimeout(updateBackButton, 100);
-            });
-            
-            // Monitor location changes (for navigation between pages)
-            let currentPath = win.location.pathname;
-            const checkPathChange = () => {
-              const newPath = win.location.pathname;
-              if (newPath !== currentPath) {
-                logger.log('[TG-BackButton] Path changed:', currentPath, '->', newPath);
-                currentPath = newPath;
-                updateBackButton();
-              }
-            };
-            
-            // Check path changes periodically (for SPA-like navigation)
-            setInterval(checkPathChange, 500);
-            
-            // Initial check with delay to ensure WebApp is fully initialized
-            setTimeout(() => {
-              logger.log('[TG-BackButton] Initial updateBackButton call');
-              updateBackButton();
-            }, 1000);
-            
-            // Update on viewport changes
-            win.addEventListener('resize', () => {
-              setTimeout(updateBackButton, 100);
-            });
+          }
+          
+          // NOTE: setupBackButtonHandler is already called with delay above (after ready/expand)
+          // This duplicate call is removed to avoid double initialization
           }
         } catch (e) {
           logger.warn('[TG-BackButton] Error:', e);
@@ -843,9 +1007,21 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                     mainContent.style.opacity = '0';
                   }
                 }
-                // Allow normal navigation (stay in WebApp)
+                // CRITICAL FIX: Allow normal navigation (stay in WebApp)
+                // DO NOT use location.href - it doesn't create proper history
+                // Instead, update href and let browser handle navigation naturally
                 this.href = urlWithUtm;
+                
+                // Log navigation for debugging
+                logger.log('[Navigation] CTA link clicked:', {
+                  href: urlWithUtm,
+                  willCreateHistory: true,
+                  currentHistoryLength: win.history.length,
+                  currentPath: win.location.pathname
+                });
+                
                 // Don't prevent default - let browser handle internal navigation
+                // This ensures history.back() will work correctly
                 return;
               } else {
                 // External link in Telegram
@@ -888,10 +1064,22 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                     mainContent.style.opacity = '0';
                   }
                 }
-                // Open in same tab (normal navigation)
+                // CRITICAL FIX: Open in same tab (normal navigation)
+                // DO NOT use location.href - it doesn't create proper history
+                // Instead, update href and let browser handle navigation naturally
                 this.href = urlWithUtm;
                 this.target = '_self';
+                
+                // Log navigation for debugging
+                logger.log('[Navigation] Internal link clicked (browser):', {
+                  href: urlWithUtm,
+                  willCreateHistory: true,
+                  currentHistoryLength: win.history.length,
+                  currentPath: win.location.pathname
+                });
+                
                 // Don't prevent default - let browser handle navigation normally
+                // This ensures history.back() will work correctly
               } else {
                 // External link - open in new tab
                 e.preventDefault();
@@ -982,6 +1170,23 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           
           // CRITICAL FIX: Don't prevent default on internal links - let browser handle navigation normally
           // This ensures browser history is created correctly for history.back() to work
+          // 
+          // IMPORTANT: We show loading screen but DO NOT call e.preventDefault()
+          // This allows the browser to:
+          // 1. Create proper history entry
+          // 2. Navigate normally using <a href> behavior
+          // 3. Allow history.back() to work correctly
+          //
+          // If we used location.href or prevented default, history would NOT be created properly
+          
+          // Log navigation for debugging
+          logger.log('[Navigation] Internal link clicked:', {
+            href: href,
+            willCreateHistory: true,
+            currentHistoryLength: win.history.length,
+            currentPath: win.location.pathname
+          });
+          
           // Use capture phase to run before other handlers, but don't interfere with navigation
         }, true); // Use capture phase to run before other handlers
       }
