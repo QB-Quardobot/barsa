@@ -433,11 +433,16 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
     console.log('[TG-BackButton] TEST: About to load main script');
   </script>
   
+  <!-- CRITICAL DEBUG: ABSOLUTE MINIMUM TEST SCRIPT (separate) -->
+  <script is:inline>
+    console.log('[TG-BackButton] TEST: MINIMAL SCRIPT STARTED - SEPARATE TAG');
+  </script>
+  
   <!-- Initialize UTM, Telegram WebApp and CTA links (consolidated) -->
   <script is:inline>
     // CRITICAL DEBUG: ABSOLUTE MINIMUM TEST
     // If this doesn't appear, the script tag itself has a syntax error
-    console.log('[TG-BackButton] TEST: MINIMAL SCRIPT STARTED');
+    console.log('[TG-BackButton] TEST: MINIMAL SCRIPT STARTED - MAIN TAG');
     
     // Try to create IIFE
     (function() {
@@ -1705,8 +1710,98 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           }
         }
         
-        // Setup haptics for interactive elements (excluding CTA links - handled separately)
+        // Setup haptics for interactive elements (needed for BackButton)
         const haptics = tg.HapticFeedback;
+        
+        // CRITICAL: Setup BackButton HERE (in body script where everything works)
+        // This is moved from head script because head script doesn't execute
+        console.log('[TG-BackButton] TEST: Setting up BackButton in body script');
+        hapticLogger.log('[TG-BackButton] Setting up BackButton in body script (where fullscreen works)');
+        
+        if (tg.BackButton) {
+          try {
+            // Setup BackButton handler
+            function handleBackClick() {
+              console.log('[TG-BackButton] handleBackClick() called from body script');
+              hapticLogger.log('[TG-BackButton] handleBackClick() called');
+              
+              // Check for modals first
+              if (typeof win.isCurrencyModalOpen === 'function' && win.isCurrencyModalOpen()) {
+                if (typeof win.closeCurrencyModal === 'function') {
+                  win.closeCurrencyModal();
+                  if (haptics) haptics.impactOccurred('light');
+                  return;
+                }
+              }
+              
+              if (typeof win.isPhotoModalOpen === 'function' && win.isPhotoModalOpen()) {
+                if (typeof win.closePhotoModal === 'function') {
+                  win.closePhotoModal();
+                  if (haptics) haptics.impactOccurred('light');
+                  return;
+                }
+              }
+              
+              // Check if on second page
+              const pathname = win.location.pathname;
+              const isFirstPage = pathname === '/' || pathname === '/index.html' || pathname.endsWith('/index');
+              
+              if (!isFirstPage) {
+                console.log('[TG-BackButton] Not on first page, calling history.back()');
+                hapticLogger.log('[TG-BackButton] Not on first page, calling history.back()');
+                
+                // Clear sessionStorage asynchronously
+                if (typeof sessionStorage !== 'undefined') {
+                  setTimeout(() => {
+                    sessionStorage.removeItem('showLoadingScreen');
+                  }, 0);
+                }
+                
+                win.history.back();
+                if (haptics) haptics.impactOccurred('light');
+                return;
+              }
+              
+              // On first page, scroll to top if scrolled
+              const mainContent = doc.getElementById('main-content');
+              const scrollable = mainContent || doc.documentElement;
+              const scrollTop = scrollable.scrollTop || 0;
+              
+              if (scrollTop > 100) {
+                console.log('[TG-BackButton] Scrolling to top');
+                hapticLogger.log('[TG-BackButton] Scrolling to top');
+                scrollable.scrollTo({ top: 0, behavior: 'smooth' });
+                if (haptics) haptics.impactOccurred('light');
+                return;
+              }
+              
+              // Last resort: show close confirmation
+              console.log('[TG-BackButton] Showing close confirmation');
+              hapticLogger.log('[TG-BackButton] Showing close confirmation');
+              if (haptics) haptics.impactOccurred('medium');
+              tg.showConfirm?.('Закрыть приложение?', (ok) => {
+                if (ok) {
+                  if (haptics) haptics.impactOccurred('heavy');
+                  tg.close();
+                }
+              });
+            }
+            
+            // Show button and register handler
+            tg.BackButton.show();
+            tg.BackButton.onClick(handleBackClick);
+            console.log('[TG-BackButton] BackButton setup complete in body script');
+            hapticLogger.log('[TG-BackButton] BackButton setup complete in body script');
+          } catch (e) {
+            console.error('[TG-BackButton] Error setting up BackButton in body script:', e);
+            hapticLogger.error('[TG-BackButton] Error setting up BackButton:', e);
+          }
+        } else {
+          console.warn('[TG-BackButton] BackButton not available in body script');
+          hapticLogger.warn('[TG-BackButton] BackButton not available');
+        }
+        
+        // Setup haptics for interactive elements (excluding CTA links - handled separately)
         const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         
         // Always setup haptics if available (even if not touch device - for desktop Telegram)
