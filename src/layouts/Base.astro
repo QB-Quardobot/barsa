@@ -78,148 +78,6 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   <!-- Critical CSS - Inline for fastest first paint (loads before global.css) -->
   <style set:html={criticalCSS} />
   
-  <!-- TEMPORARY: Early console interception for BackButton debug (will be removed later) -->
-  <!-- This MUST run before any other scripts to capture all logs -->
-  <script is:inline>
-    (function() {
-      'use strict';
-      
-      // CRITICAL DEBUG: Log that early interception script is executing
-      // These logs should ALWAYS appear, even if script fails later
-      try {
-        console.log('[TG-BackButton] TEST: Early interception script STARTED');
-        console.log('[TG-BackButton] TEST: document.readyState at start:', document.readyState);
-        console.log('[TG-BackButton] TEST: window object available:', typeof window !== 'undefined');
-        console.log('[TG-BackButton] TEST: document object available:', typeof document !== 'undefined');
-      } catch (e) {
-        // If even console.log fails, something is very wrong
-        // Use alert as last resort
-        if (typeof alert !== 'undefined') {
-          alert('Early script error: ' + e.message);
-        }
-      }
-      
-      // Create debug log storage BEFORE any scripts run
-      window._backbuttonDebugLogs = window._backbuttonDebugLogs || [];
-      
-      // Add initial test log to storage
-      window._backbuttonDebugLogs.push({
-        timestamp: new Date().toLocaleTimeString('ru-RU', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 }),
-        message: '[TG-BackButton] TEST: Early interception script initialized',
-        type: 'success'
-      });
-      
-      // Intercept console methods IMMEDIATELY (before any other scripts)
-      const originalConsoleLog = console.log;
-      const originalConsoleWarn = console.warn;
-      const originalConsoleError = console.error;
-      
-      function addDebugLog(message, type) {
-        type = type || 'info';
-        const timestamp = new Date().toLocaleTimeString('ru-RU', { 
-          hour12: false, 
-          hour: '2-digit', 
-          minute: '2-digit', 
-          second: '2-digit',
-          fractionalSecondDigits: 3
-        });
-        
-        window._backbuttonDebugLogs.push({
-          timestamp: timestamp,
-          message: String(message),
-          type: type
-        });
-        
-        // Limit logs
-        if (window._backbuttonDebugLogs.length > 200) {
-          window._backbuttonDebugLogs.shift();
-        }
-      }
-      
-      console.log = function(...args) {
-        const message = args.map(function(a) { 
-          return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); 
-        }).join(' ');
-        
-        // Check for [TG-BackButton] prefix
-        if (message.includes('[TG-BackButton]')) {
-          addDebugLog(message, 'info');
-        }
-        
-        originalConsoleLog.apply(console, args);
-      };
-      
-      console.warn = function(...args) {
-        const message = args.map(function(a) { 
-          return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); 
-        }).join(' ');
-        
-        if (message.includes('[TG-BackButton]')) {
-          addDebugLog(message, 'warn');
-        }
-        
-        originalConsoleWarn.apply(console, args);
-      };
-      
-      console.error = function(...args) {
-        const message = args.map(function(a) { 
-          return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); 
-        }).join(' ');
-        
-        if (message.includes('[TG-BackButton]')) {
-          addDebugLog(message, 'error');
-        }
-        
-        originalConsoleError.apply(console, args);
-      };
-      
-      // Also intercept window.logger when it's created
-      Object.defineProperty(window, 'logger', {
-        set: function(value) {
-          this._logger = value;
-          if (value && typeof value.log === 'function') {
-            const originalLog = value.log;
-            const originalWarn = value.warn;
-            const originalError = value.error;
-            
-            value.log = function(...args) {
-              const message = args.map(function(a) { 
-                return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); 
-              }).join(' ');
-              if (message.includes('[TG-BackButton]')) {
-                addDebugLog(message, 'info');
-              }
-              originalLog.apply(value, args);
-            };
-            
-            value.warn = function(...args) {
-              const message = args.map(function(a) { 
-                return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); 
-              }).join(' ');
-              if (message.includes('[TG-BackButton]')) {
-                addDebugLog(message, 'warn');
-              }
-              originalWarn.apply(value, args);
-            };
-            
-            value.error = function(...args) {
-              const message = args.map(function(a) { 
-                return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); 
-              }).join(' ');
-              if (message.includes('[TG-BackButton]')) {
-                addDebugLog(message, 'error');
-              }
-              originalError.apply(value, args);
-            };
-          }
-        },
-        get: function() {
-          return this._logger;
-        }
-      });
-    })();
-  </script>
-  
   <!-- CRITICAL: Blocking script to hide content IMMEDIATELY if navigating -->
   <!-- This MUST run before any content renders to prevent flash -->
   <!-- This script has HIGHEST priority and runs before critical.css applies -->
@@ -386,7 +244,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   </style>
   
   <!-- Telegram WebApp API - loads synchronously BEFORE inline scripts -->
-  <script is:inline src="https://telegram.org/js/telegram-web-app.js" onerror="console.error('[TG-BackButton] TEST: Telegram WebApp API script failed to load:', this.src);" onload="console.log('[TG-BackButton] TEST: Telegram WebApp API script loaded successfully');"></script>
+  <script is:inline src="https://telegram.org/js/telegram-web-app.js"></script>
   
   <!-- JSON-LD Schema -->
   <script type="application/ld+json" set:html={JSON.stringify({
@@ -405,69 +263,20 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       name: 'AI Model 2.0',
       url: Astro.url.origin
     }
-  })} onerror="console.error('[TG-BackButton] TEST: JSON-LD Schema script error');" onload="console.log('[TG-BackButton] TEST: JSON-LD Schema script loaded');"></script>
-  
-  <!-- CRITICAL DEBUG: Test script execution between JSON-LD and UTM -->
-  <script is:inline>
-    console.log('[TG-BackButton] TEST: Script between JSON-LD and UTM executing');
-  </script>
+  })}></script>
   
   <!-- Pass UTM params to client -->
   <script is:inline set:html={`
-    // CRITICAL DEBUG: Test if this script executes
-    console.log('[TG-BackButton] TEST: UTM params script executing (inline JSON)');
-    
-    // Set UTM params as JSON (inline, safe)
     try {
       window.utmParams = ${JSON.stringify(utmParams)};
-      console.log('[TG-BackButton] TEST: UTM params set successfully:', window.utmParams);
     } catch (e) {
-      console.error('[TG-BackButton] TEST: Error setting UTM params:', e);
       window.utmParams = {};
     }
   `}></script>
   
-  <!-- CRITICAL DEBUG: Test script execution between UTM and main script -->
-  <script is:inline>
-    console.log('[TG-BackButton] TEST: Script between UTM and main script executing');
-    console.log('[TG-BackButton] TEST: About to load main script');
-  </script>
-  
-  <!-- CRITICAL DEBUG: ABSOLUTE MINIMUM TEST SCRIPT (separate) -->
-  <script is:inline>
-    console.log('[TG-BackButton] TEST: MINIMAL SCRIPT STARTED - SEPARATE TAG');
-  </script>
-  
   <!-- Initialize UTM, Telegram WebApp and CTA links (consolidated) -->
   <script is:inline>
-    // CRITICAL DEBUG: ABSOLUTE MINIMUM TEST
-    // If this doesn't appear, the script tag itself has a syntax error
-    console.log('[TG-BackButton] TEST: MINIMAL SCRIPT STARTED - MAIN TAG');
-    
-    // Try to create IIFE
     (function() {
-      console.log('[TG-BackButton] TEST: MINIMAL IIFE STARTED');
-      console.log('[TG-BackButton] TEST: Script tag STARTED (before main IIFE)');
-      console.log('[TG-BackButton] TEST: document.readyState before IIFE:', document.readyState);
-      console.log('[TG-BackButton] TEST: Telegram script loaded:', typeof window.Telegram !== 'undefined');
-      console.log('[TG-BackButton] TEST: Telegram.WebApp available:', typeof window.Telegram !== 'undefined' && typeof window.Telegram.WebApp !== 'undefined');
-    })();
-    
-    // Now the main IIFE
-    (function() {
-      // CRITICAL DEBUG: Log immediately when script starts executing
-      // Wrap in try-catch to ensure we see if there's an error
-      try {
-        console.log('[TG-BackButton] TEST: Script in head STARTED executing (inside IIFE)');
-        console.log('[TG-BackButton] TEST: document.readyState:', document.readyState);
-        console.log('[TG-BackButton] TEST: window.loaded:', document.readyState === 'complete');
-        console.log('[TG-BackButton] TEST: Telegram.WebApp available:', typeof window.Telegram !== 'undefined' && typeof window.Telegram.WebApp !== 'undefined');
-        console.log('[TG-BackButton] TEST: window object:', typeof window);
-        console.log('[TG-BackButton] TEST: document object:', typeof document);
-      } catch (e) {
-        console.error('[TG-BackButton] TEST: Error at start of IIFE:', e);
-        console.error('[TG-BackButton] TEST: Error stack:', e.stack);
-      }
       
       const win = window;
       const doc = document;
@@ -495,8 +304,6 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         }
       };
       
-      // CRITICAL DEBUG: Log that logger was created
-      console.log('[TG-BackButton] TEST: Logger created, isDev:', isDev);
       
       // Cleanup registry
       const cleanupFunctions = [];
@@ -540,17 +347,10 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
 
       // Initialize Telegram WebApp
       function initTelegramWebApp() {
-        // CRITICAL DEBUG: Test if function is called at all
-        console.log('[TG-BackButton] TEST: initTelegramWebApp() function called');
-        logger.log('[TG-BackButton] TEST: initTelegramWebApp() function called via logger');
-        
         try {
           logger.log('[TG-Init] Function called');
-          console.log('[TG-Init] Function called (console)');
           
         tg = win.Telegram?.WebApp;
-        console.log('[TG-BackButton] TEST: Telegram.WebApp available:', !!tg);
-        logger.log('[TG-BackButton] TEST: Telegram.WebApp available:', !!tg);
         
         if (!tg) {
             logger.log('[TG-Init] WebApp not available - running in browser');
@@ -570,12 +370,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           tg.expand();
           
           logger.log('[TG-Init] Calling enableClosingConfirmation()...');
-          console.log('[TG-Init] Calling enableClosingConfirmation()... (console)');
           tg.enableClosingConfirmation();
-          
-          // CRITICAL DEBUG: Log that we're about to setup BackButton
-          console.log('[TG-BackButton] TEST: About to setup BackButton after expand()');
-          logger.log('[TG-BackButton] TEST: About to setup BackButton after expand()');
           
           // Bot API 7.7+: Disable vertical swipes to prevent accidental closing
           if (typeof tg.disableVerticalSwipes === 'function') {
@@ -1369,25 +1164,10 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       // NOTE: Dynamic import() is not available in inline scripts, disabled for now
       
       // Main initialization - fast and simple
-      // CRITICAL: Expose init() globally for fallback calls from body script
       function init() {
-        // CRITICAL DEBUG: Test if init() is called
-        console.log('[TG-BackButton] TEST: init() function called');
-        logger.log('[TG-BackButton] TEST: init() function called');
-        
-        // Expose init() globally for fallback calls from body script
-        win.init = init;
-        
         try {
           logger.log('[Init] Running initialization...');
-          console.log('[Init] Running initialization... (console)');
-          
-          console.log('[TG-BackButton] TEST: About to call initTelegramWebApp()');
-          logger.log('[TG-BackButton] TEST: About to call initTelegramWebApp()');
           initTelegramWebApp();
-          
-          console.log('[TG-BackButton] TEST: initTelegramWebApp() returned');
-          logger.log('[TG-BackButton] TEST: initTelegramWebApp() returned');
           
           initAnalytics();
           setupCTALinks();
@@ -1400,12 +1180,9 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         }
       }
 
-      // ALWAYS use window.load to ensure everything is ready (like test page)
+      // ALWAYS use window.load to ensure everything is ready
       const loadHandler = function() {
-        console.log('[TG-BackButton] TEST: window.load event fired');
-        logger.log('[TG-BackButton] TEST: window.load event fired');
         logger.log('[Init] window.load event - starting init');
-        console.log('[Init] window.load event - starting init (console)');
         try {
           init();
         } catch (error) {
@@ -1414,59 +1191,19 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         }
       };
       
-      console.log('[TG-BackButton] TEST: Adding window.load event listener');
-      logger.log('[TG-BackButton] TEST: Adding window.load event listener');
-      
-      // CRITICAL FIX: Check if page is already loaded
-      // If document.readyState is 'complete', window.load already fired
-      // In this case, execute init() immediately
+      // Check if page is already loaded
       if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        console.log('[TG-BackButton] TEST: Page already loaded, executing init() immediately');
-        logger.log('[TG-BackButton] TEST: Page already loaded, executing init() immediately');
-        console.log('[TG-BackButton] TEST: document.readyState:', document.readyState);
-        
-        // Use setTimeout to ensure DOM is ready
         setTimeout(function() {
-          console.log('[TG-BackButton] TEST: setTimeout callback executing init()');
-          logger.log('[TG-BackButton] TEST: setTimeout callback executing init()');
           try {
             init();
           } catch (error) {
             logger.error('[Init] Immediate init error:', error);
-            console.error('[Init] Immediate init error (console):', error);
           }
         }, 0);
       } else {
-        console.log('[TG-BackButton] TEST: Page not loaded yet, waiting for window.load');
-        logger.log('[TG-BackButton] TEST: Page not loaded yet, waiting for window.load');
+        win.addEventListener('load', loadHandler);
+        registerCleanup(function() { win.removeEventListener('load', loadHandler); });
       }
-      
-      win.addEventListener('load', loadHandler);
-      registerCleanup(function() { win.removeEventListener('load', loadHandler); });
-      
-      // CRITICAL DEBUG: Fallback check after 500ms if Telegram is available
-      // This ensures init() runs even if window.load doesn't fire
-      setTimeout(function() {
-        console.log('[TG-BackButton] TEST: Fallback setTimeout (500ms) - checking Telegram');
-        logger.log('[TG-BackButton] TEST: Fallback setTimeout (500ms) - checking Telegram');
-        console.log('[TG-BackButton] TEST: Telegram available:', typeof win.Telegram !== 'undefined');
-        console.log('[TG-BackButton] TEST: Telegram.WebApp available:', typeof win.Telegram !== 'undefined' && typeof win.Telegram.WebApp !== 'undefined');
-        console.log('[TG-BackButton] TEST: document.readyState in fallback:', document.readyState);
-        
-        if (typeof win.Telegram !== 'undefined' && win.Telegram.WebApp) {
-          console.log('[TG-BackButton] TEST: Telegram.WebApp found in fallback, trying init()');
-          logger.log('[TG-BackButton] TEST: Telegram.WebApp found in fallback, trying init()');
-          try {
-            init();
-          } catch (error) {
-            console.error('[TG-BackButton] TEST: Fallback init error:', error);
-            logger.error('[TG-BackButton] TEST: Fallback init error:', error);
-          }
-        } else {
-          console.log('[TG-BackButton] TEST: Telegram.WebApp NOT found in fallback');
-          logger.log('[TG-BackButton] TEST: Telegram.WebApp NOT found in fallback');
-        }
-      }, 500);
     })();
   </script>
 </head>
@@ -1483,30 +1220,9 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
     <slot />
   </main>
   
-  <!-- TEMPORARY: BackButton Debug Panel (will be removed later) -->
-  <div id="backbutton-debug-panel" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0, 0, 0, 0.95); color: #0f0; font-family: 'Courier New', monospace; font-size: 11px; z-index: 999999; max-height: 50vh; border-top: 2px solid #0f0; box-shadow: 0 -4px 20px rgba(0, 255, 0, 0.3); user-select: text; -webkit-user-select: text; touch-action: pan-y;">
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(0, 50, 0, 0.5); border-bottom: 1px solid #0f0; flex-wrap: wrap; gap: 8px;">
-      <strong style="color: #0ff; font-size: 12px; user-select: none;">🔧 BackButton Debug Panel</strong>
-      <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-        <button id="backbutton-debug-copy" style="background: #008; color: #fff; border: 1px solid #0ff; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 11px; min-height: 32px; touch-action: manipulation;">📋 Copy Logs</button>
-        <button id="backbutton-debug-clear" style="background: #800; color: #fff; border: 1px solid #f00; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 11px; min-height: 32px; touch-action: manipulation;">🗑️ Clear</button>
-        <button id="backbutton-debug-toggle" style="background: #080; color: #fff; border: 1px solid #0f0; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 11px; min-height: 32px; touch-action: manipulation;">▼ Hide</button>
-      </div>
-    </div>
-    <div id="backbutton-debug-content" style="padding: 8px 12px; max-height: calc(50vh - 50px); overflow-y: auto; overflow-x: hidden; line-height: 1.5; word-wrap: break-word; -webkit-overflow-scrolling: touch;">
-      <div style="color: #0ff; margin-bottom: 8px;">Waiting for logs...</div>
-    </div>
-  </div>
-  
   <!-- Telegram WebApp initialization script - MUST be at end of body -->
   <script is:inline>
-    // CRITICAL DEBUG: Test if body script executes
-    console.log('[TG-BackButton] TEST: Body script STARTED executing');
-    console.log('[TG-BackButton] TEST: document.readyState in body:', document.readyState);
-    console.log('[TG-BackButton] TEST: Telegram available in body:', typeof window.Telegram !== 'undefined');
-    
     (function() {
-      console.log('[TG-BackButton] TEST: Body script IIFE STARTED');
       const win = window;
       const doc = document;
       
@@ -1713,16 +1429,11 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         // Setup haptics for interactive elements (needed for BackButton)
         const haptics = tg.HapticFeedback;
         
-        // CRITICAL: Setup BackButton HERE (in body script where everything works)
-        // This is moved from head script because head script doesn't execute
-        console.log('[TG-BackButton] TEST: Setting up BackButton in body script');
-        hapticLogger.log('[TG-BackButton] Setting up BackButton in body script (where fullscreen works)');
-        
+        // Setup BackButton (in body script where everything works)
         if (tg.BackButton) {
           try {
             // Setup BackButton handler
             function handleBackClick() {
-              console.log('[TG-BackButton] handleBackClick() called from body script');
               hapticLogger.log('[TG-BackButton] handleBackClick() called');
               
               // Check for modals first
@@ -1747,7 +1458,6 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               const isFirstPage = pathname === '/' || pathname === '/index.html' || pathname.endsWith('/index');
               
               if (!isFirstPage) {
-                console.log('[TG-BackButton] Not on first page, calling history.back()');
                 hapticLogger.log('[TG-BackButton] Not on first page, calling history.back()');
                 
                 // Clear sessionStorage asynchronously
@@ -1768,7 +1478,6 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               const scrollTop = scrollable.scrollTop || 0;
               
               if (scrollTop > 100) {
-                console.log('[TG-BackButton] Scrolling to top');
                 hapticLogger.log('[TG-BackButton] Scrolling to top');
                 scrollable.scrollTo({ top: 0, behavior: 'smooth' });
                 if (haptics) haptics.impactOccurred('light');
@@ -1776,7 +1485,6 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               }
               
               // Last resort: show close confirmation
-              console.log('[TG-BackButton] Showing close confirmation');
               hapticLogger.log('[TG-BackButton] Showing close confirmation');
               if (haptics) haptics.impactOccurred('medium');
               tg.showConfirm?.('Закрыть приложение?', (ok) => {
@@ -1790,15 +1498,10 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             // Show button and register handler
             tg.BackButton.show();
             tg.BackButton.onClick(handleBackClick);
-            console.log('[TG-BackButton] BackButton setup complete in body script');
-            hapticLogger.log('[TG-BackButton] BackButton setup complete in body script');
+            hapticLogger.log('[TG-BackButton] BackButton setup complete');
           } catch (e) {
-            console.error('[TG-BackButton] Error setting up BackButton in body script:', e);
             hapticLogger.error('[TG-BackButton] Error setting up BackButton:', e);
           }
-        } else {
-          console.warn('[TG-BackButton] BackButton not available in body script');
-          hapticLogger.warn('[TG-BackButton] BackButton not available');
         }
         
         // Setup haptics for interactive elements (excluding CTA links - handled separately)
@@ -2152,282 +1855,6 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       overflow-scrolling: touch;
     }
   </style>
-  
-  <!-- TEMPORARY: BackButton Debug Panel Script (will be removed later) -->
-  <script is:inline>
-    (function() {
-      'use strict';
-      
-      const panel = document.getElementById('backbutton-debug-panel');
-      const content = document.getElementById('backbutton-debug-content');
-      const copyBtn = document.getElementById('backbutton-debug-copy');
-      const clearBtn = document.getElementById('backbutton-debug-clear');
-      const toggleBtn = document.getElementById('backbutton-debug-toggle');
-      
-      if (!panel || !content) return;
-      
-      // Show panel immediately
-      panel.style.display = 'block';
-      
-      const logs = [];
-      const maxLogs = 200; // Limit to prevent memory issues
-      let isCollapsed = false;
-      
-      // Function to add log entry
-      function addLog(message, type) {
-        type = type || 'info';
-        const timestamp = new Date().toLocaleTimeString('ru-RU', { 
-          hour12: false, 
-          hour: '2-digit', 
-          minute: '2-digit', 
-          second: '2-digit',
-          fractionalSecondDigits: 3
-        });
-        
-        const colors = {
-          info: '#0f0',
-          success: '#0ff',
-          warn: '#ff0',
-          error: '#f00',
-          event: '#f0f'
-        };
-        
-        const color = colors[type] || colors.info;
-        const icon = type === 'error' ? '❌' : type === 'warn' ? '⚠️' : type === 'success' ? '✅' : type === 'event' ? '🔔' : 'ℹ️';
-        
-        const logEntry = {
-          timestamp,
-          message: String(message),
-          type,
-          color,
-          icon
-        };
-        
-        logs.push(logEntry);
-        
-        // Limit logs
-        if (logs.length > maxLogs) {
-          logs.shift();
-        }
-        
-        updateDisplay();
-      }
-      
-      // Update display
-      function updateDisplay() {
-        if (isCollapsed) return;
-        
-        const recentLogs = logs.slice(-50); // Show last 50 logs
-        content.innerHTML = recentLogs.map(function(log) {
-          return '<div style="color: ' + log.color + '; margin-bottom: 2px; padding: 2px 0; border-bottom: 1px solid rgba(0,255,0,0.1);">' +
-            '<span style="color: #888; font-size: 9px;">[' + log.timestamp + ']</span> ' + log.icon + ' ' + log.message +
-          '</div>';
-        }).join('');
-        
-        // Auto-scroll to bottom
-        content.scrollTop = content.scrollHeight;
-      }
-      
-      // Copy logs to clipboard
-      function copyLogs() {
-        try {
-          const logText = logs.map(function(log) {
-            return '[' + log.timestamp + '] ' + log.icon + ' ' + log.message;
-          }).join('\n');
-          
-          // Use Clipboard API (modern browsers)
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(logText).then(function() {
-              copyBtn.textContent = '✅ Copied!';
-              copyBtn.style.background = '#080';
-              setTimeout(function() {
-                copyBtn.textContent = '📋 Copy Logs';
-                copyBtn.style.background = '#008';
-              }, 2000);
-            }).catch(function(err) {
-              console.error('Failed to copy logs:', err);
-              copyBtn.textContent = '❌ Error';
-              copyBtn.style.background = '#800';
-              setTimeout(function() {
-                copyBtn.textContent = '📋 Copy Logs';
-                copyBtn.style.background = '#008';
-              }, 2000);
-            });
-            return;
-          } else {
-            // Fallback for older browsers
-            const textarea = document.createElement('textarea');
-            textarea.value = logText;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            copyBtn.textContent = '✅ Copied!';
-            copyBtn.style.background = '#080';
-            setTimeout(function() {
-              copyBtn.textContent = '📋 Copy Logs';
-              copyBtn.style.background = '#008';
-            }, 2000);
-          }
-        } catch (err) {
-          console.error('Failed to copy logs:', err);
-          copyBtn.textContent = '❌ Error';
-          copyBtn.style.background = '#800';
-          setTimeout(function() {
-            copyBtn.textContent = '📋 Copy Logs';
-            copyBtn.style.background = '#008';
-          }, 2000);
-        }
-      }
-      
-      // Clear logs
-      function clearLogs() {
-        logs.length = 0;
-        content.innerHTML = '<div style="color: #0ff;">Logs cleared...</div>';
-      }
-      
-      // Toggle collapse
-      function toggleCollapse() {
-        isCollapsed = !isCollapsed;
-        if (isCollapsed) {
-          content.style.display = 'none';
-          toggleBtn.textContent = '▲ Show';
-          panel.style.maxHeight = '50px';
-        } else {
-          content.style.display = 'block';
-          toggleBtn.textContent = '▼ Hide';
-          panel.style.maxHeight = '50vh';
-          updateDisplay();
-        }
-      }
-      
-      // Event listeners
-      copyBtn.addEventListener('click', copyLogs);
-      clearBtn.addEventListener('click', clearLogs);
-      toggleBtn.addEventListener('click', toggleCollapse);
-      
-      // Load logs from early interception (before this script ran)
-      if (window._backbuttonDebugLogs && window._backbuttonDebugLogs.length > 0) {
-        window._backbuttonDebugLogs.forEach(function(log) {
-          addLog(log.message, log.type);
-        });
-        addLog('Loaded ' + window._backbuttonDebugLogs.length + ' logs from early interception', 'success');
-      }
-      
-      // Continue intercepting new logs
-      // Intercept logger calls for [TG-BackButton] prefix
-      const originalLogger = window.logger;
-      if (originalLogger) {
-        const originalLog = originalLogger.log;
-        const originalWarn = originalLogger.warn;
-        const originalError = originalLogger.error;
-        
-        originalLogger.log = function(...args) {
-          const message = args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ');
-          if (message.includes('[TG-BackButton]')) {
-            addLog(message, 'info');
-            // Also store in early log storage
-            if (window._backbuttonDebugLogs) {
-              window._backbuttonDebugLogs.push({
-                timestamp: new Date().toLocaleTimeString('ru-RU', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 }),
-                message: message,
-                type: 'info'
-              });
-            }
-          }
-          originalLog.apply(originalLogger, args);
-        };
-        
-        originalLogger.warn = function(...args) {
-          const message = args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ');
-          if (message.includes('[TG-BackButton]')) {
-            addLog(message, 'warn');
-            if (window._backbuttonDebugLogs) {
-              window._backbuttonDebugLogs.push({
-                timestamp: new Date().toLocaleTimeString('ru-RU', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 }),
-                message: message,
-                type: 'warn'
-              });
-            }
-          }
-          originalWarn.apply(originalLogger, args);
-        };
-        
-        originalLogger.error = function(...args) {
-          const message = args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ');
-          if (message.includes('[TG-BackButton]')) {
-            addLog(message, 'error');
-            if (window._backbuttonDebugLogs) {
-              window._backbuttonDebugLogs.push({
-                timestamp: new Date().toLocaleTimeString('ru-RU', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 }),
-                message: message,
-                type: 'error'
-              });
-            }
-          }
-          originalError.apply(originalLogger, args);
-        };
-      }
-      
-      // Also intercept console methods for [TG-BackButton]
-      const originalConsoleLog = console.log;
-      const originalConsoleWarn = console.warn;
-      const originalConsoleError = console.error;
-      
-      console.log = function(...args) {
-        const message = args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ');
-        if (message.includes('[TG-BackButton]')) {
-          addLog(message, 'info');
-        }
-        originalConsoleLog.apply(console, args);
-      };
-      
-      console.warn = function(...args) {
-        const message = args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ');
-        if (message.includes('[TG-BackButton]')) {
-          addLog(message, 'warn');
-        }
-        originalConsoleWarn.apply(console, args);
-      };
-      
-      console.error = function(...args) {
-        const message = args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ');
-        if (message.includes('[TG-BackButton]')) {
-          addLog(message, 'error');
-        }
-        originalConsoleError.apply(console, args);
-      };
-      
-      // Initial message
-      addLog('BackButton Debug Panel initialized', 'success');
-      addLog('Monitoring [TG-BackButton] logs...', 'info');
-      addLog('Total logs in early storage: ' + (window._backbuttonDebugLogs ? window._backbuttonDebugLogs.length : 0), 'info');
-      
-      // CRITICAL DEBUG: Try to call init() from head script if it exists
-      // This is a fallback if window.load didn't fire or head script failed
-      setTimeout(function() {
-        console.log('[TG-BackButton] TEST: Body script fallback - checking if head init() exists');
-        addLog('Body script fallback: checking head init()', 'info');
-        
-        // Check if init() function exists in global scope (from head script)
-        if (typeof window.init === 'function') {
-          console.log('[TG-BackButton] TEST: Found window.init(), calling it');
-          addLog('Found window.init(), calling it', 'success');
-          try {
-            window.init();
-          } catch (e) {
-            console.error('[TG-BackButton] TEST: Error calling window.init():', e);
-            addLog('Error calling window.init(): ' + e.message, 'error');
-          }
-        } else {
-          console.log('[TG-BackButton] TEST: window.init() not found');
-          addLog('window.init() not found - head script may not have executed', 'warn');
-        }
-      }, 1000);
-    })();
-  </script>
 </body>
 </html>
 
