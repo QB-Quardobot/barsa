@@ -487,12 +487,28 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             }
             
             logger.log('[TG-BackButton] Setting up handler (multi-page app fix)...');
+            
+            // CRITICAL: Check if SDK is ready
+            if (tg.isReady === false) {
+              logger.warn('[TG-BackButton] SDK isReady is false, waiting...');
+              setTimeout(() => {
+                if (tg && tg.isReady !== false) {
+                  logger.log('[TG-BackButton] SDK now ready, retrying setup...');
+                  setupBackButtonHandler();
+                } else {
+                  logger.error('[TG-BackButton] SDK still not ready after delay');
+                }
+              }, 200);
+              return;
+            }
+            
             logger.log('[TG-BackButton] SDK state check:', {
               isReady: tg.isReady,
               isExpanded: tg.isExpanded,
               version: tg.version,
               platform: tg.platform,
-              backButtonAvailable: !!tg.BackButton
+              backButtonAvailable: !!tg.BackButton,
+              backButtonIsVisible: tg.BackButton?.isVisible
             });
             
             let backButtonVisible = false;
@@ -748,6 +764,21 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                 }
               };
               
+              // CRITICAL FIX: Show back button BEFORE registering handler
+              // According to some sources, show() should be called first
+              // This ensures button is visible and ready to receive events
+              logger.log('[TG-BackButton] Showing back button before handler registration...');
+              try {
+                if (canGoBack()) {
+                  tg.BackButton.show();
+                  backButtonVisible = true;
+                  logger.log('[TG-BackButton] BackButton.show() called successfully');
+                  logger.log('[TG-BackButton] BackButton.isVisible after show():', tg.BackButton?.isVisible);
+                }
+              } catch (e) {
+                logger.error('[TG-BackButton] Error calling BackButton.show():', e);
+              }
+              
               // CRITICAL FIX: Use ONLY onEvent('back_button_pressed') - the recommended method
               // DO NOT use onClick() as it's less reliable for multi-page apps
               logger.log('[TG-BackButton] Registering onEvent("back_button_pressed") handler...');
@@ -767,8 +798,19 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                 }
               } else {
                 // Use the recommended method
-                tg.onEvent('back_button_pressed', backButtonHandler);
-                logger.log('[TG-BackButton] onEvent handler registered successfully');
+                try {
+                  tg.onEvent('back_button_pressed', backButtonHandler);
+                  logger.log('[TG-BackButton] onEvent handler registered successfully');
+                  
+                  // CRITICAL: Verify handler was actually registered
+                  logger.log('[TG-BackButton] Verifying handler registration...');
+                  logger.log('[TG-BackButton] Handler function type:', typeof backButtonHandler);
+                  logger.log('[TG-BackButton] offEvent available:', typeof tg.offEvent === 'function');
+                } catch (e) {
+                  logger.error('[TG-BackButton] Error registering onEvent handler:', e);
+                  logger.error('[TG-BackButton] Error details:', e.message, e.stack);
+                  return;
+                }
                 // Clear onClick handler reference since we're using onEvent
                 win._telegramBackButtonOnClickHandler = null;
               }
@@ -778,10 +820,14 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               
               // Verify handler was registered
               logger.log('[TG-BackButton] Handler registered successfully');
-              logger.log('[TG-BackButton] BackButton.isVisible:', tg.BackButton?.isVisible);
+              logger.log('[TG-BackButton] Final state:', {
+                isVisible: tg.BackButton?.isVisible,
+                handlerStored: !!win._telegramBackButtonHandler,
+                onClickHandlerStored: !!win._telegramBackButtonOnClickHandler
+              });
               
-              // CRITICAL: Show back button after handler is registered
-              // This ensures button is visible and ready to receive clicks
+              // CRITICAL: Also call updateBackButton to ensure button is shown
+              // This is called after handler registration as a safety measure
               updateBackButton();
               
               // Also update button visibility periodically (for multi-page apps)
