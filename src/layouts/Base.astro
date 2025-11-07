@@ -78,6 +78,126 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   <!-- Critical CSS - Inline for fastest first paint (loads before global.css) -->
   <style set:html={criticalCSS} />
   
+  <!-- TEMPORARY: Early console interception for BackButton debug (will be removed later) -->
+  <!-- This MUST run before any other scripts to capture all logs -->
+  <script is:inline>
+    (function() {
+      'use strict';
+      
+      // Create debug log storage BEFORE any scripts run
+      window._backbuttonDebugLogs = window._backbuttonDebugLogs || [];
+      
+      // Intercept console methods IMMEDIATELY (before any other scripts)
+      const originalConsoleLog = console.log;
+      const originalConsoleWarn = console.warn;
+      const originalConsoleError = console.error;
+      
+      function addDebugLog(message, type) {
+        type = type || 'info';
+        const timestamp = new Date().toLocaleTimeString('ru-RU', { 
+          hour12: false, 
+          hour: '2-digit', 
+          minute: '2-digit', 
+          second: '2-digit',
+          fractionalSecondDigits: 3
+        });
+        
+        window._backbuttonDebugLogs.push({
+          timestamp: timestamp,
+          message: String(message),
+          type: type
+        });
+        
+        // Limit logs
+        if (window._backbuttonDebugLogs.length > 200) {
+          window._backbuttonDebugLogs.shift();
+        }
+      }
+      
+      console.log = function(...args) {
+        const message = args.map(function(a) { 
+          return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); 
+        }).join(' ');
+        
+        // Check for [TG-BackButton] prefix
+        if (message.includes('[TG-BackButton]')) {
+          addDebugLog(message, 'info');
+        }
+        
+        originalConsoleLog.apply(console, args);
+      };
+      
+      console.warn = function(...args) {
+        const message = args.map(function(a) { 
+          return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); 
+        }).join(' ');
+        
+        if (message.includes('[TG-BackButton]')) {
+          addDebugLog(message, 'warn');
+        }
+        
+        originalConsoleWarn.apply(console, args);
+      };
+      
+      console.error = function(...args) {
+        const message = args.map(function(a) { 
+          return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); 
+        }).join(' ');
+        
+        if (message.includes('[TG-BackButton]')) {
+          addDebugLog(message, 'error');
+        }
+        
+        originalConsoleError.apply(console, args);
+      };
+      
+      // Also intercept window.logger when it's created
+      Object.defineProperty(window, 'logger', {
+        set: function(value) {
+          this._logger = value;
+          if (value && typeof value.log === 'function') {
+            const originalLog = value.log;
+            const originalWarn = value.warn;
+            const originalError = value.error;
+            
+            value.log = function(...args) {
+              const message = args.map(function(a) { 
+                return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); 
+              }).join(' ');
+              if (message.includes('[TG-BackButton]')) {
+                addDebugLog(message, 'info');
+              }
+              originalLog.apply(value, args);
+            };
+            
+            value.warn = function(...args) {
+              const message = args.map(function(a) { 
+                return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); 
+              }).join(' ');
+              if (message.includes('[TG-BackButton]')) {
+                addDebugLog(message, 'warn');
+              }
+              originalWarn.apply(value, args);
+            };
+            
+            value.error = function(...args) {
+              const message = args.map(function(a) { 
+                return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); 
+              }).join(' ');
+              if (message.includes('[TG-BackButton]')) {
+                addDebugLog(message, 'error');
+              }
+              originalError.apply(value, args);
+            };
+          }
+        },
+        get: function() {
+          return this._logger;
+        }
+      });
+    })();
+  </script>
+  
   <!-- CRITICAL: Blocking script to hide content IMMEDIATELY if navigating -->
   <!-- This MUST run before any content renders to prevent flash -->
   <!-- This script has HIGHEST priority and runs before critical.css applies -->
@@ -441,10 +561,24 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         // FIX #5: Add delay (50-100ms) after tg.expand() before registering BackButton
         // According to internet sources, SDK needs time to fully initialize after expand()
         // This ensures BackButton API is ready to accept handlers
+        
+        // CRITICAL DEBUG: Log that we're attempting to setup BackButton
+        logger.log('[TG-BackButton] Attempting to setup BackButton after tg.expand()');
+        logger.log('[TG-BackButton] Debug info:', {
+          tgAvailable: !!tg,
+          backButtonAvailable: !!tg.BackButton,
+          isReady: tg.isReady,
+          isExpanded: tg.isExpanded,
+          version: tg.version,
+          platform: tg.platform
+        });
+        
         setTimeout(() => {
           try {
             // FIX #4: Check tg.isReady before registering BackButton handler
             // According to internet sources, SDK must be fully ready before BackButton registration
+            logger.log('[TG-BackButton] Checking SDK state after delay...');
+            
             if (tg.isReady === false) {
               logger.warn('[TG-BackButton] SDK isReady is false, waiting another 100ms...');
               setTimeout(() => {
@@ -453,27 +587,43 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                   setupBackButton();
                 } else {
                   logger.error('[TG-BackButton] SDK still not ready after delay');
+                  logger.error('[TG-BackButton] Final state:', {
+                    tgAvailable: !!tg,
+                    backButtonAvailable: !!tg.BackButton,
+                    isReady: tg ? tg.isReady : 'N/A'
+                  });
                 }
               }, 100);
               return;
             }
             
             if (tg.BackButton) {
+              logger.log('[TG-BackButton] BackButton available, calling setupBackButton()...');
               setupBackButton();
             } else {
               logger.warn('[TG-BackButton] BackButton not available');
+              logger.warn('[TG-BackButton] tg object:', {
+                hasBackButton: 'BackButton' in tg,
+                tgKeys: Object.keys(tg).slice(0, 10)
+              });
             }
           } catch (e) {
-            logger.warn('[TG-BackButton] Error:', e);
+            logger.error('[TG-BackButton] Error in setTimeout:', e);
+            logger.error('[TG-BackButton] Error stack:', e.stack);
           }
         }, 100); // 100ms delay after tg.expand() as recommended by internet sources
         
         // BackButton setup function (extracted for reuse)
         function setupBackButton() {
+          logger.log('[TG-BackButton] setupBackButton() called');
+          
           if (!tg || !tg.BackButton) {
             logger.warn('[TG-BackButton] Cannot setup: tg or BackButton not available');
+            logger.warn('[TG-BackButton] tg:', !!tg, 'BackButton:', !!tg ? !!tg.BackButton : 'N/A');
             return;
           }
+          
+          logger.log('[TG-BackButton] Starting BackButton setup...');
           
           try {
             let backButtonVisible = false;
@@ -1879,6 +2029,15 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       clearBtn.addEventListener('click', clearLogs);
       toggleBtn.addEventListener('click', toggleCollapse);
       
+      // Load logs from early interception (before this script ran)
+      if (window._backbuttonDebugLogs && window._backbuttonDebugLogs.length > 0) {
+        window._backbuttonDebugLogs.forEach(function(log) {
+          addLog(log.message, log.type);
+        });
+        addLog('Loaded ' + window._backbuttonDebugLogs.length + ' logs from early interception', 'success');
+      }
+      
+      // Continue intercepting new logs
       // Intercept logger calls for [TG-BackButton] prefix
       const originalLogger = window.logger;
       if (originalLogger) {
@@ -1890,6 +2049,14 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           const message = args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ');
           if (message.includes('[TG-BackButton]')) {
             addLog(message, 'info');
+            // Also store in early log storage
+            if (window._backbuttonDebugLogs) {
+              window._backbuttonDebugLogs.push({
+                timestamp: new Date().toLocaleTimeString('ru-RU', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 }),
+                message: message,
+                type: 'info'
+              });
+            }
           }
           originalLog.apply(originalLogger, args);
         };
@@ -1898,6 +2065,13 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           const message = args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ');
           if (message.includes('[TG-BackButton]')) {
             addLog(message, 'warn');
+            if (window._backbuttonDebugLogs) {
+              window._backbuttonDebugLogs.push({
+                timestamp: new Date().toLocaleTimeString('ru-RU', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 }),
+                message: message,
+                type: 'warn'
+              });
+            }
           }
           originalWarn.apply(originalLogger, args);
         };
@@ -1906,6 +2080,13 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           const message = args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }).join(' ');
           if (message.includes('[TG-BackButton]')) {
             addLog(message, 'error');
+            if (window._backbuttonDebugLogs) {
+              window._backbuttonDebugLogs.push({
+                timestamp: new Date().toLocaleTimeString('ru-RU', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 }),
+                message: message,
+                type: 'error'
+              });
+            }
           }
           originalError.apply(originalLogger, args);
         };
@@ -1943,6 +2124,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       // Initial message
       addLog('BackButton Debug Panel initialized', 'success');
       addLog('Monitoring [TG-BackButton] logs...', 'info');
+      addLog('Total logs in early storage: ' + (window._backbuttonDebugLogs ? window._backbuttonDebugLogs.length : 0), 'info');
     })();
   </script>
 </body>
