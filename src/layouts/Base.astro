@@ -386,7 +386,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   </style>
   
   <!-- Telegram WebApp API - loads synchronously BEFORE inline scripts -->
-  <script is:inline src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script is:inline src="https://telegram.org/js/telegram-web-app.js" onerror="console.error('[TG-BackButton] TEST: Telegram WebApp API script failed to load:', this.src);" onload="console.log('[TG-BackButton] TEST: Telegram WebApp API script loaded successfully');"></script>
   
   <!-- JSON-LD Schema -->
   <script type="application/ld+json" set:html={JSON.stringify({
@@ -418,14 +418,20 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   <script is:inline>
     // CRITICAL DEBUG: Log BEFORE IIFE to ensure script is executing
     // This MUST appear in console if script tag is parsed
-    try {
-      console.log('[TG-BackButton] TEST: Script tag STARTED (before IIFE)');
-      console.log('[TG-BackButton] TEST: document.readyState before IIFE:', document.readyState);
-      console.log('[TG-BackButton] TEST: Telegram script loaded:', typeof window.Telegram !== 'undefined');
-    } catch (e) {
-      console.error('[TG-BackButton] TEST: Error before IIFE:', e);
-    }
+    // If this doesn't appear, the script is blocked by an error above
+    (function() {
+      try {
+        console.log('[TG-BackButton] TEST: Script tag STARTED (before IIFE)');
+        console.log('[TG-BackButton] TEST: document.readyState before IIFE:', document.readyState);
+        console.log('[TG-BackButton] TEST: Telegram script loaded:', typeof window.Telegram !== 'undefined');
+        console.log('[TG-BackButton] TEST: Telegram.WebApp available:', typeof window.Telegram !== 'undefined' && typeof window.Telegram.WebApp !== 'undefined');
+      } catch (e) {
+        console.error('[TG-BackButton] TEST: Error before IIFE:', e);
+        console.error('[TG-BackButton] TEST: Error stack:', e.stack);
+      }
+    })();
     
+    // Now the main IIFE
     (function() {
       // CRITICAL DEBUG: Log immediately when script starts executing
       // Wrap in try-catch to ensure we see if there's an error
