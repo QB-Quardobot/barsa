@@ -31,11 +31,20 @@ check_env() {
     log_step "Checking .env file..."
     if [ ! -f "${BOT_PATH}/.env" ]; then
         log_error ".env file not found in ${BOT_PATH}/"
-        log_info "Creating .env file template..."
-        cat > "${BOT_PATH}/.env" << EOF
+        
+        # Check if .env.example exists
+        if [ -f "${BOT_PATH}/.env.example" ]; then
+            log_info "Copying .env.example to .env..."
+            cp "${BOT_PATH}/.env.example" "${BOT_PATH}/.env"
+            log_warning "Please fill in your actual tokens and configuration in ${BOT_PATH}/.env"
+        else
+            log_info "Creating .env file template..."
+            cat > "${BOT_PATH}/.env" << EOF
 # Bot Tokens
-USER_TOKEN=8559392109:AAFx4POCNMVa-kRXXIkxXKTGkKZjQgwWQpM
-ADMIN_TOKEN=8262351903:AAGygbnC0VWHH7iLEoAglFdRV2qd9tQa-UQ
+# ⚠️ SECURITY: Never commit real tokens to Git!
+# Get your tokens from @BotFather on Telegram
+USER_TOKEN=your_user_bot_token_here
+ADMIN_TOKEN=your_admin_bot_token_here
 
 # Database
 DATABASE_URL=sqlite:///./database/client.db
@@ -46,11 +55,20 @@ ADMIN_IDS=
 # Alex Klyauzer ID
 ALEX_KLYAUZER_ID=
 EOF
-        log_warning "Please fill in ADMIN_IDS and ALEX_KLYAUZER_ID in ${BOT_PATH}/.env"
+            log_warning "Please fill in your tokens and configuration in ${BOT_PATH}/.env"
+        fi
+        
         log_warning "Then run this script again"
         exit 1
     fi
-    log_success ".env file found"
+    
+    # Validate that tokens are not placeholders
+    if grep -q "your_.*_token_here" "${BOT_PATH}/.env" 2>/dev/null; then
+        log_error "Please replace placeholder tokens with real tokens in ${BOT_PATH}/.env"
+        exit 1
+    fi
+    
+    log_success ".env file found and validated"
 }
 
 # Deploy to server

@@ -4,15 +4,37 @@
 
 ### 1. Настройка .env файла
 
-Файл `.env` уже создан с токенами. Если нужно добавить ADMIN_IDS или ALEX_KLYAUZER_ID, отредактируйте:
+**⚠️ ВАЖНО:** Никогда не коммитьте `.env` файл с реальными токенами в Git!
+
+#### Первая настройка:
+
+1. Скопируйте шаблон `.env.example`:
 ```bash
 cd bot/barcelona_bots
+cp .env.example .env
+```
+
+2. Отредактируйте `.env` и заполните реальными значениями:
+```bash
 nano .env
 ```
 
-Добавьте ваш Telegram User ID в `ADMIN_IDS` (можно узнать у бота @userinfobot):
-```
+3. Получите токены ботов:
+   - Откройте [@BotFather](https://t.me/BotFather) в Telegram
+   - Отправьте `/token` для каждого бота
+   - Скопируйте токены в `.env`
+
+4. Получите ваш Telegram User ID:
+   - Откройте [@userinfobot](https://t.me/userinfobot) в Telegram
+   - Скопируйте ваш ID в `ADMIN_IDS`
+
+Пример заполненного `.env`:
+```env
+USER_TOKEN=1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
+ADMIN_TOKEN=9876543210:ZYXwvuTSRqpoNMLkjIHGfEdCbA
 ADMIN_IDS=123456789,987654321
+ALEX_KLYAUZER_ID=123456789
+DATABASE_URL=sqlite:///./database/client.db
 ```
 
 ### 2. Деплой на сервер
@@ -62,8 +84,11 @@ pip install -r requirements.txt
 
 3. **Настроить .env:**
 ```bash
+# Если .env не существует, скопируйте из примера
+cp .env.example .env
 nano .env
 # Добавьте токены и другие переменные
+# ⚠️ НЕ коммитьте .env с реальными токенами!
 ```
 
 4. **Установить PM2 (если не установлен):**

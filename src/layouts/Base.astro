@@ -85,8 +85,19 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       'use strict';
       
       // CRITICAL DEBUG: Log that early interception script is executing
-      console.log('[TG-BackButton] TEST: Early interception script STARTED');
-      console.log('[TG-BackButton] TEST: document.readyState at start:', document.readyState);
+      // These logs should ALWAYS appear, even if script fails later
+      try {
+        console.log('[TG-BackButton] TEST: Early interception script STARTED');
+        console.log('[TG-BackButton] TEST: document.readyState at start:', document.readyState);
+        console.log('[TG-BackButton] TEST: window object available:', typeof window !== 'undefined');
+        console.log('[TG-BackButton] TEST: document object available:', typeof document !== 'undefined');
+      } catch (e) {
+        // If even console.log fails, something is very wrong
+        // Use alert as last resort
+        if (typeof alert !== 'undefined') {
+          alert('Early script error: ' + e.message);
+        }
+      }
       
       // Create debug log storage BEFORE any scripts run
       window._backbuttonDebugLogs = window._backbuttonDebugLogs || [];
@@ -398,20 +409,37 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   
   <!-- Pass UTM params to client -->
   <script define:vars={{ utmParams: JSON.stringify(utmParams) }}>
+    // CRITICAL DEBUG: Test if this script executes
+    console.log('[TG-BackButton] TEST: UTM params script executing');
     window.utmParams = utmParams;
   </script>
   
   <!-- Initialize UTM, Telegram WebApp and CTA links (consolidated) -->
   <script is:inline>
     // CRITICAL DEBUG: Log BEFORE IIFE to ensure script is executing
-    console.log('[TG-BackButton] TEST: Script tag STARTED (before IIFE)');
+    // This MUST appear in console if script tag is parsed
+    try {
+      console.log('[TG-BackButton] TEST: Script tag STARTED (before IIFE)');
+      console.log('[TG-BackButton] TEST: document.readyState before IIFE:', document.readyState);
+      console.log('[TG-BackButton] TEST: Telegram script loaded:', typeof window.Telegram !== 'undefined');
+    } catch (e) {
+      console.error('[TG-BackButton] TEST: Error before IIFE:', e);
+    }
     
     (function() {
       // CRITICAL DEBUG: Log immediately when script starts executing
-      console.log('[TG-BackButton] TEST: Script in head STARTED executing (inside IIFE)');
-      console.log('[TG-BackButton] TEST: document.readyState:', document.readyState);
-      console.log('[TG-BackButton] TEST: window.loaded:', document.readyState === 'complete');
-      console.log('[TG-BackButton] TEST: Telegram.WebApp available:', typeof window.Telegram !== 'undefined' && typeof window.Telegram.WebApp !== 'undefined');
+      // Wrap in try-catch to ensure we see if there's an error
+      try {
+        console.log('[TG-BackButton] TEST: Script in head STARTED executing (inside IIFE)');
+        console.log('[TG-BackButton] TEST: document.readyState:', document.readyState);
+        console.log('[TG-BackButton] TEST: window.loaded:', document.readyState === 'complete');
+        console.log('[TG-BackButton] TEST: Telegram.WebApp available:', typeof window.Telegram !== 'undefined' && typeof window.Telegram.WebApp !== 'undefined');
+        console.log('[TG-BackButton] TEST: window object:', typeof window);
+        console.log('[TG-BackButton] TEST: document object:', typeof document);
+      } catch (e) {
+        console.error('[TG-BackButton] TEST: Error at start of IIFE:', e);
+        console.error('[TG-BackButton] TEST: Error stack:', e.stack);
+      }
       
       const win = window;
       const doc = document;
@@ -1313,10 +1341,14 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       // NOTE: Dynamic import() is not available in inline scripts, disabled for now
       
       // Main initialization - fast and simple
+      // CRITICAL: Expose init() globally for fallback calls from body script
       function init() {
         // CRITICAL DEBUG: Test if init() is called
         console.log('[TG-BackButton] TEST: init() function called');
         logger.log('[TG-BackButton] TEST: init() function called');
+        
+        // Expose init() globally for fallback calls from body script
+        win.init = init;
         
         try {
           logger.log('[Init] Running initialization...');
@@ -1440,7 +1472,13 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   
   <!-- Telegram WebApp initialization script - MUST be at end of body -->
   <script is:inline>
+    // CRITICAL DEBUG: Test if body script executes
+    console.log('[TG-BackButton] TEST: Body script STARTED executing');
+    console.log('[TG-BackButton] TEST: document.readyState in body:', document.readyState);
+    console.log('[TG-BackButton] TEST: Telegram available in body:', typeof window.Telegram !== 'undefined');
+    
     (function() {
+      console.log('[TG-BackButton] TEST: Body script IIFE STARTED');
       const win = window;
       const doc = document;
       
@@ -2248,6 +2286,28 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       addLog('BackButton Debug Panel initialized', 'success');
       addLog('Monitoring [TG-BackButton] logs...', 'info');
       addLog('Total logs in early storage: ' + (window._backbuttonDebugLogs ? window._backbuttonDebugLogs.length : 0), 'info');
+      
+      // CRITICAL DEBUG: Try to call init() from head script if it exists
+      // This is a fallback if window.load didn't fire or head script failed
+      setTimeout(function() {
+        console.log('[TG-BackButton] TEST: Body script fallback - checking if head init() exists');
+        addLog('Body script fallback: checking head init()', 'info');
+        
+        // Check if init() function exists in global scope (from head script)
+        if (typeof window.init === 'function') {
+          console.log('[TG-BackButton] TEST: Found window.init(), calling it');
+          addLog('Found window.init(), calling it', 'success');
+          try {
+            window.init();
+          } catch (e) {
+            console.error('[TG-BackButton] TEST: Error calling window.init():', e);
+            addLog('Error calling window.init(): ' + e.message, 'error');
+          }
+        } else {
+          console.log('[TG-BackButton] TEST: window.init() not found');
+          addLog('window.init() not found - head script may not have executed', 'warn');
+        }
+      }, 1000);
     })();
   </script>
 </body>
