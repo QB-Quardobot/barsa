@@ -1218,6 +1218,18 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   
   <main id="main-content">
     <slot />
+    
+    <!-- Footer with powered by -->
+    <footer class="app-footer">
+      <div class="footer-content">
+        <p class="footer-powered">
+          <span class="powered-text">powered by</span>
+          <a href="https://t.me/quardobot" target="_blank" rel="noopener noreferrer" class="powered-link" aria-label="Quardobot Telegram">
+            <span class="powered-brand">Quardobot</span>
+          </a>
+        </p>
+      </div>
+    </footer>
   </main>
   
   <!-- Telegram WebApp initialization script - MUST be at end of body -->
@@ -1853,6 +1865,146 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
     body.tg-webapp {
       -webkit-overflow-scrolling: touch;
       overflow-scrolling: touch;
+    }
+    
+    /* Footer Styles - Modern, Minimal, Elegant */
+    .app-footer {
+      position: relative;
+      width: 100%;
+      padding: 1.5rem 1rem;
+      margin-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: transparent;
+      z-index: 1;
+    }
+    
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    
+    .footer-powered {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.4);
+      letter-spacing: 0.05em;
+      font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
+      line-height: 1.2;
+    }
+    
+    .powered-text {
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      opacity: 0.6;
+      line-height: 1.2;
+      vertical-align: baseline;
+    }
+    
+    .powered-link {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.3s ease;
+      position: relative;
+      padding: 0.25rem 0;
+    }
+    
+    .powered-link:hover,
+    .powered-link:focus {
+      outline: none;
+    }
+    
+    .powered-link:hover .powered-brand,
+    .powered-link:focus .powered-brand {
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+    
+    .powered-brand {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      background: linear-gradient(135deg, #60a5fa 0%, #22d3ee 50%, #a855f7 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% 200%;
+      animation: footerGradientShift 4s ease infinite;
+      opacity: 0.9;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      position: relative;
+      display: inline-block;
+      line-height: 1.2;
+      vertical-align: baseline;
+    }
+    
+    .powered-link:hover .powered-brand::after,
+    .powered-link:focus .powered-brand::after {
+      opacity: 1;
+      transform: scaleX(1);
+    }
+    
+    .powered-brand::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.6), transparent);
+      opacity: 0;
+      transform: scaleX(0);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    
+    @keyframes footerGradientShift {
+      0%, 100% {
+        background-position: 0% 50%;
+        filter: brightness(1);
+      }
+      50% {
+        background-position: 100% 50%;
+        filter: brightness(1.15);
+      }
+    }
+    
+    /* Mobile optimizations */
+    @media (max-width: 640px) {
+      .app-footer {
+        padding: 1.25rem 1rem;
+        margin-top: 1.5rem;
+      }
+      
+      .footer-powered {
+        font-size: 0.7rem;
+        gap: 0.4rem;
+      }
+      
+      .powered-text {
+        font-size: 0.65rem;
+      }
+      
+      .powered-brand {
+        font-size: 0.75rem;
+      }
+    }
+    
+    /* Reduce motion for accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      .powered-brand {
+        animation: none;
+      }
+      
+      .powered-link:hover .powered-brand,
+      .powered-link:focus .powered-brand {
+        transform: none;
+      }
     }
   </style>
 </body>

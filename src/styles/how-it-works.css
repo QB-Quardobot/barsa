@@ -4628,7 +4628,7 @@ backface-visibility: hidden;
 }
 
 .final-cta-section {
-padding: 4rem 0;
+padding: 3rem 0 0.75rem 0;
 background: rgba(13, 13, 16, 0.4);
 }
 
@@ -4650,11 +4650,11 @@ color: var(--fg);
 font-size: clamp(1.125rem, 2.5vw, 1.25rem);
 color: var(--muted);
 line-height: 1.6;
-margin-bottom: 2.5rem;
+margin-bottom: 1.5rem;
 }
 
 .final-btn-group {
-margin: 1.5rem 0;
+margin: 1rem 0 0 0;
 }
 
 .final-btn-group .btn-capsule {
@@ -4741,7 +4741,7 @@ padding: 2.5rem 0;
 
 .how-it-works-section,
 .final-cta-section {
-padding: 3rem 0;
+padding: 3rem 0 0.75rem 0;
 }
 
 .path-card {
