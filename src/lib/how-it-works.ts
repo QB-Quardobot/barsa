@@ -288,10 +288,24 @@ function setupFAQHandlers(faqSection: HTMLElement): void {
     const answer = item.querySelector('.faq-answer') as HTMLElement;
     if (!answer) return;
     
+    // CRITICAL FIX: Ensure all FAQ items start in collapsed state
     // Remove any inline styles that might interfere with grid-template-rows
     answer.style.maxHeight = '';
     answer.style.opacity = '';
     answer.style.gridTemplateRows = '';
+    answer.style.margin = '';
+    
+    // CRITICAL: Remove 'open' class to ensure collapsed state
+    answer.classList.remove('open');
+    
+    // CRITICAL: Set aria-expanded to false if not already set
+    const question = item.querySelector('.faq-question') as HTMLElement;
+    if (question && !question.hasAttribute('aria-expanded')) {
+      question.setAttribute('aria-expanded', 'false');
+    }
+    if (!item.hasAttribute('aria-expanded')) {
+      item.setAttribute('aria-expanded', 'false');
+    }
   });
   
   faqSection.addEventListener('click', (e) => {
@@ -1408,6 +1422,7 @@ export function initCurrencyModal(): void {
   const closeBtn = modal.querySelector('.currency-modal-close') as HTMLElement;
   const rubBtn = modal.querySelector('.currency-btn-rub') as HTMLAnchorElement;
   const eurBtn = modal.querySelector('.currency-btn-eur') as HTMLAnchorElement;
+  const cryptoBtn = modal.querySelector('#currencyCryptoBtn') as HTMLAnchorElement;
   const rubAmount = modal.querySelector('#currencyRubAmount') as HTMLElement;
   const eurAmount = modal.querySelector('#currencyEurAmount') as HTMLElement;
   const supportBtn = modal.querySelector('#currencySupportLink') as HTMLAnchorElement;
@@ -1415,7 +1430,7 @@ export function initCurrencyModal(): void {
   let isModalOpen = false;
   let currentTariff: string | null = null;
   
-  // Support link for tariffs 1 and 2
+  // Support link for tariffs 1 and 2 (also used for crypto payment)
   const supportLink = 'https://t.me/illariooo';
   
   function openModal(tariffId: string): void {
@@ -1431,6 +1446,11 @@ export function initCurrencyModal(): void {
     // Update links
     if (rubBtn) rubBtn.href = tariff.rub.url;
     if (eurBtn) eurBtn.href = tariff.eur.url;
+    
+    // Update crypto payment link (leads to personal Telegram)
+    if (cryptoBtn) {
+      cryptoBtn.href = supportLink;
+    }
     
     // Update support link for tariffs 1 and 2
     if (supportBtn && (tariffId === '1' || tariffId === '2')) {

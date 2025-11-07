@@ -484,6 +484,9 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             
             // Function to handle back action
             function handleBackClick() {
+              // CRITICAL FIX: Prevent any event propagation that might interfere
+              // This ensures BackButton click is handled exclusively
+              
               // First priority: close currency modal if open
               if (isCurrencyModalOpen()) {
                 closeCurrencyModal();
@@ -498,20 +501,33 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                 return;
               }
               
-              // Second priority: if on second page, go back to first page
+              // Third priority: if on second page, go back to first page
               if (!isFirstPage()) {
                 try {
-                  // CRITICAL: Clear sessionStorage before navigation to prevent loading screen flash
-                  // Do this synchronously, not in setTimeout, to ensure it happens before navigation
+                  // CRITICAL FIX: Clear sessionStorage BEFORE any navigation
+                  // This must happen synchronously to prevent loading screen flash
                   if (typeof sessionStorage !== 'undefined') {
                     sessionStorage.removeItem('showLoadingScreen');
                   }
+                  
                   triggerHaptic('light');
-                  // Navigate back immediately (synchronously)
-                  win.history.back();
+                  
+                  // CRITICAL FIX: Use setTimeout(0) to ensure sessionStorage is cleared
+                  // before navigation happens, but still allow navigation to proceed
+                  setTimeout(() => {
+                    // Check if we can go back in history
+                    if (win.history.length > 1) {
+                      win.history.back();
+                    } else {
+                      // No history - navigate directly to home
+                      win.location.href = '/';
+                    }
+                  }, 0);
+                  
                   return;
                 } catch (e) {
-                  // Fallback: navigate to home
+                  // Fallback: navigate to home if history.back fails
+                  logger.warn('[TG-BackButton] history.back() failed:', e);
                   if (typeof sessionStorage !== 'undefined') {
                     sessionStorage.removeItem('showLoadingScreen');
                   }
@@ -548,17 +564,43 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             function updateBackButton() {
               const shouldShow = canGoBack();
               
-              if (shouldShow && !backButtonVisible) {
-                tg.BackButton.show();
-                backButtonVisible = true;
-              } else if (!shouldShow && backButtonVisible) {
-                tg.BackButton.hide();
-                backButtonVisible = false;
+              try {
+                if (shouldShow && !backButtonVisible) {
+                  tg.BackButton.show();
+                  backButtonVisible = true;
+                  logger.log('[TG-BackButton] Button shown');
+                } else if (!shouldShow && backButtonVisible) {
+                  tg.BackButton.hide();
+                  backButtonVisible = false;
+                  logger.log('[TG-BackButton] Button hidden');
+                }
+              } catch (error) {
+                logger.error('[TG-BackButton] Error updating visibility:', error);
               }
             }
             
-            // Set up back button click handler
-            tg.BackButton.onClick(handleBackClick);
+            // CRITICAL FIX: Set up back button click handler with proper error handling
+            // Ensure handler is not overwritten by other code
+            try {
+              tg.BackButton.onClick(() => {
+                // Wrap in try-catch to prevent errors from breaking navigation
+                try {
+                  handleBackClick();
+                } catch (error) {
+                  logger.error('[TG-BackButton] Error in handleBackClick:', error);
+                  // Fallback: try to navigate back anyway
+                  if (!isFirstPage()) {
+                    if (typeof sessionStorage !== 'undefined') {
+                      sessionStorage.removeItem('showLoadingScreen');
+                    }
+                    win.location.href = '/';
+                  }
+                }
+              });
+              logger.log('[TG-BackButton] Handler registered successfully');
+            } catch (error) {
+              logger.error('[TG-BackButton] Failed to register onClick handler:', error);
+            }
             
             // Monitor scroll position to show/hide button
             const scrollable = doc.getElementById('main-content') || doc.documentElement;

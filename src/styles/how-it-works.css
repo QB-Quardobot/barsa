@@ -2344,7 +2344,7 @@ contain-intrinsic-size: auto 2000px;
 .pricing-grid {
 display: grid;
 grid-template-columns: 1fr;
-gap: 2rem;
+gap: 3.5rem; /* OPTIMIZED: Increased gap for better mobile spacing */
 max-width: 1400px;
 margin: 0 auto;
 /* CRITICAL: Allow badge overflow from cards */
@@ -2353,9 +2353,17 @@ overflow-x: visible;
 overflow-y: visible;
 }
 
+/* OPTIMIZED: Even larger gap on very small screens for better readability */
+@media (max-width: 640px) {
+.pricing-grid {
+  gap: 4rem; /* Extra spacing on mobile phones */
+}
+}
+
 @media (min-width: 768px) {
 .pricing-grid {
 grid-template-columns: repeat(2, 1fr);
+gap: 2.5rem; /* Slightly increased gap for tablets */
 }
 }
 
@@ -2413,6 +2421,7 @@ grid-template-columns: repeat(3, 1fr);
 @media (max-width: 768px) {
   .pricing-card {
     padding: 2rem 1.5rem;
+    margin-bottom: 1rem; /* OPTIMIZED: Additional spacing between cards on mobile */
   }
 
   .pricing-card-popular {
@@ -4534,11 +4543,15 @@ transition:
   opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
   padding 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 padding: 0 2rem;
+/* CRITICAL FIX: Ensure collapsed state has zero height */
+max-height: 0;
+margin: 0;
 }
 
 /* CRITICAL: Content wrapper with min-height: 0 for grid 0fr to work */
 .faq-answer > * {
 min-height: 0; /* Required for grid-template-rows: 0fr to collapse properly */
+overflow: hidden; /* Prevent content from expanding */
 }
 
 /* OPTIMIZED: Open state with grid-template-rows: 1fr (exact height) */
@@ -4547,6 +4560,8 @@ min-height: 0; /* Required for grid-template-rows: 0fr to collapse properly */
 grid-template-rows: 1fr; /* Expanded state - uses exact content height */
 opacity: 1;
 padding: 0 2rem 1.5rem 2rem;
+/* CRITICAL FIX: Remove max-height restriction when expanded */
+max-height: none;
 }
 
 .faq-answer p {
@@ -5059,6 +5074,17 @@ transform: translateY(0) scale(1) !important;
   box-shadow: 
     0 8px 24px rgba(139, 92, 246, 0.3),
     0 0 0 1px rgba(139, 92, 246, 0.4) inset;
+}
+
+.currency-btn-crypto {
+  border-color: rgba(247, 147, 26, 0.25);
+}
+
+.currency-btn-crypto:hover {
+  border-color: rgba(247, 147, 26, 0.6);
+  box-shadow: 
+    0 8px 24px rgba(247, 147, 26, 0.3),
+    0 0 0 1px rgba(247, 147, 26, 0.4) inset;
 }
 
 .currency-icon {
