@@ -413,11 +413,19 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   </script>
   
   <!-- Pass UTM params to client -->
-  <script define:vars={{ utmParams: JSON.stringify(utmParams) }}>
+  <script is:inline set:html={`
     // CRITICAL DEBUG: Test if this script executes
-    console.log('[TG-BackButton] TEST: UTM params script executing');
-    window.utmParams = utmParams;
-  </script>
+    console.log('[TG-BackButton] TEST: UTM params script executing (inline JSON)');
+    
+    // Set UTM params as JSON (inline, safe)
+    try {
+      window.utmParams = ${JSON.stringify(utmParams)};
+      console.log('[TG-BackButton] TEST: UTM params set successfully:', window.utmParams);
+    } catch (e) {
+      console.error('[TG-BackButton] TEST: Error setting UTM params:', e);
+      window.utmParams = {};
+    }
+  `}></script>
   
   <!-- CRITICAL DEBUG: Test script execution between UTM and main script -->
   <script is:inline>
@@ -427,19 +435,17 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   
   <!-- Initialize UTM, Telegram WebApp and CTA links (consolidated) -->
   <script is:inline>
-    // CRITICAL DEBUG: Log BEFORE IIFE to ensure script is executing
-    // This MUST appear in console if script tag is parsed
-    // If this doesn't appear, the script is blocked by an error above
+    // CRITICAL DEBUG: ABSOLUTE MINIMUM TEST
+    // If this doesn't appear, the script tag itself has a syntax error
+    console.log('[TG-BackButton] TEST: MINIMAL SCRIPT STARTED');
+    
+    // Try to create IIFE
     (function() {
-      try {
-        console.log('[TG-BackButton] TEST: Script tag STARTED (before IIFE)');
-        console.log('[TG-BackButton] TEST: document.readyState before IIFE:', document.readyState);
-        console.log('[TG-BackButton] TEST: Telegram script loaded:', typeof window.Telegram !== 'undefined');
-        console.log('[TG-BackButton] TEST: Telegram.WebApp available:', typeof window.Telegram !== 'undefined' && typeof window.Telegram.WebApp !== 'undefined');
-      } catch (e) {
-        console.error('[TG-BackButton] TEST: Error before IIFE:', e);
-        console.error('[TG-BackButton] TEST: Error stack:', e.stack);
-      }
+      console.log('[TG-BackButton] TEST: MINIMAL IIFE STARTED');
+      console.log('[TG-BackButton] TEST: Script tag STARTED (before main IIFE)');
+      console.log('[TG-BackButton] TEST: document.readyState before IIFE:', document.readyState);
+      console.log('[TG-BackButton] TEST: Telegram script loaded:', typeof window.Telegram !== 'undefined');
+      console.log('[TG-BackButton] TEST: Telegram.WebApp available:', typeof window.Telegram !== 'undefined' && typeof window.Telegram.WebApp !== 'undefined');
     })();
     
     // Now the main IIFE
