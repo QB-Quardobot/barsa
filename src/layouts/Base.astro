@@ -84,8 +84,19 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
     (function() {
       'use strict';
       
+      // CRITICAL DEBUG: Log that early interception script is executing
+      console.log('[TG-BackButton] TEST: Early interception script STARTED');
+      console.log('[TG-BackButton] TEST: document.readyState at start:', document.readyState);
+      
       // Create debug log storage BEFORE any scripts run
       window._backbuttonDebugLogs = window._backbuttonDebugLogs || [];
+      
+      // Add initial test log to storage
+      window._backbuttonDebugLogs.push({
+        timestamp: new Date().toLocaleTimeString('ru-RU', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 }),
+        message: '[TG-BackButton] TEST: Early interception script initialized',
+        type: 'success'
+      });
       
       // Intercept console methods IMMEDIATELY (before any other scripts)
       const originalConsoleLog = console.log;
@@ -393,6 +404,11 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   <!-- Initialize UTM, Telegram WebApp and CTA links (consolidated) -->
   <script is:inline>
     (function() {
+      // CRITICAL DEBUG: Log immediately when script starts executing
+      console.log('[TG-BackButton] TEST: Script in head STARTED executing');
+      console.log('[TG-BackButton] TEST: document.readyState:', document.readyState);
+      console.log('[TG-BackButton] TEST: window.loaded:', document.readyState === 'complete');
+      
       const win = window;
       const doc = document;
       let tg = null; // Telegram WebApp instance
@@ -447,11 +463,21 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
 
       // Initialize Telegram WebApp
       function initTelegramWebApp() {
+        // CRITICAL DEBUG: Test if function is called at all
+        console.log('[TG-BackButton] TEST: initTelegramWebApp() function called');
+        logger.log('[TG-BackButton] TEST: initTelegramWebApp() function called via logger');
+        
         try {
           logger.log('[TG-Init] Function called');
+          console.log('[TG-Init] Function called (console)');
+          
         tg = win.Telegram?.WebApp;
+        console.log('[TG-BackButton] TEST: Telegram.WebApp available:', !!tg);
+        logger.log('[TG-BackButton] TEST: Telegram.WebApp available:', !!tg);
+        
         if (!tg) {
             logger.log('[TG-Init] WebApp not available - running in browser');
+            console.log('[TG-Init] WebApp not available - running in browser (console)');
           return false;
         }
         
@@ -463,10 +489,16 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           tg.ready();
           
           logger.log('[TG-Init] Calling expand()...');
+          console.log('[TG-Init] Calling expand()... (console)');
           tg.expand();
           
           logger.log('[TG-Init] Calling enableClosingConfirmation()...');
+          console.log('[TG-Init] Calling enableClosingConfirmation()... (console)');
           tg.enableClosingConfirmation();
+          
+          // CRITICAL DEBUG: Log that we're about to setup BackButton
+          console.log('[TG-BackButton] TEST: About to setup BackButton after expand()');
+          logger.log('[TG-BackButton] TEST: About to setup BackButton after expand()');
           
           // Bot API 7.7+: Disable vertical swipes to prevent accidental closing
           if (typeof tg.disableVerticalSwipes === 'function') {
@@ -1261,27 +1293,73 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       
       // Main initialization - fast and simple
       function init() {
+        // CRITICAL DEBUG: Test if init() is called
+        console.log('[TG-BackButton] TEST: init() function called');
+        logger.log('[TG-BackButton] TEST: init() function called');
+        
         try {
           logger.log('[Init] Running initialization...');
+          console.log('[Init] Running initialization... (console)');
+          
+          console.log('[TG-BackButton] TEST: About to call initTelegramWebApp()');
+          logger.log('[TG-BackButton] TEST: About to call initTelegramWebApp()');
           initTelegramWebApp();
+          
+          console.log('[TG-BackButton] TEST: initTelegramWebApp() returned');
+          logger.log('[TG-BackButton] TEST: initTelegramWebApp() returned');
+          
           initAnalytics();
           setupCTALinks();
           updateLinksOnLoad();
           logger.log('[Init] Initialization complete');
+          console.log('[Init] Initialization complete (console)');
         } catch (error) {
           logger.error('[Init] Initialization error:', error);
+          console.error('[Init] Initialization error (console):', error);
         }
       }
 
       // ALWAYS use window.load to ensure everything is ready (like test page)
       const loadHandler = function() {
+        console.log('[TG-BackButton] TEST: window.load event fired');
+        logger.log('[TG-BackButton] TEST: window.load event fired');
         logger.log('[Init] window.load event - starting init');
+        console.log('[Init] window.load event - starting init (console)');
         try {
           init();
         } catch (error) {
           logger.error('[Init] Load handler error:', error);
+          console.error('[Init] Load handler error (console):', error);
         }
       };
+      
+      console.log('[TG-BackButton] TEST: Adding window.load event listener');
+      logger.log('[TG-BackButton] TEST: Adding window.load event listener');
+      
+      // CRITICAL FIX: Check if page is already loaded
+      // If document.readyState is 'complete', window.load already fired
+      // In this case, execute init() immediately
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        console.log('[TG-BackButton] TEST: Page already loaded, executing init() immediately');
+        logger.log('[TG-BackButton] TEST: Page already loaded, executing init() immediately');
+        console.log('[TG-BackButton] TEST: document.readyState:', document.readyState);
+        
+        // Use setTimeout to ensure DOM is ready
+        setTimeout(function() {
+          console.log('[TG-BackButton] TEST: setTimeout callback executing init()');
+          logger.log('[TG-BackButton] TEST: setTimeout callback executing init()');
+          try {
+            init();
+          } catch (error) {
+            logger.error('[Init] Immediate init error:', error);
+            console.error('[Init] Immediate init error (console):', error);
+          }
+        }, 0);
+      } else {
+        console.log('[TG-BackButton] TEST: Page not loaded yet, waiting for window.load');
+        logger.log('[TG-BackButton] TEST: Page not loaded yet, waiting for window.load');
+      }
+      
       win.addEventListener('load', loadHandler);
       registerCleanup(function() { win.removeEventListener('load', loadHandler); });
     })();
