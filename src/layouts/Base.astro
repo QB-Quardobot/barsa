@@ -469,7 +469,12 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             // Check if we're on the first page (index/home page)
             function isFirstPage() {
               const pathname = win.location.pathname;
-              return pathname === '/' || pathname === '/index.html' || pathname.endsWith('/index');
+              const isHome = pathname === '/' || 
+                            pathname === '/index.html' || 
+                            pathname.endsWith('/index') ||
+                            pathname === '/index';
+              logger.log('[TG-BackButton] isFirstPage check:', { pathname, isHome });
+              return isHome;
             }
             
             // Function to check if we can go back
@@ -503,31 +508,67 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               
               // Third priority: if on second page, go back to first page
               if (!isFirstPage()) {
+                logger.log('[TG-BackButton] Not on first page, attempting to go back');
                 try {
                   // CRITICAL FIX: Clear sessionStorage BEFORE any navigation
                   // This must happen synchronously to prevent loading screen flash
                   if (typeof sessionStorage !== 'undefined') {
                     sessionStorage.removeItem('showLoadingScreen');
+                    logger.log('[TG-BackButton] Cleared showLoadingScreen from sessionStorage');
                   }
                   
                   triggerHaptic('light');
                   
-                  // CRITICAL FIX: Use setTimeout(0) to ensure sessionStorage is cleared
-                  // before navigation happens, but still allow navigation to proceed
-                  setTimeout(() => {
-                    // Check if we can go back in history
-                    if (win.history.length > 1) {
-                      win.history.back();
-                    } else {
-                      // No history - navigate directly to home
+                  // CRITICAL FIX: Check history state before attempting navigation
+                  const historyLength = win.history.length;
+                  const currentPath = win.location.pathname;
+                  logger.log('[TG-BackButton] Navigation attempt:', {
+                    currentPath,
+                    historyLength,
+                    historyState: win.history.state
+                  });
+                  
+                  // CRITICAL FIX: Use multiple strategies for navigation
+                  // Strategy 1: Try history.back() first (preferred method)
+                  // Strategy 2: If that doesn't work within 300ms, use direct navigation
+                  let navigationAttempted = false;
+                  
+                  // Try history.back() first
+                  try {
+                    // Small delay to ensure sessionStorage is cleared
+                    setTimeout(() => {
+                      if (!navigationAttempted) {
+                        navigationAttempted = true;
+                        logger.log('[TG-BackButton] Attempting history.back()...');
+                        win.history.back();
+                        
+                        // Verify navigation happened after a short delay
+                        setTimeout(() => {
+                          const newPath = win.location.pathname;
+                          if (newPath === currentPath) {
+                            // history.back() didn't work, use direct navigation
+                            logger.warn('[TG-BackButton] history.back() did not navigate, using direct navigation');
+                            win.location.href = '/';
+                          } else {
+                            logger.log('[TG-BackButton] Successfully navigated back via history.back() to:', newPath);
+                          }
+                        }, 300);
+                      }
+                    }, 50);
+                  } catch (e) {
+                    logger.error('[TG-BackButton] Error with history.back():', e);
+                    // Fallback: navigate directly to home
+                    if (!navigationAttempted) {
+                      navigationAttempted = true;
+                      logger.log('[TG-BackButton] Using direct navigation fallback');
                       win.location.href = '/';
                     }
-                  }, 0);
+                  }
                   
                   return;
                 } catch (e) {
                   // Fallback: navigate to home if history.back fails
-                  logger.warn('[TG-BackButton] history.back() failed:', e);
+                  logger.error('[TG-BackButton] history.back() failed:', e);
                   if (typeof sessionStorage !== 'undefined') {
                     sessionStorage.removeItem('showLoadingScreen');
                   }
@@ -581,8 +622,19 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             
             // CRITICAL FIX: Set up back button click handler with proper error handling
             // Ensure handler is not overwritten by other code
+            // IMPORTANT: Register handler AFTER ready() and expand() are called
             try {
-              tg.BackButton.onClick(() => {
+              // Verify BackButton is available
+              if (!tg.BackButton) {
+                logger.error('[TG-BackButton] BackButton is not available');
+                return;
+              }
+              
+              logger.log('[TG-BackButton] Registering onClick handler...');
+              
+              // Store reference to handler for debugging
+              const backButtonHandler = () => {
+                logger.log('[TG-BackButton] onClick handler called');
                 // Wrap in try-catch to prevent errors from breaking navigation
                 try {
                   handleBackClick();
@@ -590,17 +642,51 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                   logger.error('[TG-BackButton] Error in handleBackClick:', error);
                   // Fallback: try to navigate back anyway
                   if (!isFirstPage()) {
+                    logger.log('[TG-BackButton] Fallback: navigating to home');
                     if (typeof sessionStorage !== 'undefined') {
                       sessionStorage.removeItem('showLoadingScreen');
                     }
                     win.location.href = '/';
                   }
                 }
-              });
+              };
+              
+              // Register the handler
+              tg.BackButton.onClick(backButtonHandler);
+              
+              // Verify handler was registered
               logger.log('[TG-BackButton] Handler registered successfully');
+              logger.log('[TG-BackButton] BackButton.isVisible:', tg.BackButton.isVisible);
+              
+              // CRITICAL: Show back button after handler is registered
+              // This ensures button is visible and ready to receive clicks
+              updateBackButton();
+              
             } catch (error) {
               logger.error('[TG-BackButton] Failed to register onClick handler:', error);
+              logger.error('[TG-BackButton] Error details:', error.message, error.stack);
             }
+            
+            // CRITICAL: Expose test function for debugging
+            win.testBackButton = function() {
+              logger.log('[TG-BackButton] Test function called');
+              logger.log('[TG-BackButton] BackButton available:', !!tg.BackButton);
+              logger.log('[TG-BackButton] BackButton.isVisible:', tg.BackButton?.isVisible);
+              logger.log('[TG-BackButton] Current path:', win.location.pathname);
+              logger.log('[TG-BackButton] isFirstPage:', isFirstPage());
+              logger.log('[TG-BackButton] History length:', win.history.length);
+              logger.log('[TG-BackButton] Can go back:', canGoBack());
+              
+              // Test handler call
+              if (tg.BackButton) {
+                logger.log('[TG-BackButton] Testing handler call...');
+                try {
+                  handleBackClick();
+                } catch (e) {
+                  logger.error('[TG-BackButton] Test handler error:', e);
+                }
+              }
+            };
             
             // Monitor scroll position to show/hide button
             const scrollable = doc.getElementById('main-content') || doc.documentElement;
@@ -612,7 +698,8 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             }, { passive: true });
             
             // Monitor popstate for history changes
-            win.addEventListener('popstate', () => {
+            win.addEventListener('popstate', (e) => {
+              logger.log('[TG-BackButton] popstate event fired:', win.location.pathname);
               setTimeout(updateBackButton, 100);
             });
             
@@ -621,6 +708,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             const checkPathChange = () => {
               const newPath = win.location.pathname;
               if (newPath !== currentPath) {
+                logger.log('[TG-BackButton] Path changed:', currentPath, '->', newPath);
                 currentPath = newPath;
                 updateBackButton();
               }
@@ -629,8 +717,11 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             // Check path changes periodically (for SPA-like navigation)
             setInterval(checkPathChange, 500);
             
-            // Initial check
-            setTimeout(updateBackButton, 500);
+            // Initial check with delay to ensure WebApp is fully initialized
+            setTimeout(() => {
+              logger.log('[TG-BackButton] Initial updateBackButton call');
+              updateBackButton();
+            }, 1000);
             
             // Update on viewport changes
             win.addEventListener('resize', () => {
@@ -836,7 +927,10 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         const isTelegram = !!tg;
         
         // Use event delegation on document for all internal links
+        // CRITICAL: Use capture phase to run before other handlers, but don't interfere with BackButton
         doc.addEventListener('click', function(e) {
+          // CRITICAL FIX: Don't interfere with BackButton clicks
+          // BackButton clicks don't trigger document click events, but we check anyway
           const target = e.target as HTMLElement;
           const link = target.closest('a[href]') as HTMLAnchorElement;
           if (!link) return;
@@ -849,6 +943,9 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           if (link.hasAttribute('data-back') || link.hasAttribute('data-history-back')) {
             return; // Let back button handler process this
           }
+          
+          // CRITICAL FIX: Don't prevent default on internal links - let browser create history
+          // This ensures history.back() will work correctly
           
           const href = link.getAttribute('href') || '';
           
@@ -883,7 +980,9 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             }
           }
           
-          // Don't prevent default - let browser handle navigation normally
+          // CRITICAL FIX: Don't prevent default on internal links - let browser handle navigation normally
+          // This ensures browser history is created correctly for history.back() to work
+          // Use capture phase to run before other handlers, but don't interfere with navigation
         }, true); // Use capture phase to run before other handlers
       }
       
