@@ -32,6 +32,12 @@ const { showInBrowser = false } = Astro.props;
     </div>
   </div>
   
+  <!-- Powered by text - positioned at bottom center -->
+  <div class="loading-powered">
+    <span class="powered-text">powered by</span>
+    <span class="powered-brand">Quardobot</span>
+  </div>
+  
   <!-- Background gradient animation -->
   <div class="loading-bg"></div>
 </div>
@@ -282,6 +288,87 @@ const { showInBrowser = false } = Astro.props;
     }
   }
   
+  /* Powered by text - modern, subtle design */
+  #loading-screen .loading-powered,
+  div#loading-screen .loading-powered {
+    position: absolute !important;
+    bottom: 2rem !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.25rem !important;
+    z-index: 2 !important;
+    opacity: 0.6 !important;
+    transition: opacity 0.3s ease !important;
+  }
+  
+  #loading-screen .loading-powered:hover,
+  div#loading-screen .loading-powered:hover {
+    opacity: 0.9 !important;
+  }
+  
+  #loading-screen .powered-text,
+  div#loading-screen .powered-text {
+    font-size: 0.65rem !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.15em !important;
+    text-transform: uppercase !important;
+    color: rgba(255, 255, 255, 0.4) !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  }
+  
+  #loading-screen .powered-brand,
+  div#loading-screen .powered-brand {
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.8) 0%, rgba(34, 211, 238, 0.8) 50%, rgba(168, 85, 247, 0.8) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-size: 200% 200% !important;
+    animation: poweredGradientShift 4s ease infinite !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+    position: relative !important;
+  }
+  
+  #loading-screen .powered-brand::after,
+  div#loading-screen .powered-brand::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: -2px !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 1px !important;
+    background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.5), transparent) !important;
+    opacity: 0.6 !important;
+    animation: poweredLineGlow 3s ease-in-out infinite !important;
+  }
+  
+  @keyframes poweredGradientShift {
+    0%, 100% { 
+      background-position: 0% 50%; 
+      filter: brightness(1);
+    }
+    50% { 
+      background-position: 100% 50%; 
+      filter: brightness(1.2);
+    }
+  }
+  
+  @keyframes poweredLineGlow {
+    0%, 100% {
+      opacity: 0.3;
+      transform: scaleX(0.8);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scaleX(1);
+    }
+  }
+  
   /* Mobile optimizations */
   @media (max-width: 640px) {
     #loading-screen .loading-logo,
@@ -304,6 +391,21 @@ const { showInBrowser = false } = Astro.props;
     div#loading-screen .loading-dots .dot {
       width: 6px !important;
       height: 6px !important;
+    }
+    
+    #loading-screen .loading-powered,
+    div#loading-screen .loading-powered {
+      bottom: 1.5rem !important;
+    }
+    
+    #loading-screen .powered-text,
+    div#loading-screen .powered-text {
+      font-size: 0.6rem !important;
+    }
+    
+    #loading-screen .powered-brand,
+    div#loading-screen .powered-brand {
+      font-size: 0.7rem !important;
     }
   }
   
@@ -329,6 +431,14 @@ const { showInBrowser = false } = Astro.props;
     
     .loading-bg {
       animation: none;
+    }
+    
+    .powered-brand {
+      animation: none !important;
+    }
+    
+    .powered-brand::after {
+      animation: none !important;
     }
   }
 </style>
