@@ -171,23 +171,127 @@ export function initRevealAnimations(): void {
 }
 
 
+/**
+ * Initialize FAQ with lazy loading and stagger reveal effect
+ * OPTIMIZED: Uses IntersectionObserver for lazy initialization
+ * OPTIMIZED: Uses grid-template-rows for smoother animations
+ * OPTIMIZED: Adds stagger effect for FAQ items reveal
+ * 
+ * Best practices:
+ * - Lazy initialization: FAQ handlers only initialize when section is near viewport
+ * - Performance: Reduces initial JavaScript execution
+ * - Fallback: Direct initialization if IntersectionObserver is not supported
+ * - Cleanup: Proper observer cleanup after initialization
+ */
+let faqInitialized = false; // Track initialization state to prevent double initialization
+let faqObserverInstance: IntersectionObserver | null = null; // Store observer for cleanup
+
 export function initFAQ(): void {
   const faqSection = document.querySelector('.faq-section') || document.querySelector('.faq-list');
   if (!faqSection) return;
   
-  const faqItems = document.querySelectorAll('.faq-item');
+  // CRITICAL: Prevent double initialization
+  if (faqInitialized) {
+    return;
+  }
+  
+  // OPTIMIZED: Check if IntersectionObserver is supported
+  if (typeof IntersectionObserver === 'undefined') {
+    // Fallback: Initialize immediately if IntersectionObserver is not supported
+    // This ensures FAQ works in older browsers
+    setupFAQHandlers(faqSection as HTMLElement);
+    addStaggerReveal(faqSection as HTMLElement);
+    faqInitialized = true;
+    return;
+  }
+  
+  // OPTIMIZED: Lazy initialization with IntersectionObserver
+  // Don't initialize FAQ listeners until section enters viewport
+  // rootMargin: '200px' triggers initialization 200px before section enters viewport
+  // threshold: 0.01 ensures trigger even for long sections on small screens
+  faqObserverInstance = new IntersectionObserver(
+    (entries) => {
+      const entry = entries[0];
+      
+      // CRITICAL: Check if section is intersecting
+      if (entry.isIntersecting) {
+        // Section is in viewport or approaching, initialize FAQ
+        try {
+          setupFAQHandlers(faqSection as HTMLElement);
+          
+          // Add stagger reveal effect for FAQ items
+          addStaggerReveal(faqSection as HTMLElement);
+          
+          // Mark as initialized
+          faqInitialized = true;
+          
+          // OPTIMIZED: Cleanup observer after initialization
+          // Unobserve and disconnect to free resources
+          if (faqObserverInstance) {
+            faqObserverInstance.unobserve(faqSection);
+            faqObserverInstance.disconnect();
+            faqObserverInstance = null;
+          }
+        } catch (error) {
+          // Error handling: If initialization fails, try direct initialization
+          console.error('[FAQ] Initialization error:', error);
+          setupFAQHandlers(faqSection as HTMLElement);
+          addStaggerReveal(faqSection as HTMLElement);
+          faqInitialized = true;
+          
+          // Cleanup observer on error
+          if (faqObserverInstance) {
+            faqObserverInstance.unobserve(faqSection);
+            faqObserverInstance.disconnect();
+            faqObserverInstance = null;
+          }
+        }
+      }
+    },
+    {
+      // OPTIMIZED: rootMargin for pre-loading
+      // '200px' triggers initialization 200px before section enters viewport
+      // This ensures FAQ is ready when user scrolls to it
+      rootMargin: '200px',
+      // OPTIMIZED: threshold for reliable triggering
+      // 0.01 ensures trigger even for long sections on small screens
+      // Lower threshold is better for long sections
+      threshold: 0.01
+    }
+  );
+  
+  // Start observing FAQ section
+  faqObserverInstance.observe(faqSection);
+}
+
+/**
+ * Cleanup FAQ observer (for testing or manual cleanup)
+ * OPTIMIZED: Properly disconnects observer to prevent memory leaks
+ */
+export function cleanupFAQObserver(): void {
+  if (faqObserverInstance) {
+    faqObserverInstance.disconnect();
+    faqObserverInstance = null;
+  }
+  faqInitialized = false;
+}
+
+/**
+ * Setup FAQ click handlers and toggle functionality
+ */
+function setupFAQHandlers(faqSection: HTMLElement): void {
+  const faqItems = faqSection.querySelectorAll('.faq-item');
   if (faqItems.length === 0) return;
   
-  // OPTIMIZED: Initialize all answers as closed (CSS handles the styling)
+  // OPTIMIZED: Initialize all answers as closed (CSS handles the styling via grid-template-rows)
   faqItems.forEach(item => {
     const answer = item.querySelector('.faq-answer') as HTMLElement;
     if (!answer) return;
     
-    // Remove any inline styles that might interfere
+    // Remove any inline styles that might interfere with grid-template-rows
     answer.style.maxHeight = '';
     answer.style.opacity = '';
-    
-    // CSS handles the initial state via max-height: 0
+    answer.style.gridTemplateRows = '';
   });
   
   faqSection.addEventListener('click', (e) => {
@@ -214,6 +318,7 @@ export function initFAQ(): void {
           // Remove inline styles and use CSS classes
           otherAnswer.style.maxHeight = '';
           otherAnswer.style.opacity = '';
+          otherAnswer.style.gridTemplateRows = '';
           otherAnswer.classList.remove('open');
         }
         
@@ -225,7 +330,7 @@ export function initFAQ(): void {
     });
     
     // OPTIMIZED: Toggle using CSS classes instead of inline styles
-    // This prevents layout shift and allows browser to optimize transitions
+    // CSS handles grid-template-rows transition smoothly with spring-based easing
     if (isExpanded) {
       // Close: remove open class and update aria attributes
       answer.classList.remove('open');
@@ -233,12 +338,96 @@ export function initFAQ(): void {
       question.setAttribute('aria-expanded', 'false');
     } else {
       // Open: add open class and update aria attributes
-      // CSS handles max-height transition smoothly
+      // CSS handles grid-template-rows transition smoothly
       answer.classList.add('open');
       item.setAttribute('aria-expanded', 'true');
       question.setAttribute('aria-expanded', 'true');
     }
   }, { passive: true }); // Use passive listener for better performance
+}
+
+/**
+ * Add stagger reveal effect for FAQ items
+ * OPTIMIZED: Reveals FAQ items with small delay between them for visual appeal
+ * 
+ * Best practices:
+ * - Batch processing with requestAnimationFrame for smooth performance
+ * - Respects prefers-reduced-motion for accessibility
+ * - Uses will-change for GPU acceleration
+ * - Prevents double animation with revealed check
+ * - Optimized delay calculation for smooth stagger
+ */
+function addStaggerReveal(faqSection: HTMLElement): void {
+  // OPTIMIZED: Check for reduced motion preference
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  
+  const faqItems = faqSection.querySelectorAll('.faq-item:not(.faq-revealed)');
+  
+  if (faqItems.length === 0) return;
+  
+  // OPTIMIZED: If user prefers reduced motion, show all items immediately
+  if (prefersReducedMotion) {
+    faqItems.forEach((item) => {
+      const element = item as HTMLElement;
+      element.classList.add('faq-revealed');
+      // Remove initial opacity/transform styles
+      element.style.opacity = '1';
+      element.style.transform = 'translateY(0)';
+    });
+    return;
+  }
+  
+  // OPTIMIZED: Calculate optimal delay based on number of items
+  // More items = smaller delay to prevent long total animation time
+  // Fewer items = larger delay for more noticeable stagger effect
+  const baseDelay = faqItems.length > 10 ? 50 : 80; // 50ms for many items, 80ms for few
+  const maxTotalDelay = 1000; // Maximum total animation time (1 second)
+  const calculatedDelay = Math.min(baseDelay, Math.floor(maxTotalDelay / faqItems.length));
+  
+  // OPTIMIZED: Batch all animations in a single requestAnimationFrame
+  // This ensures all animations start in the same frame for better performance
+  requestAnimationFrame(() => {
+    faqItems.forEach((item, index) => {
+      const element = item as HTMLElement;
+      
+      // CRITICAL: Double-check element is not already revealed
+      if (element.classList.contains('faq-revealed')) {
+        return;
+      }
+      
+      // OPTIMIZED: Set CSS custom property for stagger delay
+      // Using calculated delay for optimal animation timing
+      element.style.setProperty('--stagger-delay', index.toString());
+      
+      // OPTIMIZED: Add will-change before animation starts
+      // This prepares GPU for animation, improving performance
+      element.style.willChange = 'opacity, transform';
+      
+      // OPTIMIZED: Use setTimeout with calculated delay for stagger effect
+      // This creates the sequential reveal animation
+      setTimeout(() => {
+        // Add revealed class to trigger CSS animation
+        element.classList.add('faq-revealed');
+        
+        // OPTIMIZED: Remove will-change after animation completes
+        // Use animationend event for precise timing
+        const removeWillChange = () => {
+          element.style.willChange = 'auto';
+          element.removeEventListener('animationend', removeWillChange);
+        };
+        
+        // Listen for animation end to remove will-change
+        element.addEventListener('animationend', removeWillChange, { once: true });
+        
+        // Fallback: Remove will-change after reasonable time
+        setTimeout(() => {
+          if (element.style.willChange !== 'auto') {
+            element.style.willChange = 'auto';
+          }
+        }, 600); // Animation duration + buffer
+      }, index * calculatedDelay);
+    });
+  });
 }
 
 

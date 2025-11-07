@@ -250,13 +250,15 @@
 }
 
 /* === Counter Animation === */
-@keyframes count-up {
+/* OPTIMIZED: Removed count-up animation to prevent conflict with JavaScript RAF counter animation */
+/* The transform: translateY(100%) was causing visual jumps when textContent changes every frame */
+/* Using simple fade-in instead for smooth visual appearance */
+
+@keyframes fade-in {
   from {
-    transform: translateY(100%);
     opacity: 0;
   }
   to {
-    transform: translateY(0);
     opacity: 1;
   }
 }
@@ -267,8 +269,14 @@
   position: relative;
 }
 
+/* OPTIMIZED: Use fade-in instead of count-up to avoid transform conflicts with textContent changes */
+/* JavaScript RAF handles the counting animation, CSS only provides smooth fade-in appearance */
 .stat-number.is-counting {
-  animation: count-up 0.3s ease-out;
+  animation: fade-in 0.3s ease-out;
+  /* OPTIMIZED: CSS isolation for counter animation performance */
+  will-change: contents; /* Optimize for text content changes */
+  contain: paint layout; /* Isolate repaint and layout calculations */
+  isolation: isolate; /* Create new stacking context to prevent interference */
 }
 
 /* === Pulse Animation for Badges === */

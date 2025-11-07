@@ -4447,6 +4447,9 @@ transition: opacity 0.3s ease;
 .faq-section {
 padding: 4rem 0;
 background: rgba(13, 13, 16, 0.4);
+/* OPTIMIZED: content-visibility for lazy rendering */
+content-visibility: auto;
+contain-intrinsic-size: auto 500px;
 }
 
 .faq-container {
@@ -4463,6 +4466,11 @@ border: 1px solid rgba(96, 165, 250, 0.15);
 border-radius: var(--radius-xl);
 overflow: hidden;
 transition: all 0.3s ease;
+/* OPTIMIZED: contain layout to isolate from rest of page */
+contain: layout;
+/* OPTIMIZED: Initial state for stagger reveal animation */
+opacity: 0;
+transform: translateY(20px);
 }
 
 .faq-item:hover {
@@ -4515,23 +4523,29 @@ transform: rotate(45deg);
 }
 
 .faq-answer {
-/* OPTIMIZED: Use max-height with fixed large value instead of scrollHeight */
-/* This prevents layout shift and allows smooth transitions */
-max-height: 0;
-opacity: 0;
+/* OPTIMIZED: Use grid-template-rows instead of max-height for smoother animation */
+/* This provides exact height calculation without guessing max-height values */
+display: grid;
+grid-template-rows: 0fr; /* Collapsed state */
 overflow: hidden;
+opacity: 0;
 transition: 
-  max-height 0.3s ease,
-  opacity 0.3s ease,
-  padding 0.3s ease;
+  grid-template-rows 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), /* Spring-based easing for natural animation */
+  opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+  padding 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 padding: 0 2rem;
 }
 
-/* OPTIMIZED: Open state with fixed max-height (prevents layout shift) */
+/* CRITICAL: Content wrapper with min-height: 0 for grid 0fr to work */
+.faq-answer > * {
+min-height: 0; /* Required for grid-template-rows: 0fr to collapse properly */
+}
+
+/* OPTIMIZED: Open state with grid-template-rows: 1fr (exact height) */
 .faq-item[aria-expanded="true"] .faq-answer,
 .faq-answer.open {
+grid-template-rows: 1fr; /* Expanded state - uses exact content height */
 opacity: 1;
-max-height: 1000px; /* Sufficiently large value to accommodate any content */
 padding: 0 2rem 1.5rem 2rem;
 }
 
@@ -4563,6 +4577,39 @@ padding-left: 0;
 .faq-answer strong {
 color: var(--fg);
 font-weight: 700;
+}
+
+/* OPTIMIZED: Stagger reveal animation for FAQ items */
+@keyframes faq-reveal {
+from {
+  opacity: 0;
+  transform: translateY(20px) translateZ(0); /* GPU acceleration */
+}
+to {
+  opacity: 1;
+  transform: translateY(0) translateZ(0); /* GPU acceleration */
+}
+}
+
+.faq-item.faq-revealed {
+opacity: 1;
+transform: translateY(0) translateZ(0);
+/* OPTIMIZED: Smooth animation with spring-based easing */
+animation: faq-reveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+/* OPTIMIZED: Dynamic delay based on index (calculated in JS) */
+animation-delay: calc(var(--stagger-delay, 0) * 80ms);
+/* OPTIMIZED: GPU acceleration */
+backface-visibility: hidden;
+-webkit-backface-visibility: hidden;
+}
+
+/* OPTIMIZED: Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+.faq-item.faq-revealed {
+  animation: none;
+  opacity: 1;
+  transform: translateY(0) translateZ(0);
+}
 }
 
 .final-cta-section {

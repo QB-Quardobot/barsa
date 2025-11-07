@@ -1320,15 +1320,18 @@ import '../styles/animations-extended.css';
       <!-- Stats Block -->
       <div class="stats-block reveal-up">
         <div class="stat-item">
-          <div class="stat-number gradient-text gradient-text-animated" data-counter-target="150" data-counter-duration="2000">150+</div>
+          <!-- CRITICAL FIX: Start with "0+" instead of "150+" to prevent visual jump when animation starts -->
+          <div class="stat-number gradient-text gradient-text-animated" data-counter-target="150" data-counter-duration="2000">0+</div>
           <div class="stat-label">учеников с первыми продажами</div>
         </div>
         <div class="stat-item">
-          <div class="stat-number gradient-text gradient-text-animated" data-counter-target="100" data-counter-duration="2000">100%</div>
+          <!-- CRITICAL FIX: Start with "0%" instead of "100%" to prevent visual jump when animation starts -->
+          <div class="stat-number gradient-text gradient-text-animated" data-counter-target="100" data-counter-duration="2000">0%</div>
           <div class="stat-label">легальность и безопасность</div>
         </div>
         <div class="stat-item">
-          <div class="stat-number gradient-text gradient-text-animated">0$</div>
+          <!-- CRITICAL FIX: Add data-counter-target for visual consistency (animates from 0 to 0) -->
+          <div class="stat-number gradient-text gradient-text-animated" data-counter-target="0" data-counter-duration="1000">0$</div>
           <div class="stat-label">на рекламу</div>
         </div>
       </div>
