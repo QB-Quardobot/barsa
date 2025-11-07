@@ -438,10 +438,44 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         win.triggerAppHaptic = triggerHaptic;
 
         // Back button navigation handler
-        // SIMPLIFIED: Register handler immediately like in working commit 8a7c0ea
-        // This is the approach that worked before
-        try {
-          if (tg.BackButton) {
+        // FIX #5: Add delay (50-100ms) after tg.expand() before registering BackButton
+        // According to internet sources, SDK needs time to fully initialize after expand()
+        // This ensures BackButton API is ready to accept handlers
+        setTimeout(() => {
+          try {
+            // FIX #4: Check tg.isReady before registering BackButton handler
+            // According to internet sources, SDK must be fully ready before BackButton registration
+            if (tg.isReady === false) {
+              logger.warn('[TG-BackButton] SDK isReady is false, waiting another 100ms...');
+              setTimeout(() => {
+                if (tg && tg.isReady !== false && tg.BackButton) {
+                  logger.log('[TG-BackButton] SDK now ready, setting up BackButton...');
+                  setupBackButton();
+                } else {
+                  logger.error('[TG-BackButton] SDK still not ready after delay');
+                }
+              }, 100);
+              return;
+            }
+            
+            if (tg.BackButton) {
+              setupBackButton();
+            } else {
+              logger.warn('[TG-BackButton] BackButton not available');
+            }
+          } catch (e) {
+            logger.warn('[TG-BackButton] Error:', e);
+          }
+        }, 100); // 100ms delay after tg.expand() as recommended by internet sources
+        
+        // BackButton setup function (extracted for reuse)
+        function setupBackButton() {
+          if (!tg || !tg.BackButton) {
+            logger.warn('[TG-BackButton] Cannot setup: tg or BackButton not available');
+            return;
+          }
+          
+          try {
             let backButtonVisible = false;
             
             function isPhotoModalOpen() {
@@ -486,8 +520,19 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             
             // Function to handle back action
             function handleBackClick() {
+              // FIX #6: Add detailed logging for debugging
+              logger.log('[TG-BackButton] handleBackClick() called');
+              logger.log('[TG-BackButton] Current state:', {
+                pathname: win.location.pathname,
+                isFirstPage: isFirstPage(),
+                historyLength: win.history.length,
+                currencyModalOpen: isCurrencyModalOpen(),
+                photoModalOpen: isPhotoModalOpen()
+              });
+              
               // First priority: close currency modal if open
               if (isCurrencyModalOpen()) {
+                logger.log('[TG-BackButton] Closing currency modal');
                 closeCurrencyModal();
                 triggerHaptic('light');
                 return;
@@ -495,6 +540,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               
               // Second priority: close photo modal if open
               if (isPhotoModalOpen()) {
+                logger.log('[TG-BackButton] Closing photo modal');
                 closePhotoModal();
                 triggerHaptic('light');
                 return;
@@ -502,31 +548,43 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               
               // Third priority: if on second page, go back to first page
               if (!isFirstPage()) {
+                logger.log('[TG-BackButton] Not on first page, attempting navigation back');
                 try {
-                  // Clear sessionStorage before navigation to prevent loading screen flash
+                  // FIX #2: Clear sessionStorage ASYNCHRONOUSLY to avoid blocking history.back()
+                  // According to internet sources, synchronous sessionStorage operations
+                  // can interfere with navigation. Use setTimeout(0) to make it async.
                   if (typeof sessionStorage !== 'undefined') {
-                    sessionStorage.removeItem('showLoadingScreen');
+                    setTimeout(() => {
+                      sessionStorage.removeItem('showLoadingScreen');
+                      logger.log('[TG-BackButton] sessionStorage cleared (async)');
+                    }, 0);
                   }
                   
+                  logger.log('[TG-BackButton] Calling history.back()...');
                   win.history.back();
                   triggerHaptic('light');
+                  logger.log('[TG-BackButton] history.back() called successfully');
                   return;
                 } catch (e) {
+                  logger.error('[TG-BackButton] Error with history.back():', e);
                   // Fallback: navigate to home
                   if (typeof sessionStorage !== 'undefined') {
                     sessionStorage.removeItem('showLoadingScreen');
                   }
+                  logger.log('[TG-BackButton] Fallback: navigating to home');
                   win.location.href = '/';
                   return;
                 }
               }
               
               // Third priority: on first page, scroll to top if scrolled
+              logger.log('[TG-BackButton] On first page, checking scroll position');
               const mainContent = doc.getElementById('main-content');
               const scrollable = mainContent || doc.documentElement;
               const scrollTop = scrollable.scrollTop || 0;
               
               if (scrollTop > 100) {
+                logger.log('[TG-BackButton] Scrolling to top (scrollTop:', scrollTop, ')');
                 scrollable.scrollTo({
                   top: 0,
                   behavior: 'smooth'
@@ -536,11 +594,15 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               }
               
               // Last resort: on first page at top, show close confirmation
+              logger.log('[TG-BackButton] At top of first page, showing close confirmation');
               triggerHaptic('medium');
               tg.showConfirm?.('Закрыть приложение?', (ok) => {
                 if (ok) {
+                  logger.log('[TG-BackButton] User confirmed app close');
                   triggerHaptic('heavy');
                   tg.close();
+                } else {
+                  logger.log('[TG-BackButton] User cancelled app close');
                 }
               });
             }
@@ -565,9 +627,27 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             }
             
             // Set up back button click handler
-            // SIMPLIFIED: Use onClick() directly like in working commit 8a7c0ea
-            // This is the approach that worked before
+            // FIX #3: Call BackButton.show() BEFORE registering onClick handler
+            // According to internet sources and Telegram documentation, show() should be called first
+            // This ensures button is visible and ready to receive events
+            try {
+              if (canGoBack()) {
+                tg.BackButton.show();
+                backButtonVisible = true;
+                logger.log('[TG-BackButton] Button shown before handler registration');
+              }
+            } catch (e) {
+              logger.error('[TG-BackButton] Error showing button:', e);
+            }
+            
+            // FIX #1: Register onClick handler AFTER showing button
+            // According to internet sources, this is the correct order
             tg.BackButton.onClick(handleBackClick);
+            logger.log('[TG-BackButton] onClick handler registered');
+            
+            // CRITICAL: Update button visibility immediately (not just after delay)
+            // This ensures button is shown right after handler registration
+            updateBackButton();
             
             // Monitor scroll position to show/hide button
             const scrollable = doc.getElementById('main-content') || doc.documentElement;
@@ -603,9 +683,20 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             win.addEventListener('resize', () => {
               setTimeout(updateBackButton, 100);
             });
+            
+            // FIX #6: Add detailed logging for debugging
+            logger.log('[TG-BackButton] Setup complete:', {
+              isReady: tg.isReady,
+              isExpanded: tg.isExpanded,
+              backButtonAvailable: !!tg.BackButton,
+              backButtonVisible: backButtonVisible,
+              currentPath: win.location.pathname,
+              historyLength: win.history.length
+            });
+          } catch (e) {
+            logger.error('[TG-BackButton] Error in setupBackButton:', e);
+            logger.error('[TG-BackButton] Error details:', e.message, e.stack);
           }
-        } catch (e) {
-          logger.warn('[TG-BackButton] Error:', e);
         }
         
         return true;
