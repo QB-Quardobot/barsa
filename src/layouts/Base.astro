@@ -403,11 +403,15 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   
   <!-- Initialize UTM, Telegram WebApp and CTA links (consolidated) -->
   <script is:inline>
+    // CRITICAL DEBUG: Log BEFORE IIFE to ensure script is executing
+    console.log('[TG-BackButton] TEST: Script tag STARTED (before IIFE)');
+    
     (function() {
       // CRITICAL DEBUG: Log immediately when script starts executing
-      console.log('[TG-BackButton] TEST: Script in head STARTED executing');
+      console.log('[TG-BackButton] TEST: Script in head STARTED executing (inside IIFE)');
       console.log('[TG-BackButton] TEST: document.readyState:', document.readyState);
       console.log('[TG-BackButton] TEST: window.loaded:', document.readyState === 'complete');
+      console.log('[TG-BackButton] TEST: Telegram.WebApp available:', typeof window.Telegram !== 'undefined' && typeof window.Telegram.WebApp !== 'undefined');
       
       const win = window;
       const doc = document;
@@ -415,11 +419,28 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       
       // Production-safe logger
       const isDev = win.location.hostname === 'localhost' || win.location.hostname === '127.0.0.1' || win.location.hostname.includes('.ngrok.io') || win.location.hostname.includes('.trycloudflare.com');
+      // CRITICAL DEBUG: Always log [TG-BackButton] messages even in production
       const logger = {
-        log: function(...args) { if (isDev) console.log(...args); },
-        warn: function(...args) { if (isDev) console.warn(...args); },
-        error: function(...args) { console.error(...args); }
+        log: function(...args) { 
+          const message = args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a) : String(a); }).join(' ');
+          // Always log if contains [TG-BackButton] for debugging
+          if (message.includes('[TG-BackButton]') || isDev) {
+            console.log(...args);
+          }
+        },
+        warn: function(...args) { 
+          const message = args.map(function(a) { return typeof a === 'object' ? JSON.stringify(a) : String(a); }).join(' ');
+          if (message.includes('[TG-BackButton]') || isDev) {
+            console.warn(...args);
+          }
+        },
+        error: function(...args) { 
+          console.error(...args);
+        }
       };
+      
+      // CRITICAL DEBUG: Log that logger was created
+      console.log('[TG-BackButton] TEST: Logger created, isDev:', isDev);
       
       // Cleanup registry
       const cleanupFunctions = [];
@@ -1362,6 +1383,30 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       
       win.addEventListener('load', loadHandler);
       registerCleanup(function() { win.removeEventListener('load', loadHandler); });
+      
+      // CRITICAL DEBUG: Fallback check after 500ms if Telegram is available
+      // This ensures init() runs even if window.load doesn't fire
+      setTimeout(function() {
+        console.log('[TG-BackButton] TEST: Fallback setTimeout (500ms) - checking Telegram');
+        logger.log('[TG-BackButton] TEST: Fallback setTimeout (500ms) - checking Telegram');
+        console.log('[TG-BackButton] TEST: Telegram available:', typeof win.Telegram !== 'undefined');
+        console.log('[TG-BackButton] TEST: Telegram.WebApp available:', typeof win.Telegram !== 'undefined' && typeof win.Telegram.WebApp !== 'undefined');
+        console.log('[TG-BackButton] TEST: document.readyState in fallback:', document.readyState);
+        
+        if (typeof win.Telegram !== 'undefined' && win.Telegram.WebApp) {
+          console.log('[TG-BackButton] TEST: Telegram.WebApp found in fallback, trying init()');
+          logger.log('[TG-BackButton] TEST: Telegram.WebApp found in fallback, trying init()');
+          try {
+            init();
+          } catch (error) {
+            console.error('[TG-BackButton] TEST: Fallback init error:', error);
+            logger.error('[TG-BackButton] TEST: Fallback init error:', error);
+          }
+        } else {
+          console.log('[TG-BackButton] TEST: Telegram.WebApp NOT found in fallback');
+          logger.log('[TG-BackButton] TEST: Telegram.WebApp NOT found in fallback');
+        }
+      }, 500);
     })();
   </script>
 </head>
