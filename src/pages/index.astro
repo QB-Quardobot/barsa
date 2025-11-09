@@ -1859,7 +1859,9 @@ const DEBUG_MODE = false;
     background: transparent;
     padding: 3rem 0;
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: visible;
+    /* Prevent clipping of badges and other elements */
   }
   
   @media (min-width: 1024px) {
@@ -2807,9 +2809,15 @@ const DEBUG_MODE = false;
     justify-content: center;
     width: 48px;
     height: 48px;
+    min-width: 48px;
+    min-height: 48px;
     background: rgba(96, 165, 250, 0.1);
     border: 1px solid rgba(96, 165, 250, 0.3);
     border-radius: 50%;
+    position: relative;
+    flex-shrink: 0;
+    /* Prevent layout shift */
+    contain: layout style paint;
   }
   
   .pulsing-dot {
@@ -4176,7 +4184,7 @@ const DEBUG_MODE = false;
   }
   
   .static-pagination.student-model-pagination {
-    bottom: calc(-2rem + 150px) !important;
+    bottom: calc(-2rem + 80px) !important;
   }
   
   .static-pagination .static-pagination-dot {
@@ -4222,7 +4230,7 @@ const DEBUG_MODE = false;
   @media (max-width: 767px) {
     .static-pagination.student-model-pagination {
       position: absolute !important;
-      bottom: calc(-1rem + 40px) !important;
+      bottom: calc(-1rem - 30px) !important;
       left: 50% !important;
       transform: translateX(-50%) !important;
       display: flex !important;
@@ -4530,6 +4538,9 @@ const DEBUG_MODE = false;
     /* GPU acceleration */
     transform: translateZ(0);
     will-change: contents;
+    /* Prevent clipping of child elements like click-sticker */
+    overflow-x: hidden;
+    overflow-y: visible;
   }
   
   @media (min-width: 1024px) {
@@ -4684,7 +4695,9 @@ const DEBUG_MODE = false;
       0 0 60px rgba(96, 165, 250, 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.05);
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: visible;
+    /* Prevent clipping of click-sticker and other child elements */
     /* GPU acceleration */
     transform: translateZ(0);
     will-change: transform;
@@ -4896,12 +4909,22 @@ const DEBUG_MODE = false;
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
-    margin: 2.5rem 0;
+    margin: 2.5rem auto;
     padding: 1.5rem 2rem;
     background: rgba(96, 165, 250, 0.1);
     border: 2px dashed rgba(96, 165, 250, 0.4);
     border-radius: var(--radius-xl);
     animation: pulse 2s ease-in-out infinite;
+    position: relative;
+    /* Prevent layout shift and text cutoff */
+    min-width: max-content;
+    width: auto;
+    max-width: 100%;
+    overflow: visible;
+    /* Prevent container from clipping */
+    contain: layout style;
+    /* Ensure proper centering */
+    text-align: center;
   }
   
   @keyframes pulse {
@@ -4926,6 +4949,11 @@ const DEBUG_MODE = false;
     color: var(--fg);
     font-weight: 600;
     white-space: nowrap;
+    /* Prevent text cutoff */
+    overflow: visible;
+    text-overflow: clip;
+    min-width: max-content;
+    display: inline-block;
   }
   
   .sticker-arrow {
