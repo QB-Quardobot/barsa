@@ -6,9 +6,22 @@ import '../styles/animations-extended.css';
 ---
 <Base title="Как это работает - AI Model 2.0" description="Пошаговая система создания AI-модели и заработка $300–$1 000 в первый месяц.">
   
-  <!-- Swiper CSS - load asynchronously to prevent render blocking -->
-  <link rel="preload" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"></noscript>
+  <!-- Swiper CSS - Professional CDN fallback strategy -->
+  <!-- 
+    Strategy:
+    1. Try CDN first (jsdelivr) - fastest and most reliable
+    2. If CDN fails, fallback to local copy in /public/swiper-bundle.min.css
+    3. Ensures Swiper styles always load, even if CDN is blocked/unavailable
+  -->
+  <link 
+    rel="preload" 
+    href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" 
+    as="style" 
+    onload="this.onload=null;this.rel='stylesheet';"
+    onerror="this.onerror=null;var link=document.createElement('link');link.rel='stylesheet';link.href='/swiper-bundle.min.css';link.crossOrigin='anonymous';document.head.appendChild(link);">
+  <noscript>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+  </noscript>
   
   <!-- Hero Section -->
   <section class="hero-section">

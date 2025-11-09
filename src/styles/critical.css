@@ -11,7 +11,8 @@
   --primary: #60a5fa;
   --primary-2: #22d3ee;
   --border: rgba(255, 255, 255, 0.08);
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  /* Font - Enhanced fallback stack matching global.css */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
   --spacing-unit: 0.5rem;
   --spacing-sm: calc(var(--spacing-unit) * 1);
   --spacing-md: calc(var(--spacing-unit) * 2);
@@ -33,6 +34,10 @@ html {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent font synthesis to ensure clean fallback rendering */
+  font-synthesis: none;
+  /* Ensure text is always visible, even during font loading */
+  text-rendering: optimizeLegibility;
 }
 
 body {
@@ -223,18 +228,67 @@ img.loaded {
 }
 
 /* Main Content - Critical */
-/* NOTE: Visibility/opacity controlled by LoadingScreen component during navigation */
-/* Only set display here to prevent layout shift */
+/* 
+ * Progressive Enhancement Strategy:
+ * 1. Show content by default (ensures accessibility even without JS)
+ * 2. Hide content ONLY during navigation loading (controlled by body.is-navigating class)
+ * 3. This prevents content from being permanently hidden if JS fails or loading screen doesn't hide
+ */
 #main-content {
   display: block !important;
-  /* visibility and opacity are controlled by LoadingScreen.astro and navigation scripts */
+  /* CRITICAL: Show content by default, hide only if loading screen is active */
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
-/* Prevent FOUC - Critical */
+/* Hide content ONLY during navigation loading (controlled by JS) */
+/* This class is added by navigation scripts and removed by LoadingScreen component */
+body.is-navigating #main-content {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Progressive Enhancement - Critical: Content Always Visible */
+/* 
+ * Strategy: Show all content by default, hide only if JavaScript is enabled
+ * This ensures content is accessible even without JavaScript or if JS fails to load
+ * 
+ * The .no-js class is added to <html> by default and removed by inline script
+ * If script doesn't run, .no-js remains and content stays visible
+ */
+html.no-js .reveal-up,
+html.no-js .reveal-fade,
+html.no-js .reveal-scale,
+html.no-js .reveal-slide-left,
+html.no-js .reveal-slide-right,
+html.no-js .reveal-blur,
+html.no-js .reveal-rotate,
+html.no-js .reveal-bounce,
+html.no-js .reveal-glow,
+html.no-js .reveal-stagger > * {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+  visibility: visible !important;
+  box-shadow: none !important;
+}
+
+/* Fallback: If IntersectionObserver fails or JS errors occur, show content */
+/* This is a safety net for edge cases where JS runs but reveal system fails */
 .reveal-up:not(.is-revealed),
 .reveal-fade:not(.is-revealed),
-.reveal-scale:not(.is-revealed) {
+.reveal-scale:not(.is-revealed),
+.reveal-slide-left:not(.is-revealed),
+.reveal-slide-right:not(.is-revealed),
+.reveal-blur:not(.is-revealed),
+.reveal-rotate:not(.is-revealed),
+.reveal-bounce:not(.is-revealed),
+.reveal-glow:not(.is-revealed),
+.reveal-stagger:not(.is-revealed) > * {
+  /* Ensure layout is preserved - content takes up space even when invisible */
   background-color: transparent;
   visibility: visible;
+  /* Note: opacity: 0 is intentional here - JS will reveal via IntersectionObserver */
+  /* But if JS fails, .no-js styles above will override this */
 }
 

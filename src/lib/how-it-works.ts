@@ -751,25 +751,115 @@ function setupSwiperNavigation(
   resizeObserver.observe(swiperContainer);
 }
 
-function loadSwiperLibrary(callback: () => void): void {
+/**
+ * Professional Swiper library loader with multi-CDN fallback
+ * Strategy:
+ * 1. Check if Swiper is already loaded
+ * 2. Try primary CDN (jsdelivr) - fastest and most reliable
+ * 3. If primary fails, try alternative CDN (unpkg)
+ * 4. If both fail, show static grid fallback
+ */
+function loadSwiperLibrary(callback: () => void, onError?: () => void): void {
+  // Check if Swiper is already loaded
   if (typeof (window as any).Swiper !== 'undefined') {
     callback();
     return;
   }
   
-  const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
-  script.async = true; // Load asynchronously
-  script.onload = callback;
-  script.onerror = function() {
-    // Swiper library failed to load
+  // Try primary CDN (jsdelivr)
+  const primaryScript = document.createElement('script');
+  primaryScript.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
+  primaryScript.async = true;
+  primaryScript.crossOrigin = 'anonymous';
+  
+  primaryScript.onload = () => {
+    // Primary CDN loaded successfully
+    if (typeof (window as any).Swiper !== 'undefined') {
+      callback();
+    } else {
+      // Swiper not available even after load - try alternative
+      tryAlternativeCDN(callback, onError);
+    }
   };
-  document.head.appendChild(script);
+  
+  primaryScript.onerror = () => {
+    // Primary CDN failed - try alternative
+    console.warn('[Swiper] Primary CDN failed, trying alternative CDN...');
+    tryAlternativeCDN(callback, onError);
+  };
+  
+  document.head.appendChild(primaryScript);
+}
+
+/**
+ * Try alternative CDN (unpkg) as fallback
+ */
+function tryAlternativeCDN(callback: () => void, onError?: () => void): void {
+  const alternativeScript = document.createElement('script');
+  alternativeScript.src = 'https://unpkg.com/swiper@11/swiper-bundle.min.js';
+  alternativeScript.async = true;
+  alternativeScript.crossOrigin = 'anonymous';
+  
+  alternativeScript.onload = () => {
+    // Alternative CDN loaded successfully
+    if (typeof (window as any).Swiper !== 'undefined') {
+      console.log('[Swiper] Loaded from alternative CDN (unpkg)');
+      callback();
+    } else {
+      // Swiper still not available - use fallback
+      console.error('[Swiper] Library not available after loading from alternative CDN');
+      if (onError) {
+        onError();
+      }
+    }
+  };
+  
+  alternativeScript.onerror = () => {
+    // Both CDNs failed - use fallback
+    console.error('[Swiper] All CDNs failed - using static grid fallback');
+    if (onError) {
+      onError();
+    }
+  };
+  
+  document.head.appendChild(alternativeScript);
 }
 
 
 // Store Swiper instances for destroy management
 const swiperInstances = new Map<HTMLElement, any>();
+
+/**
+ * Show static grid fallback when Swiper fails to load
+ * This ensures content is always visible, even if Swiper library is unavailable
+ */
+function showSwiperFallback(swiperContainer: HTMLElement): void {
+  // Add fallback class to enable CSS grid layout
+  swiperContainer.classList.add('swiper-fallback-grid');
+  
+  // Find swiper-wrapper and ensure it's visible
+  const swiperWrapper = swiperContainer.querySelector('.swiper-wrapper') as HTMLElement;
+  if (swiperWrapper) {
+    swiperWrapper.classList.add('swiper-fallback-grid');
+    
+    // Make all slides visible
+    const slides = swiperWrapper.querySelectorAll('.swiper-slide');
+    slides.forEach((slide) => {
+      const slideEl = slide as HTMLElement;
+      slideEl.style.opacity = '1';
+      slideEl.style.visibility = 'visible';
+      slideEl.style.transform = 'none';
+    });
+  }
+  
+  // Hide pagination (not needed for static grid)
+  const pagination = swiperContainer.querySelector('.static-pagination') as HTMLElement;
+  if (pagination) {
+    pagination.style.display = 'none';
+  }
+  
+  console.log('[Swiper] Static grid fallback activated');
+}
 
 // OPTIMIZED: Global destroy observer for all Swipers (created once)
 let globalDestroyObserver: IntersectionObserver | null = null;
@@ -835,13 +925,37 @@ export function initTestimonialsSwiper(): void {
     return;
   }
   
+  // Check if Swiper is already available
+  if (typeof (window as any).Swiper === 'undefined') {
+    // Swiper not loaded - try to load with fallback
+    loadSwiperLibrary(
+      () => {
+        // Swiper loaded successfully - retry initialization
+        setTimeout(() => {
+          initTestimonialsSwiper();
+        }, 100);
+      },
+      () => {
+        // Swiper failed to load - show static grid fallback
+        console.error('[Swiper] Failed to load - showing static grid fallback for testimonials');
+        showSwiperFallback(swiperContainer);
+      }
+    );
+    return;
+  }
+  
   // Find parent section for viewport detection
   const section = swiperContainer.closest('section') || swiperContainer.parentElement;
   if (!section) {
     // Fallback: initialize immediately if no section found
-    loadSwiperLibrary(() => {
-      createTestimonialsSwiper(swiperContainer);
-    });
+    loadSwiperLibrary(
+      () => {
+        createTestimonialsSwiper(swiperContainer);
+      },
+      () => {
+        showSwiperFallback(swiperContainer);
+      }
+    );
     return;
   }
   
@@ -857,11 +971,17 @@ export function initTestimonialsSwiper(): void {
         const swiperType = container.getAttribute('data-swiper-type');
         
         // Initialize Swiper when section enters viewport
-        loadSwiperLibrary(() => {
-          if (swiperType === 'testimonials') {
-            createTestimonialsSwiper(container);
+        loadSwiperLibrary(
+          () => {
+            if (swiperType === 'testimonials') {
+              createTestimonialsSwiper(container);
+            }
+          },
+          () => {
+            // Swiper failed to load - show static grid fallback
+            showSwiperFallback(container);
           }
-        });
+        );
         
         // Unobserve after initialization
         swiperObserver.unobserve(container);
@@ -886,6 +1006,9 @@ function createTestimonialsSwiper(swiperContainer: HTMLElement): void {
   
   const Swiper = (window as any).Swiper;
   if (!Swiper) {
+    // Swiper not available - show static grid fallback
+    console.error('[Swiper] Library not available in createTestimonialsSwiper - showing fallback');
+    showSwiperFallback(swiperContainer);
     return;
   }
   
@@ -935,13 +1058,37 @@ export function initStudentModelsSwiper(): void {
     return;
   }
   
+  // Check if Swiper is already available
+  if (typeof (window as any).Swiper === 'undefined') {
+    // Swiper not loaded - try to load with fallback
+    loadSwiperLibrary(
+      () => {
+        // Swiper loaded successfully - retry initialization
+        setTimeout(() => {
+          initStudentModelsSwiper();
+        }, 100);
+      },
+      () => {
+        // Swiper failed to load - show static grid fallback
+        console.error('[Swiper] Failed to load - showing static grid fallback for student models');
+        showSwiperFallback(swiperContainer);
+      }
+    );
+    return;
+  }
+  
   // Find parent section for viewport detection
   const section = swiperContainer.closest('section') || swiperContainer.parentElement;
   if (!section) {
     // Fallback: initialize immediately if no section found
-    loadSwiperLibrary(() => {
-      createStudentModelsSwiper(swiperContainer);
-    });
+    loadSwiperLibrary(
+      () => {
+        createStudentModelsSwiper(swiperContainer);
+      },
+      () => {
+        showSwiperFallback(swiperContainer);
+      }
+    );
     return;
   }
   
@@ -957,11 +1104,17 @@ export function initStudentModelsSwiper(): void {
         const swiperType = container.getAttribute('data-swiper-type');
         
         // Initialize Swiper when section enters viewport
-        loadSwiperLibrary(() => {
-          if (swiperType === 'models') {
-            createStudentModelsSwiper(container);
+        loadSwiperLibrary(
+          () => {
+            if (swiperType === 'models') {
+              createStudentModelsSwiper(container);
+            }
+          },
+          () => {
+            // Swiper failed to load - show static grid fallback
+            showSwiperFallback(container);
           }
-        });
+        );
         
         // Unobserve after initialization
         swiperObserver.unobserve(container);
@@ -986,6 +1139,9 @@ function createStudentModelsSwiper(swiperContainer: HTMLElement): void {
   
   const Swiper = (window as any).Swiper;
   if (!Swiper) {
+    // Swiper not available - show static grid fallback
+    console.error('[Swiper] Library not available in createStudentModelsSwiper - showing fallback');
+    showSwiperFallback(swiperContainer);
     return;
   }
   

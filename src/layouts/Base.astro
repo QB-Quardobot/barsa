@@ -26,7 +26,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
 ---
 
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" class="no-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -68,63 +68,164 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   <meta name="twitter:image" content={new URL(image, Astro.site || origin).href}>
   <meta name="twitter:image:alt" content={fullTitle}>
   
-  <!-- Preload Fonts -->
-  <link rel="preload" href="/fonts/inter-regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/inter-medium.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/inter-bold.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Preload Fonts - Critical for FOIT prevention -->
+  <!-- 
+    crossorigin="anonymous" is required for CORS when preloading fonts
+    This ensures fonts load correctly even if served from different origin
+    Without it, preload may fail silently on some browsers
+  -->
+  <link rel="preload" href="/fonts/inter-regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="/fonts/inter-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="/fonts/inter-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
   
   <!-- Preload Critical Images (page-specific, will be overridden in pages) -->
   
   <!-- Critical CSS - Inline for fastest first paint (loads before global.css) -->
   <style set:html={criticalCSS} />
   
+  <!-- CRITICAL: Remove no-js class immediately to enable JavaScript features -->
+  <!-- This MUST run before any content renders to enable progressive enhancement -->
+  <!-- If this script doesn't run, .no-js class remains and content stays visible (graceful degradation) -->
+  <script is:inline>
+    (function() {
+      // Remove no-js class immediately - indicates JavaScript is enabled
+      // If this doesn't run, .no-js remains and CSS fallbacks ensure content is visible
+      try {
+        document.documentElement.classList.remove('no-js');
+      } catch (e) {
+        // Silently fail - .no-js will remain and CSS will show content
+      }
+    })();
+  </script>
+  
   <!-- CRITICAL: Blocking script to hide content IMMEDIATELY if navigating -->
   <!-- This MUST run before any content renders to prevent flash -->
   <!-- This script has HIGHEST priority and runs before critical.css applies -->
   <script is:inline>
     (function() {
-      // Check sessionStorage IMMEDIATELY (before DOM is ready)
-      if (typeof sessionStorage !== 'undefined') {
-        const shouldShowLoader = sessionStorage.getItem('showLoadingScreen') === 'true';
-        if (shouldShowLoader) {
-          // Inject critical styles IMMEDIATELY to hide content
-          // CRITICAL: Use maximum specificity to override critical.css
-          const style = document.createElement('style');
-          style.id = 'navigation-loading-critical';
-          style.textContent = `
-            /* Maximum specificity to override critical.css */
-            html body #main-content {
-              visibility: hidden !important;
-              opacity: 0 !important;
+      // Safe sessionStorage wrapper for iOS Safari private mode and other edge cases
+      // Professional implementation with comprehensive error handling
+      // Strategy: Try sessionStorage, fallback to in-memory storage if unavailable
+      var safeStorage = (function() {
+        'use strict';
+        
+        // In-memory fallback storage (used when sessionStorage is unavailable)
+        var memoryStorage = {};
+        
+        // Test if sessionStorage is available and working
+        var hasSessionStorage = false;
+        var testKey = '__safeStorage_test__';
+        
+        try {
+          // Check if sessionStorage exists
+          if (typeof sessionStorage !== 'undefined') {
+            // Try to write and read a test value
+            sessionStorage.setItem(testKey, '1');
+            var testValue = sessionStorage.getItem(testKey);
+            sessionStorage.removeItem(testKey);
+            
+            // Verify the test worked
+            if (testValue === '1') {
+              hasSessionStorage = true;
             }
-            html body #loading-screen.loading-screen,
-            html body div#loading-screen.loading-screen {
-              display: flex !important;
-              visibility: visible !important;
-              opacity: 1 !important;
-              z-index: 99999 !important;
-              pointer-events: auto !important;
+          }
+        } catch (e) {
+          // sessionStorage is not available (iOS Safari private mode, quota exceeded, etc.)
+          hasSessionStorage = false;
+        }
+        
+        // Return safe storage interface
+        return {
+          getItem: function(key) {
+            try {
+              if (hasSessionStorage) {
+                return sessionStorage.getItem(key);
+              } else {
+                return memoryStorage[key] || null;
+              }
+            } catch (e) {
+              // Fallback to memory if sessionStorage throws error during read
+              return memoryStorage[key] || null;
             }
-          `;
-          // Insert at the very beginning of head to ensure highest priority
-          if (document.head) {
-            document.head.insertBefore(style, document.head.firstChild);
+          },
+          
+          setItem: function(key, value) {
+            try {
+              if (hasSessionStorage) {
+                sessionStorage.setItem(key, value);
+              } else {
+                memoryStorage[key] = value;
+              }
+            } catch (e) {
+              // If sessionStorage throws error (quota exceeded, etc.), use memory fallback
+              memoryStorage[key] = value;
+            }
+          },
+          
+          removeItem: function(key) {
+            try {
+              if (hasSessionStorage) {
+                sessionStorage.removeItem(key);
+              } else {
+                delete memoryStorage[key];
+              }
+            } catch (e) {
+              // If sessionStorage throws error, use memory fallback
+              delete memoryStorage[key];
+            }
+          },
+          
+          // Helper method to check if using fallback
+          isUsingFallback: function() {
+            return !hasSessionStorage;
+          },
+          
+          // Clear all stored data (useful for cleanup)
+          clear: function() {
+            try {
+              if (hasSessionStorage) {
+                sessionStorage.clear();
+              } else {
+                memoryStorage = {};
+              }
+            } catch (e) {
+              memoryStorage = {};
+            }
+          }
+        };
+      })();
+      
+      // Expose safeStorage globally for use in other scripts
+      window.safeStorage = safeStorage;
+      
+      // Check safeStorage IMMEDIATELY (before DOM is ready)
+      const shouldShowLoader = safeStorage.getItem('showLoadingScreen') === 'true';
+      if (shouldShowLoader) {
+        // Add is-navigating class to body to hide content via CSS
+        // This is more reliable than inline styles and works even if JS partially fails
+        // CRITICAL: Use class-based approach for progressive enhancement
+        try {
+          // Try to add class to body immediately (if body exists)
+          if (document.body) {
+            document.body.classList.add('is-navigating');
           } else {
-            // If head doesn't exist yet, wait for it
+            // If body doesn't exist yet, wait for it
             const observer = new MutationObserver(function(mutations, obs) {
-              if (document.head) {
-                document.head.insertBefore(style, document.head.firstChild);
+              if (document.body) {
+                document.body.classList.add('is-navigating');
                 obs.disconnect();
               }
             });
             observer.observe(document.documentElement, { childList: true, subtree: true });
             // Fallback: try again after a short delay
             setTimeout(function() {
-              if (document.head && !document.getElementById('navigation-loading-critical')) {
-                document.head.insertBefore(style, document.head.firstChild);
+              if (document.body && !document.body.classList.contains('is-navigating')) {
+                document.body.classList.add('is-navigating');
               }
             }, 0);
           }
+        } catch (e) {
+          // Silently fail - content will remain visible (graceful degradation)
         }
       }
     })();
@@ -164,6 +265,69 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   <!-- Swiper CDN optimization -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  
+  <!-- IntersectionObserver Polyfill for old browsers (iOS < 12.2, Android < 5) -->
+  <!-- 
+    Professional approach: Load polyfill only if needed, use reliable CDN
+    Strategy:
+    1. Check if IntersectionObserver is supported
+    2. If not, load polyfill from jsdelivr (more reliable than polyfill.io)
+    3. Use intersection-observer package (official W3C polyfill)
+    4. Fallback gracefully if polyfill fails to load
+  -->
+  <script is:inline>
+    (function() {
+      'use strict';
+      
+      // Check if IntersectionObserver is already available
+      if (typeof IntersectionObserver !== 'undefined') {
+        // Already supported - no polyfill needed
+        return;
+      }
+      
+      // IntersectionObserver not supported - load polyfill
+      // Using jsdelivr CDN with intersection-observer package (official W3C polyfill)
+      // More reliable than polyfill.io v3 which may have issues
+      var script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/intersection-observer@0.12.2/intersection-observer.min.js';
+      script.async = true;
+      script.crossOrigin = 'anonymous';
+      
+      // Set integrity hash for security (optional but recommended)
+      // script.integrity = 'sha256-...';
+      // script.crossOrigin = 'anonymous';
+      
+      // Handle successful load
+      script.onload = function() {
+        // Polyfill loaded successfully
+        // IntersectionObserver should now be available
+        if (typeof IntersectionObserver !== 'undefined') {
+          // Dispatch custom event to notify that polyfill is ready
+          var event = new CustomEvent('intersectionobserver-polyfill-loaded', {
+            detail: { polyfill: true }
+          });
+          document.dispatchEvent(event);
+        }
+      };
+      
+      // Handle load error - fallback to immediate reveal
+      script.onerror = function() {
+        // Polyfill failed to load - mark that fallback should be used
+        // The reveal.ts code will handle this via showAllImmediately()
+        console.warn('[Polyfill] IntersectionObserver polyfill failed to load - using fallback');
+        
+        // Dispatch event to notify that fallback should be used
+        var event = new CustomEvent('intersectionobserver-polyfill-failed', {
+          detail: { fallback: true }
+        });
+        document.dispatchEvent(event);
+      };
+      
+      // Insert script into head
+      var head = document.head || document.getElementsByTagName('head')[0];
+      head.insertBefore(script, head.firstChild);
+    })();
+  </script>
   
   {/* Analytics configuration - IDs passed to client script */}
   {GA4_MEASUREMENT_ID && (
@@ -322,15 +486,31 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       };
       win.addEventListener('beforeunload', unloadCleanup);
       
-      // UTM helpers
+      // UTM helpers - use safeStorage for iOS Safari private mode compatibility
       const storedUtmKey = 'utm_params';
       const utm = (win.utmParams && typeof win.utmParams === 'object') ? win.utmParams : {};
+      // Use safeStorage (available globally from first script block)
+      const safeStorage = win.safeStorage || (function() {
+        // Fallback if safeStorage not available (shouldn't happen, but safety first)
+        var mem = {};
+        return {
+          getItem: function(k) { return mem[k] || null; },
+          setItem: function(k, v) { mem[k] = v; },
+          removeItem: function(k) { delete mem[k]; }
+        };
+      })();
+      
       if (Object.keys(utm).length) {
-        try { sessionStorage.setItem(storedUtmKey, JSON.stringify(utm)); } catch {}
+        safeStorage.setItem(storedUtmKey, JSON.stringify(utm));
       }
 
       function getStoredUTM() {
-        try { return JSON.parse(sessionStorage.getItem(storedUtmKey) || '{}'); } catch { return {}; }
+        try { 
+          var stored = safeStorage.getItem(storedUtmKey);
+          return stored ? JSON.parse(stored) : {}; 
+        } catch (e) { 
+          return {}; 
+        }
       }
       function withUTM(url) {
         const params = getStoredUTM();
@@ -604,15 +784,13 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               if (!isFirstPage()) {
                 logger.log('[TG-BackButton] Not on first page, attempting navigation back');
                 try {
-                  // FIX #2: Clear sessionStorage ASYNCHRONOUSLY to avoid blocking history.back()
-                  // According to internet sources, synchronous sessionStorage operations
+                  // FIX #2: Clear safeStorage ASYNCHRONOUSLY to avoid blocking history.back()
+                  // According to internet sources, synchronous storage operations
                   // can interfere with navigation. Use setTimeout(0) to make it async.
-                  if (typeof sessionStorage !== 'undefined') {
-                    setTimeout(() => {
-                      sessionStorage.removeItem('showLoadingScreen');
-                      logger.log('[TG-BackButton] sessionStorage cleared (async)');
-                    }, 0);
-                  }
+                  setTimeout(() => {
+                    safeStorage.removeItem('showLoadingScreen');
+                    logger.log('[TG-BackButton] safeStorage cleared (async)');
+                  }, 0);
                   
                   logger.log('[TG-BackButton] Calling history.back()...');
                   win.history.back();
@@ -622,9 +800,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                 } catch (e) {
                   logger.error('[TG-BackButton] Error with history.back():', e);
                   // Fallback: navigate to home
-                  if (typeof sessionStorage !== 'undefined') {
-                    sessionStorage.removeItem('showLoadingScreen');
-                  }
+                  safeStorage.removeItem('showLoadingScreen');
                   logger.log('[TG-BackButton] Fallback: navigating to home');
                   win.location.href = '/';
                   return;
@@ -759,7 +935,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       // Track click with Google Analytics 4 & Яндекс.Метрика
       function trackClick(href, buttonText) {
         try {
-          // Get UTM params from sessionStorage
+          // Get UTM params from safeStorage (handles iOS Safari private mode)
           const utmParams = getStoredUTM();
           
           // Google Analytics 4: Track CTA click event
@@ -795,8 +971,8 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       }
       
       // Initialize session ID for analytics (if not exists)
-      if (typeof sessionStorage !== 'undefined' && !sessionStorage.getItem('analytics_session_id')) {
-        sessionStorage.setItem('analytics_session_id', 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
+      if (!safeStorage.getItem('analytics_session_id')) {
+        safeStorage.setItem('analytics_session_id', 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
       }
       
       // CTA links + haptics + proper Telegram link handling
@@ -851,7 +1027,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                 const loadingScreen = doc.getElementById('loading-screen');
                 if (loadingScreen) {
                   // Mark that next page should show loader
-                  sessionStorage.setItem('showLoadingScreen', 'true');
+                  safeStorage.setItem('showLoadingScreen', 'true');
                   // Show loader immediately
                   loadingScreen.style.display = 'flex';
                   loadingScreen.style.visibility = 'visible';
@@ -908,7 +1084,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                 const showInBrowser = loadingScreen && loadingScreen.getAttribute('data-show-in-browser') === 'true';
                 if (showInBrowser && loadingScreen) {
                   // Mark that next page should show loader
-                  sessionStorage.setItem('showLoadingScreen', 'true');
+                  safeStorage.setItem('showLoadingScreen', 'true');
                   // Show loader immediately
                   loadingScreen.style.display = 'flex';
                   loadingScreen.style.visibility = 'visible';
@@ -976,9 +1152,12 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         doc.addEventListener('click', function(e) {
           // CRITICAL FIX: Don't interfere with BackButton clicks
           // BackButton clicks don't trigger document click events, but we check anyway
-          const target = e.target as HTMLElement;
-          const link = target.closest('a[href]') as HTMLAnchorElement;
-          if (!link) return;
+          // Use JavaScript type checking instead of TypeScript assertions for inline scripts
+          // e.target can be any EventTarget, but in click events it's usually an Element
+          const target = e.target;
+          if (!target || !(target instanceof Element)) return;
+          const link = target.closest('a[href]');
+          if (!link || !(link instanceof HTMLAnchorElement)) return;
           
           // Skip if already handled by setupCTALinks (data-cta links)
           if (link.hasAttribute('data-cta')) return;
@@ -1011,7 +1190,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           const loadingScreen = doc.getElementById('loading-screen');
           if (loadingScreen) {
             // Mark that next page should show loader
-            sessionStorage.setItem('showLoadingScreen', 'true');
+            safeStorage.setItem('showLoadingScreen', 'true');
             // Show loader immediately
             loadingScreen.style.display = 'flex';
             loadingScreen.style.visibility = 'visible';
@@ -1238,6 +1417,17 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       const win = window;
       const doc = document;
       
+      // Use safeStorage (available globally from first script block in head)
+      // Fallback to in-memory storage if safeStorage not available (shouldn't happen, but safety first)
+      const safeStorage = win.safeStorage || (function() {
+        var mem = {};
+        return {
+          getItem: function(k) { return mem[k] || null; },
+          setItem: function(k, v) { mem[k] = v; },
+          removeItem: function(k) { delete mem[k]; }
+        };
+      })();
+      
       // Production-safe logger (fallback if not defined in head)
       if (!win.logger) {
         const isDev = win.location.hostname === 'localhost' || win.location.hostname === '127.0.0.1' || win.location.hostname.includes('.ngrok.io') || win.location.hostname.includes('.trycloudflare.com');
@@ -1267,8 +1457,8 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       
       // CRITICAL: Check if we should show loading screen immediately (from navigation)
       // This prevents content flash when navigating between pages
-      // Note: Don't remove sessionStorage here - LoadingScreen will handle it
-      const shouldShowLoader = sessionStorage.getItem('showLoadingScreen') === 'true';
+      // Note: Don't remove safeStorage here - LoadingScreen will handle it
+      const shouldShowLoader = safeStorage.getItem('showLoadingScreen') === 'true';
       if (shouldShowLoader) {
         const loadingScreen = doc.getElementById('loading-screen');
         if (loadingScreen) {
@@ -1472,12 +1662,10 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               if (!isFirstPage) {
                 hapticLogger.log('[TG-BackButton] Not on first page, calling history.back()');
                 
-                // Clear sessionStorage asynchronously
-                if (typeof sessionStorage !== 'undefined') {
-                  setTimeout(() => {
-                    sessionStorage.removeItem('showLoadingScreen');
-                  }, 0);
-                }
+                // Clear safeStorage asynchronously
+                setTimeout(() => {
+                  safeStorage.removeItem('showLoadingScreen');
+                }, 0);
                 
                 win.history.back();
                 if (haptics) haptics.impactOccurred('light');

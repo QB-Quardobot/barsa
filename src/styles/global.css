@@ -30,8 +30,9 @@
   --color-fg: var(--fg);
   --color-fg-muted: var(--muted);
   
-  /* Font */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  /* Font - Enhanced fallback stack for better compatibility */
+  /* Inter → system-ui → -apple-system → BlinkMacSystemFont → Segoe UI → Roboto → Helvetica Neue → Arial → sans-serif */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
   
   /* Spacing - Vertical Rhythm */
   --spacing-unit: 0.5rem; /* 8px base */
@@ -56,13 +57,27 @@
   --radius-2xl: 2rem;    /* 32px */
 }
 
-/* Font Loading */
+/* Font Loading - Professional FOIT Prevention */
+/* 
+ * Strategy:
+ * 1. font-display: fallback - Shows fallback immediately, swaps to Inter if loaded within 100ms
+ *    This prevents FOIT while still allowing font swap on fast connections
+ * 2. Enhanced fallback stack - Ensures text is always visible with system fonts
+ * 3. Font synthesis disabled - Prevents browser from faking bold/italic, ensuring clean fallback
+ */
+
 @font-face {
   font-family: 'Inter';
   src: url('/fonts/inter-regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
-  font-display: swap;
+  /* fallback: Shows fallback immediately, swaps only if font loads within 100ms */
+  /* This prevents FOIT while still allowing swap on fast connections */
+  font-display: fallback;
+  /* Prevent browser from synthesizing bold/italic variants */
+  font-synthesis: none;
+  /* Optional: Size adjustment for better fallback matching (Inter ≈ system-ui size) */
+  /* size-adjust: 100%; */
 }
 
 @font-face {
@@ -70,7 +85,8 @@
   src: url('/fonts/inter-medium.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
-  font-display: swap;
+  font-display: fallback;
+  font-synthesis: none;
 }
 
 @font-face {
@@ -78,7 +94,8 @@
   src: url('/fonts/inter-bold.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
-  font-display: swap;
+  font-display: fallback;
+  font-synthesis: none;
 }
 
 /* Base Styles */
@@ -92,6 +109,10 @@ html {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent font synthesis to ensure clean fallback rendering */
+  font-synthesis: none;
+  /* Ensure text is always visible, even during font loading */
+  text-rendering: optimizeLegibility;
 }
 
 body {
@@ -476,6 +497,8 @@ main,
   -webkit-backface-visibility: hidden;
   /* Force hardware acceleration */
   transform: translateZ(0);
+  /* Progressive Enhancement: Ensure layout is preserved even when hidden */
+  visibility: visible;
 }
 
 /* .ilya-current can use reveal animations - gradient text inside is isolated */
@@ -569,6 +592,8 @@ main,
   -webkit-backface-visibility: hidden;
   /* CRITICAL: No transform - only opacity to avoid stacking context */
   transform: none;
+  /* Progressive Enhancement: Ensure layout is preserved even when hidden */
+  visibility: visible;
 }
 
 .reveal-fade.is-revealed {

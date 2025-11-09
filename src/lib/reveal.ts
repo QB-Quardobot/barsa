@@ -257,8 +257,52 @@ class RevealAnimations {
   private init() {
     // Check if Intersection Observer is supported
     if (typeof IntersectionObserver === 'undefined') {
-      // Fallback: show all elements immediately
-      this.showAllImmediately();
+      // IntersectionObserver not supported - use comprehensive fallback
+      console.warn('[Reveal] IntersectionObserver not supported - revealing all elements immediately');
+      
+      // Wait a bit for polyfill to potentially load (if it's being loaded)
+      // This handles the case where polyfill is loading asynchronously
+      const checkPolyfill = () => {
+        if (typeof IntersectionObserver !== 'undefined') {
+          // Polyfill loaded - retry initialization
+          this.init();
+          return;
+        }
+        
+        // Polyfill not available - use fallback
+        this.revealAllElementsFallback();
+      };
+      
+      // Check immediately
+      checkPolyfill();
+      
+      // Also listen for polyfill load event (if polyfill script dispatches it)
+      const polyfillHandler = () => {
+        if (typeof IntersectionObserver !== 'undefined') {
+          // Polyfill loaded - retry initialization
+          document.removeEventListener('intersectionobserver-polyfill-loaded', polyfillHandler);
+          document.removeEventListener('intersectionobserver-polyfill-failed', polyfillErrorHandler);
+          this.init();
+        }
+      };
+      
+      const polyfillErrorHandler = () => {
+        // Polyfill failed - use fallback immediately
+        document.removeEventListener('intersectionobserver-polyfill-loaded', polyfillHandler);
+        document.removeEventListener('intersectionobserver-polyfill-failed', polyfillErrorHandler);
+        this.revealAllElementsFallback();
+      };
+      
+      document.addEventListener('intersectionobserver-polyfill-loaded', polyfillHandler, { once: true });
+      document.addEventListener('intersectionobserver-polyfill-failed', polyfillErrorHandler, { once: true });
+      
+      // Fallback timeout: if polyfill doesn't load within 1 second, show content anyway
+      setTimeout(() => {
+        if (typeof IntersectionObserver === 'undefined') {
+          this.revealAllElementsFallback();
+        }
+      }, 1000);
+      
       return;
     }
 
@@ -1007,7 +1051,12 @@ class RevealAnimations {
     }
   }
 
-  private showAllImmediately() {
+  /**
+   * Comprehensive fallback for browsers without IntersectionObserver support
+   * Reveals all elements immediately with proper styling
+   */
+  private revealAllElementsFallback() {
+    // Select all elements with reveal classes
     const elements = document.querySelectorAll(
       '[class*="reveal-fade"], [class*="reveal-up"], [class*="reveal-scale"], ' +
       '[class*="reveal-slide-left"], [class*="reveal-slide-right"], [class*="reveal-blur"], ' +
@@ -1017,19 +1066,57 @@ class RevealAnimations {
 
     elements.forEach((el) => {
       const element = el as HTMLElement;
+      
+      // Remove all reveal classes to prevent conflicts
+      element.classList.remove(
+        'reveal-up', 'reveal-fade', 'reveal-scale', 'reveal-glow',
+        'reveal-slide-left', 'reveal-slide-right', 'reveal-blur',
+        'reveal-rotate', 'reveal-bounce'
+      );
+      
+      // Add is-revealed class for consistency
       element.classList.add('is-revealed');
       
-      // Handle stagger elements
+      // Explicitly set styles to ensure visibility
+      // This is critical for browsers that may not apply CSS classes correctly
+      element.style.opacity = '1';
+      element.style.visibility = 'visible';
+      element.style.transform = 'none';
+      element.style.filter = 'none';
+      element.style.boxShadow = '';
+      
+      // Handle stagger elements - reveal all children immediately
       if (element.classList.contains('reveal-stagger')) {
-        this.animateStagger(element);
+        const staggerChildren = element.querySelectorAll('*');
+        staggerChildren.forEach((child) => {
+          const childEl = child as HTMLElement;
+          childEl.style.opacity = '1';
+          childEl.style.visibility = 'visible';
+          childEl.style.transform = 'none';
+        });
+        // Also trigger stagger animation if method exists
+        if (typeof this.animateStagger === 'function') {
+          this.animateStagger(element);
+        }
       }
     });
 
+    // Clean up any observers if they exist
     if (this.useGlobalObserver) {
       elements.forEach((el) => unregisterGlobalObserver(el as HTMLElement));
     } else if (this.observer) {
       elements.forEach((el) => this.observer!.unobserve(el));
     }
+    
+    console.log('[Reveal] Fallback applied - all elements revealed immediately');
+  }
+
+  /**
+   * Legacy method - kept for backward compatibility
+   * Now calls revealAllElementsFallback for consistency
+   */
+  private showAllImmediately() {
+    this.revealAllElementsFallback();
   }
 
   public destroy() {
