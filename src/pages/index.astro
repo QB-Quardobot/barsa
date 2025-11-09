@@ -4631,12 +4631,13 @@ const DEBUG_MODE = false;
     text-align: center;
     max-width: 900px;
     margin: 0 auto;
-    /* CRITICAL: Use relative positioning for absolute children */
+    /* CRITICAL: Use relative positioning for proper document flow */
     position: relative;
     /* Keep flexbox for other children */
     display: flex;
     flex-direction: column;
-    align-items: center;
+    /* CRITICAL: Don't use align-items: center - it conflicts with margin auto on children */
+    /* Let children center themselves with margin auto */
   }
   
   .final-title-blue {
@@ -4928,23 +4929,21 @@ const DEBUG_MODE = false;
     }
   }
   
-  /* Click Sticker - Absolute centering solution for production compatibility */
+  /* Click Sticker - Reliable centering that works in document flow */
   .click-sticker {
-    display: flex;
+    display: flex; /* Flex for internal content alignment */
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    margin: 2.5rem 0; /* Remove auto margins - will use absolute positioning */
+    margin: 2.5rem auto; /* Auto margins for horizontal centering - works with flex */
     padding: 1.5rem 2rem;
     background: rgba(96, 165, 250, 0.1);
     border: 2px dashed rgba(96, 165, 250, 0.4);
     border-radius: var(--radius-xl);
     animation: pulse 2s ease-in-out infinite;
-    /* CRITICAL: Use absolute positioning for reliable centering */
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    /* CRITICAL: Keep in document flow for proper vertical positioning */
+    position: relative;
     /* Fixed width approach - prevents layout shift from font loading */
     width: fit-content;
     min-width: 280px; /* Reserve space for text to prevent shift */
@@ -4958,11 +4957,11 @@ const DEBUG_MODE = false;
   
   @keyframes pulse {
     0%, 100% {
-      transform: translateX(-50%) scale(1) translateZ(0);
+      transform: scale(1) translateZ(0);
       opacity: 1;
     }
     50% {
-      transform: translateX(-50%) scale(1.05) translateZ(0);
+      transform: scale(1.05) translateZ(0);
       opacity: 0.9;
     }
   }
@@ -4981,17 +4980,23 @@ const DEBUG_MODE = false;
     }
   }
   
-  /* CRITICAL: Override reveal-scale transform to combine with centering */
+  /* CRITICAL: Override reveal-scale transform - centering via margin auto */
   /* This ensures click-sticker is centered even with reveal-scale animation */
   .click-sticker.reveal-scale {
-    /* Initial state - scale down but keep centered via translateX(-50%) */
-    transform: translateX(-50%) scale(0.92) translateZ(0);
+    /* Initial state - scale down, centering handled by margin auto */
+    transform: scale(0.92) translateZ(0);
+    /* Ensure margin auto is maintained */
+    margin-left: auto !important;
+    margin-right: auto !important;
   }
   
   .click-sticker.reveal-scale.is-revealed {
-    /* Revealed state - scale to full size, still centered via translateX(-50%) */
-    transform: translateX(-50%) scale(1) translateZ(0);
+    /* Revealed state - scale to full size, centering handled by margin auto */
+    transform: scale(1) translateZ(0);
     opacity: 1;
+    /* Ensure margin auto is maintained */
+    margin-left: auto !important;
+    margin-right: auto !important;
   }
   
   .sticker-text {
