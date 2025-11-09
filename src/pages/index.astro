@@ -848,9 +848,11 @@ const DEBUG_MODE = false;
           </div>
           
           <!-- Click Sticker -->
-          <div class="click-sticker reveal-scale">
-            <span class="sticker-text">Всё начинается с одного клика.</span>
-            <span class="sticker-arrow">👇🏼</span>
+          <div class="click-sticker-wrapper">
+            <div class="click-sticker reveal-scale">
+              <span class="sticker-text">Всё начинается с одного клика.</span>
+              <span class="sticker-arrow">👇🏼</span>
+            </div>
           </div>
           
           <p class="final-action-text">
@@ -4929,6 +4931,16 @@ const DEBUG_MODE = false;
     }
   }
   
+  /* Click Sticker Wrapper - CSS Grid for bulletproof centering */
+  .click-sticker-wrapper {
+    display: grid;
+    place-items: center; /* Centers both horizontally and vertically */
+    margin: 2.5rem 0;
+    width: 100%;
+    /* Ensure wrapper doesn't interfere with layout */
+    position: relative;
+  }
+  
   /* Click Sticker - Reliable centering that works in document flow */
   .click-sticker {
     display: flex; /* Flex for internal content alignment */
@@ -4936,7 +4948,7 @@ const DEBUG_MODE = false;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    margin: 2.5rem auto; /* Auto margins for horizontal centering - works with flex */
+    margin: 0; /* No margin - centering handled by grid parent */
     padding: 1.5rem 2rem;
     background: rgba(96, 165, 250, 0.1);
     border: 2px dashed rgba(96, 165, 250, 0.4);
