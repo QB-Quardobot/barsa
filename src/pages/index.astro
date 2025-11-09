@@ -4631,9 +4631,9 @@ const DEBUG_MODE = false;
     text-align: center; /* Centers inline-flex children (click-sticker) */
     max-width: 900px;
     margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Centers other flex children */
+    /* CRITICAL: Use block display to allow text-align to work with inline-flex children */
+    /* flex display prevents text-align from centering inline-flex children */
+    display: block;
   }
   
   .final-title-blue {
@@ -4926,17 +4926,20 @@ const DEBUG_MODE = false;
   }
   
   /* Click Sticker - Simple and reliable centering using inline-flex + parent text-align */
-  .click-sticker {
-    display: inline-flex; /* inline-flex works with text-align: center on parent */
+  .final-main .click-sticker {
+    display: inline-flex !important; /* inline-flex works with text-align: center on parent */
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
-    margin: 2.5rem 0; /* Vertical margin only - horizontal centering via parent text-align */
+    margin: 2.5rem auto !important; /* Auto margins for horizontal centering as fallback */
     padding: 1.5rem 2rem;
     background: rgba(96, 165, 250, 0.1);
     border: 2px dashed rgba(96, 165, 250, 0.4);
     border-radius: var(--radius-xl);
     animation: pulse 2s ease-in-out infinite;
+    /* CRITICAL: Ensure element is centered - inline-flex + margin auto + parent text-align */
+    width: fit-content;
+    max-width: min(100%, 400px);
   }
   
   @keyframes pulse {
@@ -4966,15 +4969,21 @@ const DEBUG_MODE = false;
   
   /* CRITICAL: Override reveal-scale transform - centering via parent text-align */
   /* inline-flex + parent text-align: center = reliable centering */
-  .click-sticker.reveal-scale {
-    /* Initial state - scale down, centering handled by parent text-align */
-    transform: scale(0.92) translateZ(0);
+  .final-main .click-sticker.reveal-scale {
+    /* Initial state - scale down, centering handled by parent text-align + margin auto */
+    transform: scale(0.92) translateZ(0) !important;
+    /* Ensure margin auto is maintained */
+    margin-left: auto !important;
+    margin-right: auto !important;
   }
   
-  .click-sticker.reveal-scale.is-revealed {
-    /* Revealed state - scale to full size, centering handled by parent text-align */
-    transform: scale(1) translateZ(0);
+  .final-main .click-sticker.reveal-scale.is-revealed {
+    /* Revealed state - scale to full size, centering handled by parent text-align + margin auto */
+    transform: scale(1) translateZ(0) !important;
     opacity: 1;
+    /* Ensure margin auto is maintained */
+    margin-left: auto !important;
+    margin-right: auto !important;
   }
   
   .sticker-text {
