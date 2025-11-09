@@ -848,11 +848,9 @@ const DEBUG_MODE = false;
           </div>
           
           <!-- Click Sticker -->
-          <div class="click-sticker-wrapper">
-            <div class="click-sticker reveal-scale">
-              <span class="sticker-text">Всё начинается с одного клика.</span>
-              <span class="sticker-arrow">👇🏼</span>
-            </div>
+          <div class="click-sticker reveal-scale">
+            <span class="sticker-text">Всё начинается с одного клика.</span>
+            <span class="sticker-arrow">👇🏼</span>
           </div>
           
           <p class="final-action-text">
@@ -4630,16 +4628,12 @@ const DEBUG_MODE = false;
   
   /* Final Main */
   .final-main {
-    text-align: center;
+    text-align: center; /* Centers inline-flex children (click-sticker) */
     max-width: 900px;
     margin: 0 auto;
-    /* CRITICAL: Use relative positioning for proper document flow */
-    position: relative;
-    /* Keep flexbox for other children */
     display: flex;
     flex-direction: column;
-    /* CRITICAL: Don't use align-items: center - it conflicts with margin auto on children */
-    /* Let children center themselves with margin auto */
+    align-items: center; /* Centers other flex children */
   }
   
   .final-title-blue {
@@ -4931,40 +4925,18 @@ const DEBUG_MODE = false;
     }
   }
   
-  /* Click Sticker Wrapper - CSS Grid for bulletproof centering */
-  .click-sticker-wrapper {
-    display: grid;
-    place-items: center; /* Centers both horizontally and vertically */
-    margin: 2.5rem 0;
-    width: 100%;
-    /* Ensure wrapper doesn't interfere with layout */
-    position: relative;
-  }
-  
-  /* Click Sticker - Reliable centering that works in document flow */
+  /* Click Sticker - Simple and reliable centering using inline-flex + parent text-align */
   .click-sticker {
-    display: flex; /* Flex for internal content alignment */
+    display: inline-flex; /* inline-flex works with text-align: center on parent */
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     gap: 0.5rem;
-    margin: 0; /* No margin - centering handled by grid parent */
+    margin: 2.5rem 0; /* Vertical margin only - horizontal centering via parent text-align */
     padding: 1.5rem 2rem;
     background: rgba(96, 165, 250, 0.1);
     border: 2px dashed rgba(96, 165, 250, 0.4);
     border-radius: var(--radius-xl);
     animation: pulse 2s ease-in-out infinite;
-    /* CRITICAL: Keep in document flow for proper vertical positioning */
-    position: relative;
-    /* Fixed width approach - prevents layout shift from font loading */
-    width: fit-content;
-    min-width: 280px; /* Reserve space for text to prevent shift */
-    max-width: min(100%, 400px); /* Better max-width calculation */
-    overflow: visible;
-    /* Ensure proper centering */
-    text-align: center;
-    /* Reset any inherited properties */
-    box-sizing: border-box;
   }
   
   @keyframes pulse {
@@ -4992,23 +4964,17 @@ const DEBUG_MODE = false;
     }
   }
   
-  /* CRITICAL: Override reveal-scale transform - centering via margin auto */
-  /* This ensures click-sticker is centered even with reveal-scale animation */
+  /* CRITICAL: Override reveal-scale transform - centering via parent text-align */
+  /* inline-flex + parent text-align: center = reliable centering */
   .click-sticker.reveal-scale {
-    /* Initial state - scale down, centering handled by margin auto */
+    /* Initial state - scale down, centering handled by parent text-align */
     transform: scale(0.92) translateZ(0);
-    /* Ensure margin auto is maintained */
-    margin-left: auto !important;
-    margin-right: auto !important;
   }
   
   .click-sticker.reveal-scale.is-revealed {
-    /* Revealed state - scale to full size, centering handled by margin auto */
+    /* Revealed state - scale to full size, centering handled by parent text-align */
     transform: scale(1) translateZ(0);
     opacity: 1;
-    /* Ensure margin auto is maintained */
-    margin-left: auto !important;
-    margin-right: auto !important;
   }
   
   .sticker-text {
