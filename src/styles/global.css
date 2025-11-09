@@ -85,7 +85,10 @@
   src: url('/fonts/inter-medium.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
-  font-display: fallback;
+  /* FONT OPTIMIZATION: optional strategy for secondary weights */
+  /* Only swaps if font is cached or connection is very fast */
+  /* Prevents layout shift on slow connections while still allowing swap on fast ones */
+  font-display: optional;
   font-synthesis: none;
 }
 
@@ -94,7 +97,10 @@
   src: url('/fonts/inter-bold.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
-  font-display: fallback;
+  /* FONT OPTIMIZATION: optional strategy for secondary weights */
+  /* Only swaps if font is cached or connection is very fast */
+  /* Prevents layout shift on slow connections while still allowing swap on fast ones */
+  font-display: optional;
   font-synthesis: none;
 }
 

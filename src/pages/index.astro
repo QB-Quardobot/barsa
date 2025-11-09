@@ -13,15 +13,24 @@ const DEBUG_MODE = false;
 
 <Base title="AI Model 2.0" description="Как зарабатывать $500–$2 500 на AI-моделях без команды, без лица и без вложений. Система AI Model 2.0.">
   
+  <!-- RESOURCE HINTS: Preload critical resources for this page -->
+  
   <!-- Swiper CSS - load asynchronously to prevent render blocking -->
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"></noscript>
   
   <!-- Preload Hero Image for LCP optimization -->
-  <link rel="preload" as="image" href="/income-proof-600.webp" imagesrcset="/income-proof-600.webp 600w, /income-proof-900.webp 900w, /income-proof-1200.webp 1200w" imagesizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px" fetchpriority="high" slot="head">
+  <!-- CRITICAL: href должен соответствовать реальному src изображения для мобильных устройств -->
+  <!-- Для десктопа браузер выберет правильный размер из imagesrcset -->
+  <link rel="preload" as="image" href="/income-proof-900.webp" imagesrcset="/income-proof-600.webp 600w, /income-proof-900.webp 900w, /income-proof-1200.webp 1200w, /income-proof.webp 1920w" imagesizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px" fetchpriority="high" slot="head">
   
   <!-- Preload Swiper JS (loads later, but DNS/prepare connection early) -->
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" as="script" slot="head">
+  
+  <!-- RESOURCE HINTS: Prefetch next page for faster navigation -->
+  <!-- Prefetch how-it-works page resources when browser is idle -->
+  <link rel="prefetch" href="/how-it-works" as="document" slot="head">
+  <link rel="prefetch" href="/how-it-works.css" as="style" slot="head">
   
   {DEBUG_MODE && (
     <div id="tg-debug-panel" style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.95); color: #0f0; font-family: monospace; font-size: 11px; padding: 10px; z-index: 999999; max-height: 250px; overflow-y: auto; border-top: 2px solid #0f0; box-shadow: 0 -4px 20px rgba(0,255,0,0.3); user-select: text; -webkit-user-select: text;">
@@ -612,6 +621,9 @@ const DEBUG_MODE = false;
                           class="student-model-photo lazy-image"
                           loading="lazy"
                           decoding="async"
+                          width="500"
+                          height="625"
+                          sizes="(max-width: 768px) 90vw, 500px"
                         />
                         <div class="shimmer-overlay"></div>
                       </div>
@@ -630,6 +642,9 @@ const DEBUG_MODE = false;
                           class="student-model-photo lazy-image"
                           loading="lazy"
                           decoding="async"
+                          width="500"
+                          height="625"
+                          sizes="(max-width: 768px) 90vw, 500px"
                         />
                         <div class="shimmer-overlay"></div>
                       </div>
@@ -648,6 +663,9 @@ const DEBUG_MODE = false;
                           class="student-model-photo lazy-image"
                           loading="lazy"
                           decoding="async"
+                          width="500"
+                          height="625"
+                          sizes="(max-width: 768px) 90vw, 500px"
                         />
                         <div class="shimmer-overlay"></div>
                       </div>
@@ -666,6 +684,9 @@ const DEBUG_MODE = false;
                           class="student-model-photo lazy-image"
                           loading="lazy"
                           decoding="async"
+                          width="500"
+                          height="625"
+                          sizes="(max-width: 768px) 90vw, 500px"
                         />
                         <div class="shimmer-overlay"></div>
                       </div>
@@ -684,6 +705,8 @@ const DEBUG_MODE = false;
                           class="student-model-photo lazy-image"
                           loading="lazy"
                           decoding="async"
+                          width="500"
+                          height="625"
                         />
                         <div class="shimmer-overlay"></div>
                       </div>
@@ -1627,7 +1650,8 @@ const DEBUG_MODE = false;
     }
   }
   
-  // Lazy load images/videos - use requestIdleCallback for better performance
+  // OPTIMIZED: Lazy load images/videos - use requestIdleCallback for better TTI
+  // Delay non-critical image loading to prioritize page interactivity
   function initLazyWhenReady() {
     initLazyImages();
     initLazyVideos();
@@ -1635,19 +1659,19 @@ const DEBUG_MODE = false;
   
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      // Use requestIdleCallback to not block initial render
+      // OPTIMIZED: Delay lazy loading to improve TTI
       if ('requestIdleCallback' in window) {
         requestIdleCallback(initLazyWhenReady, { timeout: 2000 });
       } else {
-        setTimeout(initLazyWhenReady, 100);
+        setTimeout(initLazyWhenReady, 500); // Increased delay for better TTI
       }
     }, { once: true });
   } else {
-    // Use requestIdleCallback to not block initial render
+    // OPTIMIZED: Delay lazy loading to improve TTI
     if ('requestIdleCallback' in window) {
       requestIdleCallback(initLazyWhenReady, { timeout: 2000 });
     } else {
-      setTimeout(initLazyWhenReady, 100);
+      setTimeout(initLazyWhenReady, 500); // Increased delay for better TTI
     }
   }
   
@@ -1676,11 +1700,12 @@ const DEBUG_MODE = false;
             });
           };
           
-          // Use requestIdleCallback for better performance, fallback to setTimeout
+          // OPTIMIZED: More aggressive lazy loading for TTI - delay non-critical animations
+          // Use requestIdleCallback with longer timeout to prioritize page interactivity
           if ('requestIdleCallback' in window) {
-            requestIdleCallback(loadReveal, { timeout: 2000 });
+            requestIdleCallback(loadReveal, { timeout: 3000 });
           } else {
-            setTimeout(loadReveal, 100);
+            setTimeout(loadReveal, 1000); // Increased delay for better TTI
           }
         }
       } catch (e) {
@@ -1691,19 +1716,20 @@ const DEBUG_MODE = false;
     // Wait for page to be interactive before loading reveal
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
-        // Delay to not block initial render - use requestIdleCallback
+        // OPTIMIZED: Delay non-critical animations to improve TTI
+        // Use requestIdleCallback with longer timeout to prioritize page interactivity
         if ('requestIdleCallback' in window) {
           requestIdleCallback(initRevealAnimations, { timeout: 3000 });
         } else {
-          setTimeout(initRevealAnimations, 500);
+          setTimeout(initRevealAnimations, 1000); // Increased delay for better TTI
         }
       }, { once: true });
     } else {
-      // Use requestIdleCallback for better performance
+      // OPTIMIZED: Delay non-critical animations to improve TTI
       if ('requestIdleCallback' in window) {
-        requestIdleCallback(initRevealAnimations, { timeout: 2000 });
+        requestIdleCallback(initRevealAnimations, { timeout: 3000 });
       } else {
-        setTimeout(initRevealAnimations, 500);
+        setTimeout(initRevealAnimations, 1000); // Increased delay for better TTI
       }
     }
   })();
@@ -1975,6 +2001,8 @@ const DEBUG_MODE = false;
     position: relative;
     overflow: hidden;
     border-radius: var(--radius-2xl);
+    /* CRITICAL LCP: Reserve space with aspect-ratio to prevent CLS */
+    /* aspect-ratio is set in critical.css for above-the-fold rendering */
     /* GPU acceleration */
     transform: translateZ(0);
     will-change: transform;
@@ -2184,7 +2212,10 @@ const DEBUG_MODE = false;
     width: 100%;
     padding: 0 1rem;
     text-align: center;
+    /* CLS: Reserve space for image (1200x675 = 16:9) */
+    aspect-ratio: 16 / 9;
     position: relative;
+    overflow: hidden;
     /* GPU acceleration */
     transform: translateZ(0);
     will-change: transform, opacity;
@@ -2198,12 +2229,14 @@ const DEBUG_MODE = false;
   }
   
   .transition-img {
+    position: absolute;
+    inset: 0;
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: cover;
     border-radius: var(--radius-2xl);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(96, 165, 250, 0.1);
     display: block;
-    margin: 0 auto;
     /* Smooth loading transition */
     opacity: 0;
     transition: opacity 0.6s ease;
@@ -2813,6 +2846,9 @@ const DEBUG_MODE = false;
     margin: 0 auto;
     border-radius: var(--radius-2xl);
     overflow: hidden;
+    /* CLS: Reserve space for image (600x675 = 8:9) */
+    aspect-ratio: 8 / 9;
+    position: relative;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 40px rgba(96, 165, 250, 0.1);
     /* GPU acceleration */
     transform: translateZ(0);
@@ -2826,8 +2862,11 @@ const DEBUG_MODE = false;
   }
   
   .founder-photo {
+    position: absolute;
+    inset: 0;
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: cover;
     display: block;
     border-radius: var(--radius-2xl);
     opacity: 0;
@@ -3141,6 +3180,10 @@ const DEBUG_MODE = false;
     width: 100%;
     padding: 0 1rem;
     text-align: center;
+    /* CLS: Reserve space for image (1200x675 = 16:9) */
+    aspect-ratio: 16 / 9;
+    position: relative;
+    overflow: hidden;
     position: relative;
     /* GPU acceleration */
     transform: translateZ(0);
@@ -3155,12 +3198,14 @@ const DEBUG_MODE = false;
   }
   
   .models-banner-img {
+    position: absolute;
+    inset: 0;
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: cover;
     border-radius: var(--radius-2xl);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(96, 165, 250, 0.1);
     display: block;
-    margin: 0 auto;
     /* Smooth loading transition */
     opacity: 0;
     transition: opacity 0.6s ease;
@@ -3476,7 +3521,10 @@ const DEBUG_MODE = false;
     width: 100%;
     padding: 0 1rem;
     text-align: center;
+    /* CLS: Reserve space for image (1200x675 = 16:9) */
+    aspect-ratio: 16 / 9;
     position: relative;
+    overflow: hidden;
     /* GPU acceleration */
     transform: translateZ(0);
     will-change: transform, opacity;
@@ -3490,8 +3538,11 @@ const DEBUG_MODE = false;
   }
   
   .system-showcase-img {
+    position: absolute;
+    inset: 0;
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: cover;
     border-radius: var(--radius-2xl);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(96, 165, 250, 0.1);
     display: block;

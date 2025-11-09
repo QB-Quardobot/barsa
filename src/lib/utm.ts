@@ -4,11 +4,8 @@
  */
 
 // Production-safe logger
-const isDev = typeof window !== 'undefined' && 
-  (window.location.hostname === 'localhost' || 
-   window.location.hostname === '127.0.0.1' ||
-   window.location.hostname.includes('.ngrok.io') ||
-   window.location.hostname.includes('.trycloudflare.com'));
+// DRY: Use shared utility instead of duplicating
+import { isDevelopment as isDev } from './utils';
 
 const logger = {
   warn: (...args: any[]) => {

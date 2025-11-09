@@ -6,6 +6,24 @@
  */
 
 import { scheduleRAF } from './reveal';
+// DRY: Use shared utility for lazy image loading
+import { initLazyImages as initLazyImagesUtil } from './utils';
+// ERROR HANDLING: Use safe DOM utilities for better error handling
+import { safeGetElementById, safeQuerySelector, safeQuerySelectorAll, safeAddEventListener, withErrorBoundary } from './safe-dom';
+// MEMORY MANAGEMENT: Use cleanup manager for proper resource cleanup
+import { registerCleanup, createObserver, createEventListener } from './cleanup';
+// TYPESCRIPT: Use type-safe utilities and type guards
+import { 
+  isHTMLElement, 
+  isHTMLImageElement, 
+  isHTMLAnchorElement,
+  isSwiperAvailable,
+  getSwiperConstructor,
+  isTelegramWebAppAvailable,
+  getTelegramWebApp,
+  type SwiperInstance,
+  type SwiperConfig as SwiperConfigType
+} from './types';
 
 function isDocumentReady(): boolean {
   return document.readyState !== 'loading';
@@ -40,9 +58,13 @@ export function initHorizontalCardReveal(): void {
     // Batch processing for better performance using RAF pooling
     scheduleRAF(() => {
       entries.forEach((entry) => {
-        const card = entry.target as HTMLElement;
+        // TYPESCRIPT: Use type guard instead of unsafe assertion
+        if (!isHTMLElement(entry.target)) return;
+        const card = entry.target;
         const cardIndex = parseInt(card.dataset.step || '1') - 1;
-        const stepContent = card.querySelector('.step-content') as HTMLElement;
+        const stepContentEl = card.querySelector('.step-content');
+        if (!isHTMLElement(stepContentEl)) return;
+        const stepContent = stepContentEl;
         
         if (entry.isIntersecting) {
           // Progressive reveal based on intersection ratio
@@ -56,8 +78,10 @@ export function initHorizontalCardReveal(): void {
               // OPTIMIZED: Remove will-change from previous active card BEFORE switching
               // This frees GPU memory immediately
               if (activeCard && activeCard !== card) {
-                const prevContent = activeCard.querySelector('.step-content') as HTMLElement;
-                if (prevContent) {
+                // TYPESCRIPT: Use type guard instead of unsafe assertion
+                const prevContentEl = activeCard.querySelector('.step-content');
+                if (isHTMLElement(prevContentEl)) {
+                  const prevContent = prevContentEl;
                   prevContent.style.willChange = 'auto'; // Free GPU memory
                 }
               }
@@ -128,15 +152,15 @@ export function initHorizontalCardReveal(): void {
   // Initialize: disable pointer events on all cards except first
   cards.forEach((card, index) => {
     if (index > 0) {
-      card.style.pointerEvents = 'none';
+      (card as HTMLElement).style.pointerEvents = 'none';
     }
     observer.observe(card);
   });
   
-  // Cleanup on page unload
-  window.addEventListener('beforeunload', () => {
+  // MEMORY MANAGEMENT: Register cleanup for observer
+  registerCleanup(() => {
     observer.disconnect();
-  }, { passive: true });
+  });
 }
 
 export function initRevealAnimations(): void {
@@ -153,8 +177,9 @@ export function initRevealAnimations(): void {
       }
     }).catch((error) => {
       // Fallback: try reveal-init as alternative
-      if (typeof (window as any).initReveal === 'function') {
-        (window as any).initReveal();
+      // TYPESCRIPT: Use type-safe check
+      if (typeof window.initReveal === 'function') {
+        window.initReveal();
       } else {
         import('./reveal-init').then(() => {
           if (typeof (window as any).initReveal === 'function') {
@@ -511,7 +536,8 @@ function createSwiperConfig(config: SwiperConfig) {
       init: function(swiperInstance: any) {
         // Swiper initialized
       },
-      paginationRender: function(swiperInstance: any) {
+      // TYPESCRIPT: Use proper type instead of any
+      paginationRender: function(swiperInstance: SwiperInstance) {
         // Pagination rendered
       },
     },
@@ -759,7 +785,7 @@ function setupSwiperNavigation(
  * 3. If primary fails, try alternative CDN (unpkg)
  * 4. If both fail, show static grid fallback
  */
-function loadSwiperLibrary(callback: () => void, onError?: () => void): void {
+function loadSwiperLibrary(callback: () => void): void {
   // Check if Swiper is already loaded
   if (typeof (window as any).Swiper !== 'undefined') {
     callback();
@@ -774,18 +800,19 @@ function loadSwiperLibrary(callback: () => void, onError?: () => void): void {
   
   primaryScript.onload = () => {
     // Primary CDN loaded successfully
-    if (typeof (window as any).Swiper !== 'undefined') {
+    // TYPESCRIPT: Use type-safe check
+    if (isSwiperAvailable()) {
       callback();
     } else {
       // Swiper not available even after load - try alternative
-      tryAlternativeCDN(callback, onError);
+      tryAlternativeCDN(callback);
     }
   };
   
   primaryScript.onerror = () => {
     // Primary CDN failed - try alternative
     console.warn('[Swiper] Primary CDN failed, trying alternative CDN...');
-    tryAlternativeCDN(callback, onError);
+    tryAlternativeCDN(callback);
   };
   
   document.head.appendChild(primaryScript);
@@ -794,7 +821,7 @@ function loadSwiperLibrary(callback: () => void, onError?: () => void): void {
 /**
  * Try alternative CDN (unpkg) as fallback
  */
-function tryAlternativeCDN(callback: () => void, onError?: () => void): void {
+function tryAlternativeCDN(callback: () => void): void {
   const alternativeScript = document.createElement('script');
   alternativeScript.src = 'https://unpkg.com/swiper@11/swiper-bundle.min.js';
   alternativeScript.async = true;
@@ -802,24 +829,31 @@ function tryAlternativeCDN(callback: () => void, onError?: () => void): void {
   
   alternativeScript.onload = () => {
     // Alternative CDN loaded successfully
-    if (typeof (window as any).Swiper !== 'undefined') {
+    // TYPESCRIPT: Use type-safe check
+    if (isSwiperAvailable()) {
       console.log('[Swiper] Loaded from alternative CDN (unpkg)');
       callback();
     } else {
-      // Swiper still not available - use fallback
-      console.error('[Swiper] Library not available after loading from alternative CDN');
-      if (onError) {
-        onError();
-      }
+      // Swiper still not available - retry after delay
+      console.warn('[Swiper] Library not available after loading from alternative CDN - retrying...');
+      setTimeout(() => {
+        // TYPESCRIPT: Use type-safe check
+    if (isSwiperAvailable()) {
+          callback();
+        }
+      }, 500);
     }
   };
   
   alternativeScript.onerror = () => {
-    // Both CDNs failed - use fallback
-    console.error('[Swiper] All CDNs failed - using static grid fallback');
-    if (onError) {
-      onError();
-    }
+    // Both CDNs failed - retry after delay
+    console.warn('[Swiper] All CDNs failed - retrying...');
+    setTimeout(() => {
+      // TYPESCRIPT: Use type-safe check
+    if (isSwiperAvailable()) {
+        callback();
+      }
+    }, 1000);
   };
   
   document.head.appendChild(alternativeScript);
@@ -926,19 +960,15 @@ export function initTestimonialsSwiper(): void {
   }
   
   // Check if Swiper is already available
-  if (typeof (window as any).Swiper === 'undefined') {
-    // Swiper not loaded - try to load with fallback
+  // TYPESCRIPT: Use type-safe check instead of (window as any)
+  if (!isSwiperAvailable()) {
+    // Swiper not loaded - try to load it
     loadSwiperLibrary(
       () => {
         // Swiper loaded successfully - retry initialization
         setTimeout(() => {
           initTestimonialsSwiper();
         }, 100);
-      },
-      () => {
-        // Swiper failed to load - show static grid fallback
-        console.error('[Swiper] Failed to load - showing static grid fallback for testimonials');
-        showSwiperFallback(swiperContainer);
       }
     );
     return;
@@ -947,15 +977,15 @@ export function initTestimonialsSwiper(): void {
   // Find parent section for viewport detection
   const section = swiperContainer.closest('section') || swiperContainer.parentElement;
   if (!section) {
-    // Fallback: initialize immediately if no section found
-    loadSwiperLibrary(
-      () => {
+    // Initialize immediately if no section found
+    // TYPESCRIPT: Use type-safe check instead of (window as any)
+  if (!isSwiperAvailable()) {
+      loadSwiperLibrary(() => {
         createTestimonialsSwiper(swiperContainer);
-      },
-      () => {
-        showSwiperFallback(swiperContainer);
-      }
-    );
+      });
+    } else {
+      createTestimonialsSwiper(swiperContainer);
+    }
     return;
   }
   
@@ -971,17 +1001,18 @@ export function initTestimonialsSwiper(): void {
         const swiperType = container.getAttribute('data-swiper-type');
         
         // Initialize Swiper when section enters viewport
-        loadSwiperLibrary(
-          () => {
+        // TYPESCRIPT: Use type-safe check instead of (window as any)
+  if (!isSwiperAvailable()) {
+          loadSwiperLibrary(() => {
             if (swiperType === 'testimonials') {
               createTestimonialsSwiper(container);
             }
-          },
-          () => {
-            // Swiper failed to load - show static grid fallback
-            showSwiperFallback(container);
+          });
+        } else {
+          if (swiperType === 'testimonials') {
+            createTestimonialsSwiper(container);
           }
-        );
+        }
         
         // Unobserve after initialization
         swiperObserver.unobserve(container);
@@ -1006,9 +1037,14 @@ function createTestimonialsSwiper(swiperContainer: HTMLElement): void {
   
   const Swiper = (window as any).Swiper;
   if (!Swiper) {
-    // Swiper not available - show static grid fallback
-    console.error('[Swiper] Library not available in createTestimonialsSwiper - showing fallback');
-    showSwiperFallback(swiperContainer);
+    // Swiper not available - wait and retry
+    console.warn('[Swiper] Library not available in createTestimonialsSwiper - retrying...');
+    setTimeout(() => {
+      // TYPESCRIPT: Use type-safe check
+    if (isSwiperAvailable()) {
+        createTestimonialsSwiper(swiperContainer);
+      }
+    }, 500);
     return;
   }
   
@@ -1041,7 +1077,9 @@ function createTestimonialsSwiper(swiperContainer: HTMLElement): void {
     }
   }, { passive: true });
   
-  wrapper.addEventListener('touchmove', (e) => {
+  // OPTIMIZED: touchmove with stopPropagation can use passive: true (no preventDefault)
+  // MEMORY MANAGEMENT: Register cleanup for touch listeners
+  createEventListener(wrapper, 'touchmove', (e: TouchEvent) => {
     const touchY = e.touches[0].clientY;
     const deltaY = Math.abs(touchY - touchStartY);
     if (deltaY > 10) {
@@ -1059,19 +1097,15 @@ export function initStudentModelsSwiper(): void {
   }
   
   // Check if Swiper is already available
-  if (typeof (window as any).Swiper === 'undefined') {
-    // Swiper not loaded - try to load with fallback
+  // TYPESCRIPT: Use type-safe check instead of (window as any)
+  if (!isSwiperAvailable()) {
+    // Swiper not loaded - try to load it
     loadSwiperLibrary(
       () => {
         // Swiper loaded successfully - retry initialization
         setTimeout(() => {
           initStudentModelsSwiper();
         }, 100);
-      },
-      () => {
-        // Swiper failed to load - show static grid fallback
-        console.error('[Swiper] Failed to load - showing static grid fallback for student models');
-        showSwiperFallback(swiperContainer);
       }
     );
     return;
@@ -1080,15 +1114,15 @@ export function initStudentModelsSwiper(): void {
   // Find parent section for viewport detection
   const section = swiperContainer.closest('section') || swiperContainer.parentElement;
   if (!section) {
-    // Fallback: initialize immediately if no section found
-    loadSwiperLibrary(
-      () => {
+    // Initialize immediately if no section found
+    // TYPESCRIPT: Use type-safe check instead of (window as any)
+  if (!isSwiperAvailable()) {
+      loadSwiperLibrary(() => {
         createStudentModelsSwiper(swiperContainer);
-      },
-      () => {
-        showSwiperFallback(swiperContainer);
-      }
-    );
+      });
+    } else {
+      createStudentModelsSwiper(swiperContainer);
+    }
     return;
   }
   
@@ -1104,17 +1138,18 @@ export function initStudentModelsSwiper(): void {
         const swiperType = container.getAttribute('data-swiper-type');
         
         // Initialize Swiper when section enters viewport
-        loadSwiperLibrary(
-          () => {
+        // TYPESCRIPT: Use type-safe check instead of (window as any)
+  if (!isSwiperAvailable()) {
+          loadSwiperLibrary(() => {
             if (swiperType === 'models') {
               createStudentModelsSwiper(container);
             }
-          },
-          () => {
-            // Swiper failed to load - show static grid fallback
-            showSwiperFallback(container);
+          });
+        } else {
+          if (swiperType === 'models') {
+            createStudentModelsSwiper(container);
           }
-        );
+        }
         
         // Unobserve after initialization
         swiperObserver.unobserve(container);
@@ -1139,9 +1174,14 @@ function createStudentModelsSwiper(swiperContainer: HTMLElement): void {
   
   const Swiper = (window as any).Swiper;
   if (!Swiper) {
-    // Swiper not available - show static grid fallback
-    console.error('[Swiper] Library not available in createStudentModelsSwiper - showing fallback');
-    showSwiperFallback(swiperContainer);
+    // Swiper not available - wait and retry
+    console.warn('[Swiper] Library not available in createStudentModelsSwiper - retrying...');
+    setTimeout(() => {
+      // TYPESCRIPT: Use type-safe check
+    if (isSwiperAvailable()) {
+        createStudentModelsSwiper(swiperContainer);
+      }
+    }, 500);
     return;
   }
   
@@ -1197,7 +1237,9 @@ function createStudentModelsSwiper(swiperContainer: HTMLElement): void {
     }
   }, { passive: true });
   
-  wrapper.addEventListener('touchmove', (e) => {
+  // OPTIMIZED: touchmove with stopPropagation can use passive: true (no preventDefault)
+  // MEMORY MANAGEMENT: Register cleanup for touch listeners
+  createEventListener(wrapper, 'touchmove', (e: TouchEvent) => {
     const touchY = e.touches[0].clientY;
     const deltaY = Math.abs(touchY - touchStartY);
     if (deltaY > 10) {
@@ -1222,12 +1264,19 @@ export function initTelegramWebAppFixes(): void {
   }
   
   ensureDocumentIsScrollable();
-  window.addEventListener('resize', ensureDocumentIsScrollable);
+  // OPTIMIZED: Debounced resize listener for INP optimization
+  let resizeTimeout: ReturnType<typeof setTimeout>;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(ensureDocumentIsScrollable, 150);
+  }, { passive: true });
   
-  if ((window as any).Telegram?.WebApp) {
+  // TYPESCRIPT: Use type-safe access to Telegram WebApp
+  const tg = getTelegramWebApp();
+  if (tg) {
     try {
-      (window as any).Telegram.WebApp.disableVerticalSwipes();
-      (window as any).Telegram.WebApp.expand();
+      tg.disableVerticalSwipes?.();
+      tg.expand?.();
     } catch (e) {}
     
     document.addEventListener('touchstart', preventTelegramCollapse, { passive: true });
@@ -1264,81 +1313,14 @@ export function preventOrphans(): void {
 
 
 export function initLazyLoading(): void {
-  // Use same approach as first page - handle all lazy images
-  const lazyImages = document.querySelectorAll('img[loading="lazy"], img.lazy-image');
-  
-  if (!lazyImages.length) return;
-  
-  if (typeof IntersectionObserver === 'undefined') {
-    // Fallback: show all images immediately
-    lazyImages.forEach(img => {
-      (img as HTMLImageElement).classList.add('loaded');
-    });
-    return;
-  }
-  
-  const imageObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const img = entry.target as HTMLImageElement;
-        
-        // If image is already loaded, show it immediately
-        if (img.complete && img.naturalHeight !== 0) {
-          img.classList.add('loaded');
-          observer.unobserve(img);
-        } else {
-          // Add loading state
-          img.classList.add('loading');
-          
-          // Wait for image to load
-          const handleLoad = () => {
-            img.classList.remove('loading');
-            img.classList.add('loaded');
-            observer.unobserve(img);
-          };
-          
-          const handleError = () => {
-            // Handle error - still show image to prevent white space
-            img.classList.remove('loading');
-            img.classList.add('loaded');
-            observer.unobserve(img);
-          };
-          
-          img.addEventListener('load', handleLoad, { once: true });
-          img.addEventListener('error', handleError, { once: true });
-        }
-      }
-    });
-  }, {
-    root: null,
-    rootMargin: '200px', // OPTIMIZED: Increased to 200px for better pre-loading (matches card reveal observer)
-    threshold: 0.01
-  });
-  
-  // Check initial viewport and observe remaining images
-  lazyImages.forEach(img => {
-    const imageElement = img as HTMLImageElement;
-    const rect = img.getBoundingClientRect();
-    const isInViewport = (
-      rect.top >= 0 &&
-      rect.left >= 0 &&
-      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) + 50 &&
-      rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-    );
-    
-    if (isInViewport && imageElement.complete && imageElement.naturalHeight !== 0) {
-      // Already loaded and in viewport - show immediately
-      imageElement.classList.add('loaded');
-    } else {
-      // Observe for lazy loading
-      imageObserver.observe(img);
-    }
-  });
+  // DRY: Use shared utility function instead of duplicating lazy image loading logic
+  initLazyImagesUtil('img[loading="lazy"], img.lazy-image', '200px');
 }
 
 
 export function initPhotoModal(): void {
-  const modal = document.getElementById('photoModal') as HTMLElement;
+  // ERROR HANDLING: Use safe DOM access with graceful degradation
+  const modal = safeGetElementById<HTMLElement>('photoModal');
   if (!modal) return;
   
   const modalImg = modal.querySelector('.modal-image') as HTMLImageElement;
@@ -1347,22 +1329,28 @@ export function initPhotoModal(): void {
   let isModalOpen = false;
   
   function openModal(imgSrc: string, imgAlt: string): void {
-    if (modalImg && !isModalOpen) {
+    if (!modal || !modalImg || isModalOpen) return;
+    try {
       modalImg.src = imgSrc;
       modalImg.alt = imgAlt;
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
       isModalOpen = true;
+    } catch (e) {
+      // Graceful degradation: silently fail
     }
   }
   
   function closeModal(): void {
-    if (!isModalOpen) return;
-    
-    modal.style.display = 'none';
-    if (modalImg) modalImg.src = '';
-    document.body.style.overflow = '';
-    isModalOpen = false;
+    if (!modal || !isModalOpen) return;
+    try {
+      modal.style.display = 'none';
+      if (modalImg) modalImg.src = '';
+      document.body.style.overflow = '';
+      isModalOpen = false;
+    } catch (e) {
+      // Graceful degradation: silently fail
+    }
   }
   
   if (closeBtn) {
@@ -1374,17 +1362,19 @@ export function initPhotoModal(): void {
       return false;
     };
     
-    closeBtn.addEventListener('click', handleCloseClick, { capture: true, passive: false });
-    closeBtn.addEventListener('touchend', handleCloseClick, { capture: true, passive: false });
+    // MEMORY MANAGEMENT: Register cleanup for event listeners
+    createEventListener(closeBtn, 'click', handleCloseClick, { capture: true, passive: false });
+    createEventListener(closeBtn, 'touchend', handleCloseClick, { capture: true, passive: false });
     
     if ('ontouchstart' in window === false) {
-      closeBtn.addEventListener('mousedown', (e) => {
+      createEventListener(closeBtn, 'mousedown', (e) => {
         e.stopPropagation();
       }, { capture: true });
     }
   }
   
-  modal.addEventListener('click', (e) => {
+  // MEMORY MANAGEMENT: Register cleanup for modal click listener
+  createEventListener(modal, 'click', (e) => {
     const target = e.target as HTMLElement;
     if (target === modal && isModalOpen) {
       e.preventDefault();
@@ -1430,7 +1420,8 @@ export function initPhotoModal(): void {
     }
   }, { passive: false });
   
-  document.addEventListener('keydown', (e) => {
+  // MEMORY MANAGEMENT: Register cleanup for keydown listener
+  createEventListener(document, 'keydown', (e: KeyboardEvent) => {
     if (e.key === 'Escape' && isModalOpen) {
       e.preventDefault();
       e.stopPropagation();
@@ -1560,11 +1551,11 @@ const TARIFFS: Record<string, TariffData> = {
   '2': {
     name: 'Все и сразу',
     rub: {
-      amount: '56.500 ₽',
+      amount: '46.800 ₽',
       url: 'https://t.me/tribute/app?startapp=sFjo'
     },
     eur: {
-      amount: '600 €',
+      amount: '500 €',
       url: 'https://t.me/tribute/app?startapp=sFjk'
     }
   }
@@ -1675,7 +1666,8 @@ export function initCurrencyModal(): void {
   }
   
   // Close on Escape key
-  document.addEventListener('keydown', (e) => {
+  // MEMORY MANAGEMENT: Register cleanup for keydown listener
+  createEventListener(document, 'keydown', (e: KeyboardEvent) => {
     if (e.key === 'Escape' && isModalOpen) {
       e.preventDefault();
       closeModal();
@@ -1704,7 +1696,7 @@ export function initCurrencyModal(): void {
   }
   
   if (eurBtn) {
-    eurBtn.addEventListener('click', () => {
+    createEventListener(eurBtn, 'click', () => {
       if ((window as any).Telegram?.WebApp?.HapticFeedback) {
         (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('medium');
       }
@@ -1712,8 +1704,9 @@ export function initCurrencyModal(): void {
   }
   
   // Expose functions globally for Telegram WebApp BackButton
-  (window as any).closeCurrencyModal = closeModal;
-  (window as any).isCurrencyModalOpen = () => isModalOpen;
+  // TYPESCRIPT: Use type-safe window extensions (defined in types.ts)
+  window.closeCurrencyModal = closeModal;
+  window.isCurrencyModalOpen = () => isModalOpen;
 }
 
 

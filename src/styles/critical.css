@@ -138,6 +138,24 @@ img {
   will-change: contents;
 }
 
+/* LCP Hero Image - Prevent CLS with aspect-ratio */
+/* CRITICAL: Reserve space for hero image (1200x675 = 16:9) to prevent layout shift */
+.proof-cover-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9; /* 1200x675 = 16:9 ratio */
+  overflow: hidden;
+  background-color: var(--bg);
+  min-height: 0;
+}
+
+.proof-cover-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 /* Prevent CLS - containers with fixed aspect ratio */
 /* Using aspect-ratio ensures no layout shift when images load */
 .step-image-container {

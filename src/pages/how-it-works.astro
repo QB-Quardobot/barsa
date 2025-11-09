@@ -6,6 +6,8 @@ import '../styles/animations-extended.css';
 ---
 <Base title="Как это работает - AI Model 2.0" description="Пошаговая система создания AI-модели и заработка $300–$1 000 в первый месяц.">
   
+  <!-- RESOURCE HINTS: Preload critical resources for this page -->
+  
   <!-- Swiper CSS - Professional CDN fallback strategy -->
   <!-- 
     Strategy:
@@ -22,6 +24,10 @@ import '../styles/animations-extended.css';
   <noscript>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
   </noscript>
+  
+  <!-- RESOURCE HINTS: Prefetch home page for faster navigation -->
+  <!-- Prefetch index page resources when browser is idle -->
+  <link rel="prefetch" href="/" as="document" slot="head">
   
   <!-- Hero Section -->
   <section class="hero-section">
@@ -299,6 +305,9 @@ import '../styles/animations-extended.css';
               class="alt-content-photo lazy-image"
               loading="lazy"
               decoding="async"
+              width="800"
+              height="600"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 800px"
             />
             <div class="shimmer-overlay"></div>
           </div>
@@ -361,6 +370,9 @@ import '../styles/animations-extended.css';
               class="ilya-photo lazy-image"
               loading="lazy"
               decoding="async"
+              width="600"
+              height="800"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 600px"
             />
             <div class="shimmer-overlay"></div>
           </div>
@@ -413,6 +425,9 @@ import '../styles/animations-extended.css';
                 class="before-after-photo lazy-image"
                 loading="lazy"
                 decoding="async"
+                width="600"
+                height="800"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 600px"
               />
               <div class="shimmer-overlay"></div>
             </div>
@@ -439,6 +454,9 @@ import '../styles/animations-extended.css';
                 class="after-photo lazy-image"
                 loading="lazy"
                 decoding="async"
+                width="600"
+                height="800"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 600px"
               />
               <div class="shimmer-overlay"></div>
             </div>
@@ -531,6 +549,9 @@ import '../styles/animations-extended.css';
                   class="comparison-photo lazy-image"
                   loading="lazy"
                   decoding="async"
+                  width="600"
+                  height="800"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 600px"
                 />
                 <div class="shimmer-overlay"></div>
               </div>
@@ -580,6 +601,9 @@ import '../styles/animations-extended.css';
                   class="comparison-photo lazy-image"
                   loading="lazy"
                   decoding="async"
+                  width="600"
+                  height="800"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 600px"
                 />
                 <div class="shimmer-overlay"></div>
               </div>
@@ -661,8 +685,8 @@ import '../styles/animations-extended.css';
           <div class="tariff-header">
             <h3 class="tariff-name">🔹 Тариф 2 — Все и сразу</h3>
             <div class="tariff-price">
-              <span class="price-amount price-gradient price-gradient-popular">600 €</span>
-              <span class="price-alt">700 $ / 56 500 ₽</span>
+              <span class="price-amount price-gradient price-gradient-popular">500 €</span>
+              <span class="price-alt">579 $ / 46 800 ₽</span>
             </div>
           </div>
           <p class="tariff-description">
@@ -813,10 +837,13 @@ import '../styles/animations-extended.css';
                         <div class="shimmer-wrapper">
                           <img 
                             src="/images/testimonials/review-1.jpg"
-                        alt="Отзыв ученика"
-                        class="slider-photo lazy-image"
+                            alt="Отзыв ученика"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                         </div>
@@ -832,10 +859,13 @@ import '../styles/animations-extended.css';
                         <div class="shimmer-wrapper">
                           <img 
                             src="/images/testimonials/income-1.jpg"
-                        alt="Доход ученика"
-                        class="slider-photo lazy-image"
+                            alt="Доход ученика"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                     </div>
@@ -852,9 +882,11 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/review-2.jpg"
                         alt="Отзыв ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
                           />
                           <div class="shimmer-overlay"></div>
                         </div>
@@ -871,9 +903,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/income-2.jpg"
                         alt="Доход ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                     </div>
@@ -890,9 +925,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/review-3.jpg"
                         alt="Отзыв ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                         </div>
@@ -909,9 +947,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/income-3.jpg"
                         alt="Доход ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                     </div>
@@ -928,9 +969,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/review-4.jpg"
                         alt="Отзыв ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                         </div>
@@ -947,9 +991,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/income-4.jpg"
                         alt="Доход ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                     </div>
@@ -966,9 +1013,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/review-5.jpg"
                         alt="Отзыв ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                         </div>
@@ -985,9 +1035,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/income-5.jpg"
                         alt="Доход ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                     </div>
@@ -1004,9 +1057,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/review-6.jpg"
                         alt="Отзыв ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                         </div>
@@ -1023,9 +1079,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/income-6.jpg"
                         alt="Доход ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                     </div>
@@ -1042,9 +1101,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/review-7.jpg"
                         alt="Отзыв ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                         </div>
@@ -1061,9 +1123,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/income-7.jpg"
                         alt="Доход ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                     </div>
@@ -1080,9 +1145,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/review-8.jpg"
                         alt="Отзыв ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                         </div>
@@ -1099,9 +1167,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/income-8.jpg"
                         alt="Доход ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                     </div>
@@ -1118,9 +1189,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/review-9.jpg"
                         alt="Отзыв ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                         </div>
@@ -1137,9 +1211,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/income-9.jpg"
                         alt="Доход ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                     </div>
@@ -1156,9 +1233,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/review-10.jpg"
                         alt="Отзыв ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                         </div>
@@ -1175,9 +1255,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/income-10.jpg"
                         alt="Доход ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                     </div>
@@ -1194,9 +1277,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/review-11.jpg"
                         alt="Отзыв ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                         </div>
@@ -1213,9 +1299,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/income-11.jpg"
                         alt="Доход ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                     </div>
@@ -1232,9 +1321,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/review-12.jpg"
                         alt="Отзыв ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                         </div>
@@ -1251,9 +1343,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/income-12.jpg"
                         alt="Доход ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                     </div>
@@ -1270,9 +1365,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/review-13.jpg"
                         alt="Отзыв ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                         </div>
@@ -1289,9 +1387,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/income-13.jpg"
                         alt="Доход ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                     </div>
@@ -1308,9 +1409,12 @@ import '../styles/animations-extended.css';
                           <img 
                             src="/images/testimonials/review-14.jpg"
                         alt="Отзыв ученика"
-                        class="slider-photo lazy-image"
+                            class="slider-photo lazy-image"
                             loading="lazy"
                             decoding="async"
+                            width="500"
+                            height="625"
+                            sizes="(max-width: 768px) 90vw, 500px"
                           />
                           <div class="shimmer-overlay"></div>
                         </div>
@@ -1368,6 +1472,8 @@ import '../styles/animations-extended.css';
                         class="model-photo lazy-image"
                         loading="lazy"
                         decoding="async"
+                        width="500"
+                        height="625"
                       />
                       <div class="shimmer-overlay"></div>
                     </div>
@@ -1386,6 +1492,8 @@ import '../styles/animations-extended.css';
                         class="model-photo lazy-image"
                         loading="lazy"
                         decoding="async"
+                        width="500"
+                        height="625"
                       />
                       <div class="shimmer-overlay"></div>
                     </div>
@@ -1404,6 +1512,8 @@ import '../styles/animations-extended.css';
                         class="model-photo lazy-image"
                         loading="lazy"
                         decoding="async"
+                        width="500"
+                        height="625"
                       />
                       <div class="shimmer-overlay"></div>
                     </div>
@@ -1422,6 +1532,8 @@ import '../styles/animations-extended.css';
                         class="model-photo lazy-image"
                         loading="lazy"
                         decoding="async"
+                        width="500"
+                        height="625"
                       />
                       <div class="shimmer-overlay"></div>
                     </div>
@@ -1440,6 +1552,8 @@ import '../styles/animations-extended.css';
                         class="model-photo lazy-image"
                         loading="lazy"
                         decoding="async"
+                        width="500"
+                        height="625"
                       />
                       <div class="shimmer-overlay"></div>
                     </div>
@@ -1737,19 +1851,20 @@ import '../styles/animations-extended.css';
     // Wait for page to be interactive before loading
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
-        // Use requestIdleCallback for better performance
+        // OPTIMIZED: Delay page-specific code loading to improve TTI
+        // Load after page is interactive and browser is idle
         if ('requestIdleCallback' in window) {
-          requestIdleCallback(initHowItWorksLazy, { timeout: 2000 });
+          requestIdleCallback(initHowItWorksLazy, { timeout: 2500 });
         } else {
-          setTimeout(initHowItWorksLazy, 300);
+          setTimeout(initHowItWorksLazy, 500); // Increased delay for better TTI
         }
       }, { once: true });
     } else {
-      // Use requestIdleCallback for better performance
+      // OPTIMIZED: Delay page-specific code loading to improve TTI
       if ('requestIdleCallback' in window) {
-        requestIdleCallback(initHowItWorksLazy, { timeout: 2000 });
+        requestIdleCallback(initHowItWorksLazy, { timeout: 2500 });
       } else {
-        setTimeout(initHowItWorksLazy, 300);
+        setTimeout(initHowItWorksLazy, 500); // Increased delay for better TTI
       }
     }
   })();

@@ -68,6 +68,31 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   <meta name="twitter:image" content={new URL(image, Astro.site || origin).href}>
   <meta name="twitter:image:alt" content={fullTitle}>
   
+  <!-- Performance Hints - CRITICAL: Must be early in <head> for FCP optimization -->
+  <!-- RESOURCE HINTS: Optimized order and strategy -->
+  <!-- 
+    Strategy:
+    1. Preconnect for critical resources (CDN, fonts, analytics) - establishes full connection
+    2. DNS-prefetch for non-critical resources - only DNS lookup
+    3. Order: Most critical first (assets CDN > fonts > analytics > social)
+  -->
+  
+  <!-- CRITICAL: CDN for assets (Swiper, polyfills) - highest priority -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  
+  <!-- CRITICAL: Telegram WebApp - required for app functionality -->
+  <link rel="preconnect" href="https://telegram.org" crossorigin>
+  
+  <!-- Analytics - lower priority, but still important -->
+  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+  <link rel="preconnect" href="https://mc.yandex.ru" crossorigin>
+  
+  <!-- DNS-prefetch for non-critical resources (only DNS lookup, no full connection) -->
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+  <!-- Prefetch for potential future resources -->
+  <link rel="dns-prefetch" href="https://www.google-analytics.com">
+  
   <!-- Preload Fonts - Critical for FOIT prevention -->
   <!-- 
     crossorigin="anonymous" is required for CORS when preloading fonts
@@ -81,6 +106,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   <!-- Preload Critical Images (page-specific, will be overridden in pages) -->
   
   <!-- Critical CSS - Inline for fastest first paint (loads before global.css) -->
+  <!-- CRITICAL: This is inlined to prevent render-blocking -->
   <style set:html={criticalCSS} />
   
   <!-- CRITICAL: Remove no-js class immediately to enable JavaScript features -->
@@ -242,29 +268,54 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   <link rel="manifest" href="/manifest.webmanifest">
   
   <!-- Service Worker Registration -->
+  <!-- CACHING STRATEGY: Optimized registration with update checking -->
   <script is:inline>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js')
+    (function() {
+      'use strict';
+      
+      if ('serviceWorker' in navigator) {
+        // Register Service Worker after page load to not block rendering
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js', {
+            // CACHING: Ensure Service Worker is always fresh
+            updateViaCache: 'none' // Always check for updates, don't use cached version
+          })
           .then(function(registration) {
             console.log('[SW] Registered:', registration.scope);
+            
+            // CACHING: Check for updates periodically
+            // Check for updates every hour
+            setInterval(function() {
+              registration.update().catch(function(error) {
+                console.warn('[SW] Update check failed:', error);
+              });
+            }, 60 * 60 * 1000); // 1 hour
+            
+            // CACHING: Listen for updates and reload page when new SW is ready
+            registration.addEventListener('updatefound', function() {
+              const newWorker = registration.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', function() {
+                  if (newWorker.state === 'activated') {
+                    // New Service Worker activated - notify user or reload
+                    console.log('[SW] New version available');
+                    // Optionally reload page to use new SW
+                    // window.location.reload();
+                  }
+                });
+              }
+            });
           })
           .catch(function(error) {
             console.error('[SW] Registration failed:', error);
           });
-      });
-    }
+        });
+      }
+    })();
   </script>
   
-  <!-- Performance Hints -->
-  <link rel="preconnect" href="https://telegram.org" crossorigin>
-  <link rel="dns-prefetch" href="//telegram.org">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-  <link rel="preconnect" href="https://mc.yandex.ru" crossorigin>
-  <!-- Swiper CDN optimization -->
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <!-- Performance Hints moved to top of <head> for optimal FCP -->
+  <!-- (See above, after meta tags and before fonts) -->
   
   <!-- IntersectionObserver Polyfill for old browsers (iOS < 12.2, Android < 5) -->
   <!-- 
@@ -909,10 +960,12 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             // Initial check
             setTimeout(updateBackButton, 500);
             
-            // Update on viewport changes
+            // Update on viewport changes - OPTIMIZED: Debounced for INP
+            let resizeTimeout;
             win.addEventListener('resize', () => {
-              setTimeout(updateBackButton, 100);
-            });
+              clearTimeout(resizeTimeout);
+              resizeTimeout = setTimeout(updateBackButton, 150);
+            }, { passive: true });
             
             // FIX #6: Add detailed logging for debugging
             logger.log('[TG-BackButton] Setup complete:', {
@@ -1342,13 +1395,25 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       // Performance monitoring can be enabled via separate script if needed
       // NOTE: Dynamic import() is not available in inline scripts, disabled for now
       
-      // Main initialization - fast and simple
+      // OPTIMIZED: Main initialization - fast and simple
+      // Analytics is loaded separately after page is interactive for better TTI
       function init() {
         try {
           logger.log('[Init] Running initialization...');
           initTelegramWebApp();
           
-          initAnalytics();
+          // OPTIMIZED: Delay analytics initialization to improve TTI
+          // Load analytics after page is interactive
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(() => {
+              initAnalytics();
+            }, { timeout: 2000 });
+          } else {
+            setTimeout(() => {
+              initAnalytics();
+            }, 1000);
+          }
+          
           setupCTALinks();
           updateLinksOnLoad();
           logger.log('[Init] Initialization complete');
