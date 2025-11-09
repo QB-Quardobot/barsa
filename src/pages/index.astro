@@ -4631,6 +4631,10 @@ const DEBUG_MODE = false;
     text-align: center;
     max-width: 900px;
     margin: 0 auto;
+    /* CRITICAL: Use flexbox to center click-sticker without transform conflicts */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
   
   .final-title-blue {
@@ -4922,7 +4926,7 @@ const DEBUG_MODE = false;
     }
   }
   
-  /* Click Sticker */
+  /* Click Sticker - Centered using parent flexbox to avoid transform conflicts */
   .click-sticker {
     display: flex;
     flex-direction: column;
@@ -4947,18 +4951,17 @@ const DEBUG_MODE = false;
     text-align: center;
     /* Reset any inherited properties */
     box-sizing: border-box;
-    /* Ensure element is centered in parent */
-    left: 50%;
-    transform: translateX(-50%);
+    /* CRITICAL: Don't use left/transform here - it conflicts with reveal-scale */
+    /* Centering is handled by margin: auto and parent flexbox */
   }
   
   @keyframes pulse {
     0%, 100% {
-      transform: translateX(-50%) scale(1) translateZ(0);
+      transform: scale(1) translateZ(0);
       opacity: 1;
     }
     50% {
-      transform: translateX(-50%) scale(1.05) translateZ(0);
+      transform: scale(1.05) translateZ(0);
       opacity: 0.9;
     }
   }
@@ -4966,8 +4969,6 @@ const DEBUG_MODE = false;
   @media (prefers-reduced-motion: reduce) {
     .click-sticker {
       animation: none;
-      /* Keep centering transform when animation is disabled */
-      transform: translateX(-50%);
     }
   }
   
@@ -4976,10 +4977,20 @@ const DEBUG_MODE = false;
     .click-sticker {
       min-width: 240px;
       padding: 1.25rem 1.5rem;
-      /* Ensure proper centering on mobile */
-      left: 50%;
-      transform: translateX(-50%);
     }
+  }
+  
+  /* CRITICAL: Override reveal-scale transform to combine with centering */
+  /* This ensures click-sticker is centered even with reveal-scale animation */
+  .click-sticker.reveal-scale {
+    /* Initial state - scale down but keep centered via parent flexbox */
+    transform: scale(0.92) translateZ(0);
+  }
+  
+  .click-sticker.reveal-scale.is-revealed {
+    /* Revealed state - scale to full size, still centered via parent flexbox */
+    transform: scale(1) translateZ(0);
+    opacity: 1;
   }
   
   .sticker-text {
