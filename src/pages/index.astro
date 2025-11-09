@@ -1784,6 +1784,9 @@ const DEBUG_MODE = false;
     margin-right: auto;
     padding-left: 1rem;
     padding-right: 1rem;
+    /* Ensure container doesn't clip centered children */
+    overflow-x: visible;
+    position: relative;
   }
   
   @media (min-width: 640px) {
@@ -4936,23 +4939,26 @@ const DEBUG_MODE = false;
     /* Fixed width approach - prevents layout shift from font loading */
     width: fit-content;
     min-width: 280px; /* Reserve space for text to prevent shift */
-    max-width: calc(100% - 2rem);
+    max-width: min(100%, 400px); /* Better max-width calculation */
     overflow: visible;
-    /* Prevent container from clipping */
-    contain: layout style;
+    /* CRITICAL: Remove contain to prevent text clipping */
+    /* contain was causing text to be clipped on production */
     /* Ensure proper centering */
     text-align: center;
     /* Reset any inherited properties */
     box-sizing: border-box;
+    /* Ensure element is centered in parent */
+    left: 50%;
+    transform: translateX(-50%);
   }
   
   @keyframes pulse {
     0%, 100% {
-      transform: scale(1) translateZ(0);
+      transform: translateX(-50%) scale(1) translateZ(0);
       opacity: 1;
     }
     50% {
-      transform: scale(1.05) translateZ(0);
+      transform: translateX(-50%) scale(1.05) translateZ(0);
       opacity: 0.9;
     }
   }
@@ -4960,6 +4966,8 @@ const DEBUG_MODE = false;
   @media (prefers-reduced-motion: reduce) {
     .click-sticker {
       animation: none;
+      /* Keep centering transform when animation is disabled */
+      transform: translateX(-50%);
     }
   }
   
@@ -4968,6 +4976,9 @@ const DEBUG_MODE = false;
     .click-sticker {
       min-width: 240px;
       padding: 1.25rem 1.5rem;
+      /* Ensure proper centering on mobile */
+      left: 50%;
+      transform: translateX(-50%);
     }
   }
   
@@ -4976,7 +4987,7 @@ const DEBUG_MODE = false;
     color: var(--fg);
     font-weight: 600;
     white-space: nowrap;
-    /* Prevent text cutoff */
+    /* Prevent text cutoff - ensure text is fully visible */
     overflow: visible;
     text-overflow: clip;
     display: block;
@@ -4987,6 +4998,9 @@ const DEBUG_MODE = false;
     margin: 0;
     padding: 0;
     line-height: 1.4;
+    /* Ensure text doesn't get clipped */
+    word-break: normal;
+    overflow-wrap: normal;
   }
   
   .sticker-arrow {
