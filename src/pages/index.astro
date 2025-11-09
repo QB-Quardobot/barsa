@@ -2804,9 +2804,7 @@ const DEBUG_MODE = false;
   
   /* Single Pulsing Dot Badge */
   .single-dot-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-block;
     width: 48px;
     height: 48px;
     min-width: 48px;
@@ -2818,13 +2816,31 @@ const DEBUG_MODE = false;
     flex-shrink: 0;
     /* Prevent layout shift */
     contain: layout style paint;
+    /* Reset any inherited properties that could affect centering */
+    line-height: 0;
+    font-size: 0;
+    vertical-align: middle;
   }
   
   .pulsing-dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
     width: 12px;
     height: 12px;
+    margin: 0;
+    padding: 0;
     background: #60a5fa;
     border-radius: 50%;
+    /* Perfect centering using transform - industry standard method */
+    transform: translate(-50%, -50%);
+    /* Reset any inherited properties that could affect positioning */
+    line-height: 0;
+    font-size: 0;
+    /* Ensure pixel-perfect rendering */
+    box-sizing: border-box;
+    /* GPU acceleration for smooth animation */
+    will-change: opacity;
     animation: pulse 2s ease-in-out infinite;
   }
   
@@ -4905,9 +4921,10 @@ const DEBUG_MODE = false;
   
   /* Click Sticker */
   .click-sticker {
-    display: inline-flex;
+    display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     margin: 2.5rem auto;
     padding: 1.5rem 2rem;
@@ -4916,15 +4933,17 @@ const DEBUG_MODE = false;
     border-radius: var(--radius-xl);
     animation: pulse 2s ease-in-out infinite;
     position: relative;
-    /* Prevent layout shift and text cutoff */
-    min-width: max-content;
-    width: auto;
-    max-width: 100%;
+    /* Fixed width approach - prevents layout shift from font loading */
+    width: fit-content;
+    min-width: 280px; /* Reserve space for text to prevent shift */
+    max-width: calc(100% - 2rem);
     overflow: visible;
     /* Prevent container from clipping */
     contain: layout style;
     /* Ensure proper centering */
     text-align: center;
+    /* Reset any inherited properties */
+    box-sizing: border-box;
   }
   
   @keyframes pulse {
@@ -4944,6 +4963,14 @@ const DEBUG_MODE = false;
     }
   }
   
+  /* Mobile optimization - adjust min-width for smaller screens */
+  @media (max-width: 640px) {
+    .click-sticker {
+      min-width: 240px;
+      padding: 1.25rem 1.5rem;
+    }
+  }
+  
   .sticker-text {
     font-size: clamp(1rem, 2.5vw, 1.125rem);
     color: var(--fg);
@@ -4952,14 +4979,25 @@ const DEBUG_MODE = false;
     /* Prevent text cutoff */
     overflow: visible;
     text-overflow: clip;
-    min-width: max-content;
-    display: inline-block;
+    display: block;
+    /* Fixed width to prevent layout shift from font loading */
+    width: 100%;
+    text-align: center;
+    /* Reset any inherited properties */
+    margin: 0;
+    padding: 0;
+    line-height: 1.4;
   }
   
   .sticker-arrow {
     font-size: 2rem;
     display: block;
     line-height: 1;
+    /* Ensure proper centering */
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    width: 100%;
   }
   
   .final-action-text {
