@@ -108,11 +108,18 @@ async def handele_buy_button(callback: CallbackQuery):
         logger.error(f"Не удалось отправить статистическое сообщение о новом нажатии на кнопку купить владельцу из-за ошибки:{e}")
 
     from urllib.parse import quote
+    # Используем HTML для зачеркнутого текста в сообщении
+    price_text = (
+        "💰 <b>Выберите способ оплаты:</b>\n\n"
+        "💶 <s>250€</s> 175€\n"
+        "💵 <s>24.000 ₽</s> 16.500 ₽"
+    )
+    
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="КУПИТЬ - 39.000₽", url="https://t.me/tribute/app?startapp=sBHR"),
-                InlineKeyboardButton(text="КУПИТЬ - 400€", url="https://t.me/tribute/app?startapp=sBHT")
+                InlineKeyboardButton(text="КУПИТЬ - 16.500₽", url="https://t.me/tribute/app?startapp=sGCD"),
+                InlineKeyboardButton(text="КУПИТЬ - 175€", url="https://t.me/tribute/app?startapp=sGCB")
             ],
             [
                 InlineKeyboardButton(
@@ -122,7 +129,18 @@ async def handele_buy_button(callback: CallbackQuery):
             ]
         ]
     )
-    await callback.message.edit_reply_markup(reply_markup=keyboard)
+    
+    # Редактируем сообщение с зачеркнутыми ценами и новыми кнопками
+    try:
+        await callback.message.edit_text(
+            price_text,
+            reply_markup=keyboard,
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        # Если не удалось отредактировать текст (например, сообщение с фото), редактируем только кнопки
+        logger.warning(f"Не удалось отредактировать текст сообщения: {e}")
+        await callback.message.edit_reply_markup(reply_markup=keyboard)
 
 @router.message(F.video_note)  # Фильтр на video note (кружочек)
 async def handle_video_note(message: Message):

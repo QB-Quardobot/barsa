@@ -1328,13 +1328,56 @@ export function initPhotoModal(): void {
   
   let isModalOpen = false;
   
+  // Prevent background scroll when photo modal is open
+  let photoScrollPosition = 0;
+  let photoScrollLocked = false;
+
+  function lockPhotoBodyScroll(): void {
+    if (photoScrollLocked) return;
+    photoScrollLocked = true;
+    photoScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+    
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${photoScrollPosition}px`;
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+  }
+
+  function unlockPhotoBodyScroll(): void {
+    if (!photoScrollLocked) return;
+    photoScrollLocked = false;
+    
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    document.body.style.overflow = '';
+    document.body.style.touchAction = '';
+    
+    window.scrollTo(0, photoScrollPosition);
+  }
+
+  function preventPhotoScroll(e: TouchEvent | WheelEvent): void {
+    if (!isModalOpen) return;
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  
   function openModal(imgSrc: string, imgAlt: string): void {
     if (!modal || !modalImg || isModalOpen) return;
     try {
       modalImg.src = imgSrc;
       modalImg.alt = imgAlt;
+      
+      // Lock body scroll
+      lockPhotoBodyScroll();
+      
       modal.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
+      
+      // Prevent scroll events
+      document.addEventListener('wheel', preventPhotoScroll, { passive: false, capture: true });
+      document.addEventListener('touchmove', preventPhotoScroll, { passive: false, capture: true });
+      
       isModalOpen = true;
     } catch (e) {
       // Graceful degradation: silently fail
@@ -1344,9 +1387,16 @@ export function initPhotoModal(): void {
   function closeModal(): void {
     if (!modal || !isModalOpen) return;
     try {
+      // Remove scroll prevention
+      document.removeEventListener('wheel', preventPhotoScroll, { capture: true } as any);
+      document.removeEventListener('touchmove', preventPhotoScroll, { capture: true } as any);
+      
       modal.style.display = 'none';
       if (modalImg) modalImg.src = '';
-      document.body.style.overflow = '';
+      
+      // Unlock body scroll
+      unlockPhotoBodyScroll();
+      
       isModalOpen = false;
     } catch (e) {
       // Graceful degradation: silently fail
@@ -1528,35 +1578,41 @@ interface TariffData {
   name: string;
   rub: {
     amount: string;
+    oldAmount?: string; // Старая цена для отображения зачеркнутой
     url: string;
   };
   eur: {
     amount: string;
+    oldAmount?: string; // Старая цена для отображения зачеркнутой
     url: string;
   };
 }
 
 const TARIFFS: Record<string, TariffData> = {
   '1': {
-    name: 'Самостоятельный',
+    name: 'Самостоятельный -30%',
     rub: {
-      amount: '24.000 ₽',
-      url: 'https://t.me/tribute/app?startapp=sFEK'
+      amount: '16.500 ₽',
+      oldAmount: '24.000 ₽',
+      url: 'https://t.me/tribute/app?startapp=sGCD'
     },
     eur: {
-      amount: '250 €',
-      url: 'https://t.me/tribute/app?startapp=sFEI'
+      amount: '175 €',
+      oldAmount: '250 €',
+      url: 'https://t.me/tribute/app?startapp=sGCB'
     }
   },
   '2': {
-    name: 'Все и сразу',
+    name: 'Все и сразу -15%',
     rub: {
-      amount: '46.800 ₽',
-      url: 'https://t.me/tribute/app?startapp=sFEb'
+      amount: '40.100 ₽',
+      oldAmount: '46.800 ₽',
+      url: 'https://t.me/tribute/app?startapp=sGCA'
     },
     eur: {
-      amount: '500 €',
-      url: 'https://t.me/tribute/app?startapp=sFEa'
+      amount: '425 €',
+      oldAmount: '500 €',
+      url: 'https://t.me/tribute/app?startapp=sGCy'
     }
   }
 };
@@ -1580,15 +1636,79 @@ export function initCurrencyModal(): void {
   // Support link for tariffs 1 and 2 (also used for crypto payment)
   const supportLink = 'https://t.me/illariooo';
   
+  // Helper function to remove discount percentage from tariff name
+  function getTariffNameWithoutDiscount(name: string): string {
+    return name.replace(/\s*-?\d+%\s*/g, '').trim();
+  }
+
+  // Prevent background scroll when modal is open
+  let scrollPosition = 0;
+  let scrollLocked = false;
+
+  function lockBodyScroll(): void {
+    if (scrollLocked) return;
+    scrollLocked = true;
+    scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+    
+    // Lock scroll position
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollPosition}px`;
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+    
+    // Prevent touch scrolling on iOS
+    document.body.style.touchAction = 'none';
+  }
+
+  function unlockBodyScroll(): void {
+    if (!scrollLocked) return;
+    scrollLocked = false;
+    
+    // Restore scroll position
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    document.body.style.overflow = '';
+    document.body.style.touchAction = '';
+    
+    window.scrollTo(0, scrollPosition);
+  }
+
+  // Prevent scroll events when modal is open
+  function preventScroll(e: TouchEvent | WheelEvent): void {
+    if (!isModalOpen) return;
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
   function openModal(tariffId: string): void {
     if (isModalOpen || !TARIFFS[tariffId]) return;
     
     currentTariff = tariffId;
     const tariff = TARIFFS[tariffId];
     
-    // Update amounts
-    if (rubAmount) rubAmount.textContent = tariff.rub.amount;
-    if (eurAmount) eurAmount.textContent = tariff.eur.amount;
+    // Update modal title with tariff name (without discount)
+    const modalTitle = document.getElementById('currencyModalTitle');
+    if (modalTitle) {
+      const nameWithoutDiscount = getTariffNameWithoutDiscount(tariff.name);
+      modalTitle.textContent = `${nameWithoutDiscount} — Выберите способ оплаты`;
+    }
+    
+    // Update amounts with old price strikethrough if available
+    if (rubAmount) {
+      if (tariff.rub.oldAmount) {
+        rubAmount.innerHTML = `<span class="price-old-strikethrough">${tariff.rub.oldAmount}</span> <span class="price-new">${tariff.rub.amount}</span>`;
+      } else {
+        rubAmount.textContent = tariff.rub.amount;
+      }
+    }
+    if (eurAmount) {
+      if (tariff.eur.oldAmount) {
+        eurAmount.innerHTML = `<span class="price-old-strikethrough">${tariff.eur.oldAmount}</span> <span class="price-new">${tariff.eur.amount}</span>`;
+      } else {
+        eurAmount.textContent = tariff.eur.amount;
+      }
+    }
     
     // Update links
     if (rubBtn) rubBtn.href = tariff.rub.url;
@@ -1604,9 +1724,15 @@ export function initCurrencyModal(): void {
       supportBtn.href = supportLink;
     }
     
+    // Lock body scroll before showing modal
+    lockBodyScroll();
+    
     // Show modal with animation
     modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+    
+    // Prevent scroll events
+    document.addEventListener('wheel', preventScroll, { passive: false, capture: true });
+    document.addEventListener('touchmove', preventScroll, { passive: false, capture: true });
     
     // Trigger animation
     scheduleRAF(() => {
@@ -1625,6 +1751,10 @@ export function initCurrencyModal(): void {
   function closeModal(): void {
     if (!isModalOpen) return;
     
+    // Remove scroll prevention
+    document.removeEventListener('wheel', preventScroll, { capture: true } as any);
+    document.removeEventListener('touchmove', preventScroll, { capture: true } as any);
+    
     // Remove animation classes
     modal.classList.remove('is-open');
     backdrop?.classList.remove('is-active');
@@ -1632,7 +1762,7 @@ export function initCurrencyModal(): void {
     // Hide after animation
     setTimeout(() => {
       modal.style.display = 'none';
-      document.body.style.overflow = '';
+      unlockBodyScroll();
       isModalOpen = false;
       currentTariff = null;
     }, 200);
