@@ -1541,22 +1541,22 @@ const TARIFFS: Record<string, TariffData> = {
     name: 'Самостоятельный',
     rub: {
       amount: '24.000 ₽',
-      url: 'https://t.me/tribute/app?startapp=sFjs'
+      url: 'https://t.me/tribute/app?startapp=sFEK'
     },
     eur: {
       amount: '250 €',
-      url: 'https://t.me/tribute/app?startapp=sFjp'
+      url: 'https://t.me/tribute/app?startapp=sFEc'
     }
   },
   '2': {
     name: 'Все и сразу',
     rub: {
       amount: '46.800 ₽',
-      url: 'https://t.me/tribute/app?startapp=sFjo'
+      url: 'https://t.me/tribute/app?startapp=sFEb'
     },
     eur: {
       amount: '500 €',
-      url: 'https://t.me/tribute/app?startapp=sFjk'
+      url: 'https://t.me/tribute/app?startapp=sFEa'
     }
   }
 };
