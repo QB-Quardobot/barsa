@@ -1722,20 +1722,16 @@ export function initCurrencyModal(): void {
       backdrop?.classList.add('is-active');
     });
     
-    // INP OPTIMIZATION: Defer haptic feedback (non-critical)
-    if (typeof requestIdleCallback !== 'undefined') {
-      requestIdleCallback(() => {
-        if ((window as any).Telegram?.WebApp?.HapticFeedback) {
-          (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('light');
-        }
-      }, { timeout: 100 });
+    // HAPTIC FIX: Use global triggerHaptic function if available
+    if (typeof (window as any).triggerAppHaptic === 'function') {
+      (window as any).triggerAppHaptic('light');
+    } else if (typeof (window as any).triggerHaptic === 'function') {
+      (window as any).triggerHaptic('light');
     } else {
-      // Fallback for browsers without requestIdleCallback
-      setTimeout(() => {
-        if ((window as any).Telegram?.WebApp?.HapticFeedback) {
-          (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('light');
-        }
-      }, 0);
+      // Fallback: direct haptic access
+      if ((window as any).Telegram?.WebApp?.HapticFeedback) {
+        (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('light');
+      }
     }
   }
   
@@ -1813,9 +1809,14 @@ export function initCurrencyModal(): void {
   });
   
   // Currency button click handlers (for analytics)
+  // HAPTIC FIX: Use global triggerHaptic function
   if (rubBtn) {
     rubBtn.addEventListener('click', () => {
-      if ((window as any).Telegram?.WebApp?.HapticFeedback) {
+      if (typeof (window as any).triggerAppHaptic === 'function') {
+        (window as any).triggerAppHaptic('medium');
+      } else if (typeof (window as any).triggerHaptic === 'function') {
+        (window as any).triggerHaptic('medium');
+      } else if ((window as any).Telegram?.WebApp?.HapticFeedback) {
         (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('medium');
       }
     });
@@ -1823,7 +1824,11 @@ export function initCurrencyModal(): void {
   
   if (eurBtn) {
     createEventListener(eurBtn, 'click', () => {
-      if ((window as any).Telegram?.WebApp?.HapticFeedback) {
+      if (typeof (window as any).triggerAppHaptic === 'function') {
+        (window as any).triggerAppHaptic('medium');
+      } else if (typeof (window as any).triggerHaptic === 'function') {
+        (window as any).triggerHaptic('medium');
+      } else if ((window as any).Telegram?.WebApp?.HapticFeedback) {
         (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('medium');
       }
     });

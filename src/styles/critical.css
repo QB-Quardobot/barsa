@@ -222,14 +222,22 @@ img {
   max-width: 100%;
 }
 
-img[loading="lazy"] {
+/* IMAGE FIX: Don't hide lazy images - they should be visible from start to prevent layout shifts */
+img[loading="lazy"]:not(.ilya-photo):not(.real-photo) {
   background-color: var(--bg);
-  opacity: 0;
+  opacity: 1;
   transition: opacity 0.3s ease;
 }
 
 img.loaded {
   opacity: 1;
+}
+
+/* IMAGE FIX: Ensure ilya-photo and real-photo are always visible */
+img.ilya-photo,
+img.real-photo {
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 /* Images inside containers fill the space - exclude slider images */

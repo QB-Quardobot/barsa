@@ -682,15 +682,23 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         const haptics = tg.HapticFeedback;
         const triggerHaptic = (type = 'medium') => {
           try {
-            if (!haptics) return;
+            if (!haptics) {
+              logger.warn('[TG-Haptic] HapticFeedback not available');
+              return;
+            }
             if (type === 'selection') haptics.selectionChanged();
             else if (type === 'success') haptics.notificationOccurred('success');
             else if (type === 'warning') haptics.notificationOccurred('warning');
             else if (type === 'error') haptics.notificationOccurred('error');
             else haptics.impactOccurred(type);
-          } catch {}
+            logger.log('[TG-Haptic] Triggered:', type);
+          } catch (e) {
+            logger.error('[TG-Haptic] Error:', e);
+          }
         };
+        // HAPTIC FIX: Expose triggerHaptic globally so it can be used everywhere
         win.triggerAppHaptic = triggerHaptic;
+        win.triggerHaptic = triggerHaptic; // Alias for compatibility
 
         // Back button navigation handler
         // FIX #5: Add delay (50-100ms) after tg.expand() before registering BackButton
@@ -746,7 +754,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
             logger.error('[TG-BackButton] Error in setTimeout:', e);
             logger.error('[TG-BackButton] Error stack:', e.stack);
           }
-        }, 100); // 100ms delay after tg.expand() as recommended by internet sources
+        }, 150); // HAPTIC FIX: Increased delay to 150ms to ensure SDK is fully ready
         
         // BackButton setup function (extracted for reuse)
         function setupBackButton() {
@@ -906,6 +914,9 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                 logger.error('[TG-BackButton] Error updating visibility:', error);
               }
             }
+            
+            // BACKBUTTON FIX: Mark that BackButton is being setup to prevent conflicts
+            win.__backButtonSetup = true;
             
             // Set up back button click handler
             // FIX #3: Call BackButton.show() BEFORE registering onClick handler
@@ -1696,18 +1707,45 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         // Setup haptics for interactive elements (needed for BackButton)
         const haptics = tg.HapticFeedback;
         
-        // Setup BackButton (in body script where everything works)
-        if (tg.BackButton) {
+        // HAPTIC FIX: Use triggerAppHaptic if available, otherwise use haptics directly
+        const triggerHapticSafe = (type = 'medium') => {
           try {
+            // First try to use global triggerAppHaptic (from first script block)
+            if (typeof win.triggerAppHaptic === 'function') {
+              win.triggerAppHaptic(type);
+              return;
+            }
+            // Fallback to direct haptics access
+            if (haptics) {
+              if (type === 'selection') haptics.selectionChanged();
+              else if (type === 'success') haptics.notificationOccurred('success');
+              else if (type === 'warning') haptics.notificationOccurred('warning');
+              else if (type === 'error') haptics.notificationOccurred('error');
+              else haptics.impactOccurred(type);
+            }
+          } catch (e) {
+            hapticLogger.warn('[TG] Haptic error:', e);
+          }
+        };
+        
+        // BACKBUTTON FIX: Don't setup BackButton here if it's already setup in first script block
+        // The first script block (lines 695-983) has the full implementation with delays and checks
+        // This duplicate setup can conflict and cause issues
+        // Only setup if BackButton is not already configured
+        if (tg.BackButton && !win.__backButtonSetup) {
+          try {
+            // Mark that we're setting up BackButton to prevent conflicts
+            win.__backButtonSetup = true;
+            
             // Setup BackButton handler
             function handleBackClick() {
-              hapticLogger.log('[TG-BackButton] handleBackClick() called');
+              hapticLogger.log('[TG-BackButton] handleBackClick() called (body script)');
               
               // Check for modals first
               if (typeof win.isCurrencyModalOpen === 'function' && win.isCurrencyModalOpen()) {
                 if (typeof win.closeCurrencyModal === 'function') {
                   win.closeCurrencyModal();
-                  if (haptics) haptics.impactOccurred('light');
+                  triggerHapticSafe('light');
                   return;
                 }
               }
@@ -1715,7 +1753,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               if (typeof win.isPhotoModalOpen === 'function' && win.isPhotoModalOpen()) {
                 if (typeof win.closePhotoModal === 'function') {
                   win.closePhotoModal();
-                  if (haptics) haptics.impactOccurred('light');
+                  triggerHapticSafe('light');
                   return;
                 }
               }
@@ -1733,7 +1771,7 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
                 }, 0);
                 
                 win.history.back();
-                if (haptics) haptics.impactOccurred('light');
+                triggerHapticSafe('light');
                 return;
               }
               
@@ -1745,28 +1783,36 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
               if (scrollTop > 100) {
                 hapticLogger.log('[TG-BackButton] Scrolling to top');
                 scrollable.scrollTo({ top: 0, behavior: 'smooth' });
-                if (haptics) haptics.impactOccurred('light');
+                triggerHapticSafe('light');
                 return;
               }
               
               // Last resort: show close confirmation
               hapticLogger.log('[TG-BackButton] Showing close confirmation');
-              if (haptics) haptics.impactOccurred('medium');
+              triggerHapticSafe('medium');
               tg.showConfirm?.('Закрыть приложение?', (ok) => {
                 if (ok) {
-                  if (haptics) haptics.impactOccurred('heavy');
+                  triggerHapticSafe('heavy');
                   tg.close();
                 }
               });
             }
             
-            // Show button and register handler
-            tg.BackButton.show();
-            tg.BackButton.onClick(handleBackClick);
-            hapticLogger.log('[TG-BackButton] BackButton setup complete');
+            // Show button and register handler with delay to avoid conflicts
+            setTimeout(() => {
+              try {
+                tg.BackButton.show();
+                tg.BackButton.onClick(handleBackClick);
+                hapticLogger.log('[TG-BackButton] BackButton setup complete (body script)');
+              } catch (e) {
+                hapticLogger.error('[TG-BackButton] Error in delayed setup:', e);
+              }
+            }, 150);
           } catch (e) {
             hapticLogger.error('[TG-BackButton] Error setting up BackButton:', e);
           }
+        } else if (win.__backButtonSetup) {
+          hapticLogger.log('[TG-BackButton] BackButton already setup in first script block, skipping duplicate');
         }
         
         // Setup haptics for interactive elements (excluding CTA links - handled separately)
@@ -2125,7 +2171,8 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       position: relative;
       width: 100%;
       padding: 1.5rem 1rem;
-      margin-top: 1rem;
+      /* SPACING FIX: Reduce top margin to minimize empty space before footer */
+      margin-top: 0.5rem;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
       background: transparent;
       z-index: 1;
