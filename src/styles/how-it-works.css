@@ -1359,6 +1359,9 @@ border-radius: var(--radius-2xl);
 margin: 2rem auto 1.5rem;
 max-width: 320px;
 position: relative;
+/* CRITICAL FIX: Ensure container has height for images to be visible */
+min-height: 300px;
+height: auto;
 }
 
 @media (min-width: 640px) {
@@ -4851,6 +4854,14 @@ height: 100%;
 overflow: hidden;
 /* CLS FIX: Prevent layout shifts */
 contain: layout style size;
+}
+
+/* CRITICAL FIX: Ensure shimmer-wrapper has proper height for ilya photos */
+.ilya-photo-wrapper .shimmer-wrapper,
+.ilya-real-photo .shimmer-wrapper {
+height: auto !important;
+min-height: 300px;
+contain: none;
 }
 
 .shimmer-overlay {

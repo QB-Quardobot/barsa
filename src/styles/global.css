@@ -495,20 +495,26 @@ main,
   opacity: 0;
   /* Modern smooth transition with advanced easing - cubic-bezier(0.16, 1, 0.3, 1) is Apple's preferred easing */
   /* This creates beautiful, natural animations similar to top-tier websites */
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), 
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
   /* GPU acceleration - will-change is set dynamically by JS only when animating */
   /* CRITICAL CLS FIX: Prevent layout shifts by reserving space */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   /* Force hardware acceleration - translateZ(0) doesn't affect layout */
-  transform: translateZ(0);
-  /* CRITICAL: Keep visibility visible to reserve layout space */
-  visibility: visible;
-  /* CRITICAL: Ensure element takes up space even when hidden */
-  min-height: 0;
-  /* Prevent content from collapsing */
-  contain: layout style;
+}
+
+/* CRITICAL FIX: Ensure ilya-photo-wrapper and ilya-real-photo are always visible even without is-revealed */
+.ilya-photo-wrapper.reveal-scale,
+.ilya-real-photo.reveal-scale {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: scale(1) translateZ(0) !important;
+  transition: none !important;
+  /* CRITICAL: Ensure element takes up space */
+  min-height: 300px;
+  height: auto;
+  contain: none;
 }
 
 /* .ilya-current can use reveal animations - gradient text inside is isolated */
