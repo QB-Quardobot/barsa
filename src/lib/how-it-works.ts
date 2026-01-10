@@ -483,15 +483,18 @@ function createSwiperConfig(config: SwiperConfig) {
     direction: 'horizontal' as const,
     loop: false,
     speed: 300,
-    // OPTIMIZED: Disable watchOverflow if only 1-3 slides (most cases)
-    watchOverflow: false,
+    // MOBILE FIX: Enable watchOverflow for proper mobile handling
+    watchOverflow: true,
     slidesPerView: 1,
     spaceBetween: 0,
     centeredSlides: true,
-    cssMode: true,
-    simulateTouch: false,
+    // MOBILE FIX: Disable cssMode for proper touch handling on mobile
+    cssMode: false,
+    // MOBILE FIX: Enable simulateTouch for proper mobile touch support
+    simulateTouch: true,
     allowTouchMove: true,
-    passiveListeners: true,
+    // MOBILE FIX: Use passive listeners only where safe
+    passiveListeners: false,
     touchStartPreventDefault: false,
     touchReleaseOnEdges: true,
     freeMode: false,
@@ -514,27 +517,69 @@ function createSwiperConfig(config: SwiperConfig) {
     // Pagination - disabled, using static pagination
     pagination: false,
     navigation: false, // Отключена навигация, используем только пагинацию
-    // OPTIMIZED: Disable unnecessary watchers for better performance
-    watchSlidesProgress: false,
-    watchSlidesVisibility: false,
-    // OPTIMIZED: Disable preload images - use lazy loading instead
-    preloadImages: false,
-    // OPTIMIZED: Enable lazy loading for images
+    // MOBILE FIX: Enable watchers for proper slide updates
+    watchSlidesProgress: true,
+    watchSlidesVisibility: true,
+    // MOBILE FIX: Preload images and update on ready to prevent layout shifts
+    preloadImages: true,
+    updateOnImagesReady: true,
+    // MOBILE FIX: Enable lazy loading for images
     lazy: {
       loadPrevNext: true,
       loadPrevNextAmount: 1,
+      checkInView: true,
     },
-    // OPTIMIZED: Disable MutationObserver if DOM doesn't change
-    observer: false,
-    observeParents: false,
+    // MOBILE FIX: Enable observer for dynamic content
+    observer: true,
+    observeParents: true,
+    // MOBILE FIX: Update on window resize
+    updateOnWindowResize: true,
     breakpoints: {
-      320: { slidesPerView: 1, spaceBetween: 0, centeredSlides: true },
-      768: { slidesPerView: 1, spaceBetween: 0, centeredSlides: true },
-      1024: { slidesPerView: 1, spaceBetween: 0, centeredSlides: true },
+      320: { 
+        slidesPerView: 1, 
+        spaceBetween: 0, 
+        centeredSlides: true,
+        // MOBILE FIX: Optimize for mobile
+        touchRatio: 1,
+        threshold: 5,
+      },
+      768: { 
+        slidesPerView: 1, 
+        spaceBetween: 0, 
+        centeredSlides: true,
+      },
+      1024: { 
+        slidesPerView: 1, 
+        spaceBetween: 0, 
+        centeredSlides: true,
+      },
     },
     on: {
       init: function(swiperInstance: any) {
-        // Swiper initialized
+        // MOBILE FIX: Update Swiper after initialization to fix initial sizing
+        if (swiperInstance && typeof swiperInstance.update === 'function') {
+          requestAnimationFrame(() => {
+            swiperInstance.update();
+            swiperInstance.updateSize();
+            swiperInstance.updateSlides();
+          });
+        }
+      },
+      // MOBILE FIX: Update on images ready
+      imagesReady: function(swiperInstance: any) {
+        if (swiperInstance && typeof swiperInstance.update === 'function') {
+          swiperInstance.update();
+          swiperInstance.updateSize();
+          swiperInstance.updateSlides();
+        }
+      },
+      // MOBILE FIX: Update on slide change
+      slideChange: function(swiperInstance: any) {
+        if (swiperInstance && typeof swiperInstance.update === 'function') {
+          requestAnimationFrame(() => {
+            swiperInstance.updateSize();
+          });
+        }
       },
       // TYPESCRIPT: Use proper type instead of any
       paginationRender: function(swiperInstance: SwiperInstance) {
@@ -1057,6 +1102,51 @@ function createTestimonialsSwiper(swiperContainer: HTMLElement): void {
   // Store instance for destroy management
   swiperInstances.set(swiperContainer, swiper);
   
+  // MOBILE FIX: Update Swiper after initialization to fix sizing issues
+  requestAnimationFrame(() => {
+    if (swiper && typeof swiper.update === 'function') {
+      swiper.update();
+      swiper.updateSize();
+      swiper.updateSlides();
+      swiper.updateSlidesClasses();
+    }
+  });
+  
+  // MOBILE FIX: Update Swiper after images are loaded
+  const images = swiperContainer.querySelectorAll('img');
+  if (images.length > 0) {
+    let loadedCount = 0;
+    const totalImages = images.length;
+    
+    images.forEach((img) => {
+      if (img.complete) {
+        loadedCount++;
+      } else {
+        img.addEventListener('load', () => {
+          loadedCount++;
+          if (loadedCount === totalImages && swiper && typeof swiper.update === 'function') {
+            requestAnimationFrame(() => {
+              swiper.update();
+              swiper.updateSize();
+              swiper.updateSlides();
+              swiper.updateSlidesClasses();
+            });
+          }
+        }, { once: true });
+      }
+    });
+    
+    // If all images are already loaded
+    if (loadedCount === totalImages && swiper && typeof swiper.update === 'function') {
+      requestAnimationFrame(() => {
+        swiper.update();
+        swiper.updateSize();
+        swiper.updateSlides();
+        swiper.updateSlidesClasses();
+      });
+    }
+  }
+  
   // Setup destroy observer for this Swiper
   setupSwiperDestroyObserver();
   
@@ -1067,24 +1157,37 @@ function createTestimonialsSwiper(swiperContainer: HTMLElement): void {
     setupSwiperNavigation(swiperContainer, wrapper, slides, null, null);
   }
   
+  // MOBILE FIX: Optimize touch handling
   let touchStartY = 0;
-  wrapper.addEventListener('touchstart', (e) => {
+  let isScrolling = false;
+  
+  createEventListener(wrapper, 'touchstart', (e: TouchEvent) => {
     touchStartY = e.touches[0].clientY;
-    if (window.scrollY === 0) {
-      scheduleRAF(() => {
-        window.scrollTo(0, 1);
-      });
-    }
+    isScrolling = false;
   }, { passive: true });
   
-  // OPTIMIZED: touchmove with stopPropagation can use passive: true (no preventDefault)
-  // MEMORY MANAGEMENT: Register cleanup for touch listeners
+  // MOBILE FIX: Better touch move handling
   createEventListener(wrapper, 'touchmove', (e: TouchEvent) => {
     const touchY = e.touches[0].clientY;
     const deltaY = Math.abs(touchY - touchStartY);
-    if (deltaY > 10) {
-      e.stopPropagation();
+    
+    // If vertical scroll is significant, allow page scroll
+    if (deltaY > 10 && !isScrolling) {
+      isScrolling = true;
     }
+  }, { passive: true });
+  
+  // MOBILE FIX: Update Swiper on resize
+  let resizeTimeout: number;
+  createEventListener(window, 'resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = window.setTimeout(() => {
+      if (swiper && typeof swiper.update === 'function') {
+        swiper.update();
+        swiper.updateSize();
+        swiper.updateSlides();
+      }
+    }, 150);
   }, { passive: true });
 }
 
@@ -1344,10 +1447,13 @@ export function initPhotoModal(): void {
   function closeModal(): void {
     if (!modal || !isModalOpen) return;
     try {
-      modal.style.display = 'none';
-      if (modalImg) modalImg.src = '';
-      document.body.style.overflow = '';
-      isModalOpen = false;
+      // CLS FIX: Use requestAnimationFrame to prevent layout shifts
+      requestAnimationFrame(() => {
+        modal.style.display = 'none';
+        if (modalImg) modalImg.src = '';
+        document.body.style.overflow = '';
+        isModalOpen = false;
+      });
     } catch (e) {
       // Graceful degradation: silently fail
     }
@@ -1551,12 +1657,12 @@ const TARIFFS: Record<string, TariffData> = {
   '2': {
     name: 'Все и сразу',
     rub: {
-      amount: '46.800 ₽',
-      url: 'https://t.me/tribute/app?startapp=sFEb'
+      amount: '46 800 ₽',
+      url: 'https://t.me/tribute/app?startapp=sKRN'
     },
     eur: {
       amount: '500 €',
-      url: 'https://t.me/tribute/app?startapp=sFEa'
+      url: 'https://t.me/tribute/app?startapp=sKRL'
     }
   }
 };
@@ -1586,39 +1692,50 @@ export function initCurrencyModal(): void {
     currentTariff = tariffId;
     const tariff = TARIFFS[tariffId];
     
-    // Update amounts
-    if (rubAmount) rubAmount.textContent = tariff.rub.amount;
-    if (eurAmount) eurAmount.textContent = tariff.eur.amount;
-    
-    // Update links
-    if (rubBtn) rubBtn.href = tariff.rub.url;
-    if (eurBtn) eurBtn.href = tariff.eur.url;
-    
-    // Update crypto payment link (leads to personal Telegram)
-    if (cryptoBtn) {
-      cryptoBtn.href = supportLink;
-    }
-    
-    // Update support link for tariffs 1 and 2
-    if (supportBtn && (tariffId === '1' || tariffId === '2')) {
-      supportBtn.href = supportLink;
-    }
-    
-    // Show modal with animation
+    // INP OPTIMIZATION: Critical operations first - show modal immediately
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    isModalOpen = true;
     
-    // Trigger animation
+    // INP OPTIMIZATION: Batch DOM updates in RAF
     scheduleRAF(() => {
+      // Update amounts (critical for user feedback)
+      if (rubAmount) rubAmount.textContent = tariff.rub.amount;
+      if (eurAmount) eurAmount.textContent = tariff.eur.amount;
+      
+      // Update links (critical for functionality)
+      if (rubBtn) rubBtn.href = tariff.rub.url;
+      if (eurBtn) eurBtn.href = tariff.eur.url;
+      
+      // Update crypto payment link (leads to personal Telegram)
+      if (cryptoBtn) {
+        cryptoBtn.href = supportLink;
+      }
+      
+      // Update support link for tariffs 1 and 2
+      if (supportBtn && (tariffId === '1' || tariffId === '2')) {
+        supportBtn.href = supportLink;
+      }
+      
+      // Trigger animation
       modal.classList.add('is-open');
       backdrop?.classList.add('is-active');
     });
     
-    isModalOpen = true;
-    
-    // Haptic feedback
-    if ((window as any).Telegram?.WebApp?.HapticFeedback) {
-      (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('light');
+    // INP OPTIMIZATION: Defer haptic feedback (non-critical)
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(() => {
+        if ((window as any).Telegram?.WebApp?.HapticFeedback) {
+          (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('light');
+        }
+      }, { timeout: 100 });
+    } else {
+      // Fallback for browsers without requestIdleCallback
+      setTimeout(() => {
+        if ((window as any).Telegram?.WebApp?.HapticFeedback) {
+          (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('light');
+        }
+      }, 0);
     }
   }
   
@@ -1675,15 +1792,24 @@ export function initCurrencyModal(): void {
   }, { passive: false });
   
   // Handle tariff button clicks
+  // INP OPTIMIZATION: Use optimized click handler
   const tariffButtons = document.querySelectorAll('[data-tariff]');
   tariffButtons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    // INP OPTIMIZATION: Extract tariffId once, not in handler
+    const tariffId = (btn as HTMLElement).dataset.tariff;
+    if (!tariffId) return;
+    
+    // INP OPTIMIZATION: Minimal handler - only preventDefault and call openModal
+    const handleClick = (e: Event) => {
       e.preventDefault();
-      const tariffId = (btn as HTMLElement).dataset.tariff;
-      if (tariffId) {
+      // INP OPTIMIZATION: Use requestAnimationFrame to defer openModal
+      // This allows browser to process the click event faster
+      requestAnimationFrame(() => {
         openModal(tariffId);
-      }
-    }, { passive: false });
+      });
+    };
+    
+    btn.addEventListener('click', handleClick, { passive: false });
   });
   
   // Currency button click handlers (for analytics)

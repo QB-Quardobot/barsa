@@ -100,11 +100,26 @@ p {
   justify-content: center;
   padding: var(--spacing-2xl) 0;
   position: relative;
+  /* LCP FIX: Ensure hero section is rendered immediately */
+  content-visibility: visible;
+  contain: none;
 }
 
 .hero-title {
   text-align: center;
   margin-bottom: var(--spacing-xl);
+  /* LCP FIX: Ensure hero title is visible immediately - critical for LCP */
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+  /* LCP FIX: Use system font fallback for instant rendering */
+  font-family: var(--font-sans);
+  font-weight: 900;
+  color: var(--fg);
+  /* LCP FIX: Prevent any delays */
+  will-change: auto;
 }
 
 .gradient-text {

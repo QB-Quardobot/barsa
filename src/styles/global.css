@@ -498,13 +498,17 @@ main,
   transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), 
               transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
   /* GPU acceleration - will-change is set dynamically by JS only when animating */
-  /* Prevent layout shifts */
+  /* CRITICAL CLS FIX: Prevent layout shifts by reserving space */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  /* Force hardware acceleration */
+  /* Force hardware acceleration - translateZ(0) doesn't affect layout */
   transform: translateZ(0);
-  /* Progressive Enhancement: Ensure layout is preserved even when hidden */
+  /* CRITICAL: Keep visibility visible to reserve layout space */
   visibility: visible;
+  /* CRITICAL: Ensure element takes up space even when hidden */
+  min-height: 0;
+  /* Prevent content from collapsing */
+  contain: layout style;
 }
 
 /* .ilya-current can use reveal animations - gradient text inside is isolated */
@@ -593,13 +597,15 @@ main,
   transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1);
   /* OPTIMIZED: will-change is managed dynamically by JS (added before animation, removed after) */
   /* This prevents unnecessary GPU memory allocation */
-  /* Prevent layout shifts */
+  /* CLS FIX: Prevent layout shifts */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   /* CRITICAL: No transform - only opacity to avoid stacking context */
   transform: none;
   /* Progressive Enhancement: Ensure layout is preserved even when hidden */
   visibility: visible;
+  /* CLS FIX: Reserve layout space */
+  contain: layout style;
 }
 
 .reveal-fade.is-revealed {
