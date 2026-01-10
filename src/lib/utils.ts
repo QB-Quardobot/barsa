@@ -155,6 +155,16 @@ export function initLazyImages(
   
   if (!lazyImages.length) return;
 
+  // IMAGE FIX: Immediately mark ilya-photo and real-photo as loaded to ensure visibility on mobile
+  lazyImages.forEach(img => {
+    if (img.classList.contains('ilya-photo') || img.classList.contains('real-photo')) {
+      img.classList.add('loaded');
+      // Also ensure image is visible
+      img.style.opacity = '1';
+      img.style.visibility = 'visible';
+    }
+  });
+
   const observer = createLazyImageObserver((img) => {
     img.classList.add('loaded');
   }, rootMargin);
@@ -169,6 +179,11 @@ export function initLazyImages(
 
   // Check initial viewport and observe remaining images
   lazyImages.forEach(img => {
+    // Skip ilya-photo and real-photo - they're already handled above
+    if (img.classList.contains('ilya-photo') || img.classList.contains('real-photo')) {
+      return;
+    }
+    
     const rect = img.getBoundingClientRect();
     const isInViewport = (
       rect.top >= 0 &&
