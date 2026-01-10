@@ -372,8 +372,9 @@ import '../styles/animations-extended.css';
               src="/images/ilya-photo.png"
               alt="Ilya Che"
               class="ilya-photo lazy-image"
-              loading="lazy"
+              loading="eager"
               decoding="async"
+              fetchpriority="high"
               width="600"
               height="800"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 600px"
@@ -1591,8 +1592,11 @@ import '../styles/animations-extended.css';
               src="/images/ilya-real.jpg"
               alt="Реальное фото Ильи"
               class="real-photo lazy-image"
-              loading="lazy"
+              loading="eager"
               decoding="async"
+              fetchpriority="high"
+              width="600"
+              height="800"
             />
             <div class="shimmer-overlay"></div>
           </div>

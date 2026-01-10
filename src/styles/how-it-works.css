@@ -1386,7 +1386,7 @@ order: 2;
 width: 100%;
 height: auto;
 display: block !important;
-/* IMAGE FIX: Ensure image is always visible */
+/* IMAGE FIX: Ensure image is always visible - override ALL lazy loading styles */
 opacity: 1 !important;
 visibility: visible !important;
 border-radius: 24px;
@@ -1398,6 +1398,9 @@ inset 0 1px 0 rgba(255, 255, 255, 0.15);
 transition: all 0.4s ease;
 /* IMAGE FIX: Override any lazy loading styles */
 background-color: transparent !important;
+/* CRITICAL: Force image to be visible even if lazy loading fails */
+transform: none !important;
+filter: none !important;
 }
 
 .ilya-photo:hover {
@@ -4771,14 +4774,16 @@ border-radius: var(--radius-2xl);
 border: 2px solid rgba(96, 165, 250, 0.3);
 box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
 transition: transform 0.3s ease;
-/* IMAGE FIX: Ensure image is always visible */
+/* IMAGE FIX: Ensure image is always visible - override ALL lazy loading styles */
 opacity: 1 !important;
 visibility: visible !important;
 display: block !important;
+background-color: transparent !important;
 /* SPACING FIX: Reduce bottom margin to minimize empty space */
 margin-bottom: 1rem;
-/* IMAGE FIX: Override any lazy loading styles */
-background-color: transparent !important;
+/* CRITICAL: Force image to be visible even if lazy loading fails */
+transform: none !important;
+filter: none !important;
 }
 
 .real-photo:hover {
@@ -4897,6 +4902,21 @@ opacity: 0;
 
 .lazy-image.loaded {
 opacity: 1;
+}
+
+/* IMAGE FIX: Ensure ilya-photo and real-photo are always visible even if they have loading class */
+.ilya-photo.lazy-image.loading,
+.real-photo.lazy-image.loading {
+opacity: 1 !important;
+visibility: visible !important;
+}
+
+/* IMAGE FIX: Force shimmer overlay to be hidden for ilya-photo and real-photo */
+.ilya-photo + .shimmer-overlay,
+.real-photo + .shimmer-overlay {
+opacity: 0 !important;
+display: none !important;
+visibility: hidden !important;
 }
 
 /* Optimizations */

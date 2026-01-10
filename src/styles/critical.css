@@ -233,11 +233,17 @@ img.loaded {
   opacity: 1;
 }
 
-/* IMAGE FIX: Ensure ilya-photo and real-photo are always visible */
+/* IMAGE FIX: Ensure ilya-photo and real-photo are always visible - CRITICAL */
 img.ilya-photo,
 img.real-photo {
   opacity: 1 !important;
   visibility: visible !important;
+  display: block !important;
+  background-color: transparent !important;
+  transform: none !important;
+  filter: none !important;
+  /* Force image to be visible even before lazy loading completes */
+  content-visibility: visible !important;
 }
 
 /* Images inside containers fill the space - exclude slider images */
