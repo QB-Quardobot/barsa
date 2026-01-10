@@ -3489,6 +3489,10 @@ padding: 2rem 0 5rem;
 overflow: visible;
 position: relative;
 min-height: 600px;
+/* CRITICAL FIX: Ensure swiper is always visible */
+display: block !important;
+visibility: visible !important;
+opacity: 1 !important;
 }
 
 .testimonials-swiper .swiper-wrapper {
@@ -3667,6 +3671,9 @@ transform: translateZ(0);
 /* MOBILE FIX: Prevent layout shifts */
 backface-visibility: hidden;
 -webkit-backface-visibility: hidden;
+/* CRITICAL FIX: Ensure container is always visible and properly rendered */
+visibility: visible !important;
+opacity: 1 !important;
 }
 
 .slider-image-container:active {
@@ -3682,6 +3689,104 @@ max-height: 500px;
 /* MOBILE FIX: Ensure fixed aspect ratio to prevent jerky behavior */
 aspect-ratio: 4 / 5;
 }
+}
+
+/* Slider Video Styles */
+.slider-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  background: #000;
+  border-radius: var(--radius-lg);
+  /* GPU acceleration */
+  transform: translateZ(0);
+  will-change: opacity;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  /* CRITICAL FIX: Prevent layout shift - reserve space */
+  aspect-ratio: 4 / 5;
+  min-width: 100%;
+  min-height: 100%;
+  /* CRITICAL FIX: Ensure video is always visible */
+  visibility: visible !important;
+  position: relative;
+  z-index: 1;
+}
+
+.slider-video[data-loaded="true"] {
+  opacity: 1;
+}
+
+/* CRITICAL FIX: Ensure video container doesn't collapse */
+.slider-item.video-item .slider-image-container {
+  min-height: 500px;
+  aspect-ratio: 4 / 5;
+  position: relative;
+  overflow: hidden;
+}
+
+.slider-item.video-item .shimmer-wrapper {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  aspect-ratio: 4 / 5;
+  position: relative;
+}
+
+/* Video item specific styles */
+.slider-item.video-item .slider-image-container {
+  cursor: pointer;
+}
+
+.slider-item.video-item .slider-image-container:hover {
+  border-color: rgba(96, 165, 250, 0.4);
+}
+
+/* Video controls styling */
+.slider-video::-webkit-media-controls-panel {
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+}
+
+.slider-video::-webkit-media-controls-play-button {
+  background-color: rgba(96, 165, 250, 0.95);
+  border-radius: 50%;
+  box-shadow: 0 4px 20px rgba(96, 165, 250, 0.5);
+}
+
+/* Hide shimmer overlay when video is loaded */
+.slider-video[data-loaded="true"] + .shimmer-overlay,
+.shimmer-wrapper:has(.slider-video[data-loaded="true"]) .shimmer-overlay {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* CRITICAL FIX: Ensure video slides are properly rendered */
+.testimonials-swiper .swiper-slide.video-item,
+.testimonials-swiper .swiper-slide:has(.video-item) {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-height: 500px;
+}
+
+/* CRITICAL FIX: Prevent video from causing layout shifts */
+.slider-video:not([data-loaded]) {
+  background: #000;
+  display: block;
+  visibility: visible;
+  opacity: 1;
+}
+
+/* CRITICAL FIX: Ensure poster image is visible before video loads */
+.slider-video[poster] {
+  background-image: attr(poster);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .slider-photo {
@@ -4086,6 +4191,10 @@ display: none !important;
   position: relative;
   margin-bottom: 3rem;
   padding-bottom: 0.5rem;
+  /* CRITICAL FIX: Ensure wrapper is always visible */
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* Optimize Swiper containers for performance */

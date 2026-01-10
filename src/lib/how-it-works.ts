@@ -1189,6 +1189,60 @@ function createTestimonialsSwiper(swiperContainer: HTMLElement): void {
       }
     }, 150);
   }, { passive: true });
+  
+  // CRITICAL FIX: Pause all videos except active slide on slide change
+  // This prevents multiple videos playing and improves performance
+  if (swiper && typeof swiper.on === 'function') {
+    swiper.on('slideChangeTransitionEnd', function() {
+      try {
+        // Pause all videos in testimonials swiper
+        const allVideos = swiperContainer.querySelectorAll('video') as NodeListOf<HTMLVideoElement>;
+        const activeSlide = swiperContainer.querySelector('.swiper-slide-active');
+        
+        allVideos.forEach(video => {
+          const videoSlide = video.closest('.swiper-slide');
+          // Pause video if it's not in the active slide
+          if (videoSlide && videoSlide !== activeSlide) {
+            if (!video.paused) {
+              video.pause();
+              video.currentTime = 0; // Reset to start for better UX
+            }
+          }
+        });
+        
+        // CRITICAL FIX: Ensure swiper remains visible after slide change
+        requestAnimationFrame(() => {
+          if (swiperContainer) {
+            swiperContainer.style.display = 'block';
+            swiperContainer.style.visibility = 'visible';
+            swiperContainer.style.opacity = '1';
+          }
+          const wrapper = swiperContainer.querySelector('.swiper-wrapper') as HTMLElement;
+          if (wrapper) {
+            wrapper.style.display = 'flex';
+            wrapper.style.visibility = 'visible';
+            wrapper.style.opacity = '1';
+          }
+        });
+      } catch (e) {
+        // Graceful degradation
+      }
+    });
+    
+    // Also pause videos on slide change start (before transition)
+    swiper.on('slideChange', function() {
+      try {
+        const allVideos = swiperContainer.querySelectorAll('video') as NodeListOf<HTMLVideoElement>;
+        allVideos.forEach(video => {
+          if (!video.paused) {
+            video.pause();
+          }
+        });
+      } catch (e) {
+        // Graceful degradation
+      }
+    });
+  }
 }
 
 
@@ -1439,6 +1493,14 @@ export function initPhotoModal(): void {
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
       isModalOpen = true;
+      
+      // CRITICAL FIX: Ensure testimonials swiper remains visible when modal opens
+      const testimonialsSwiper = document.querySelector('.testimonials-swiper') as HTMLElement;
+      if (testimonialsSwiper) {
+        testimonialsSwiper.style.display = 'block';
+        testimonialsSwiper.style.visibility = 'visible';
+        testimonialsSwiper.style.opacity = '1';
+      }
     } catch (e) {
       // Graceful degradation: silently fail
     }
@@ -1492,8 +1554,25 @@ export function initPhotoModal(): void {
   document.addEventListener('click', (e) => {
     const target = e.target as HTMLElement;
     
+    // CRITICAL FIX: Ignore clicks on video elements and their controls
+    if (target.tagName === 'VIDEO' || 
+        target.closest('video') || 
+        target.classList.contains('slider-video') ||
+        target.closest('.slider-video') ||
+        target.closest('video::-webkit-media-controls') ||
+        target.closest('.video-item')) {
+      // Allow video controls to work normally - don't open modal
+      return;
+    }
+    
     const sliderContainer = target.closest('.slider-image-container');
     if (sliderContainer) {
+      // CRITICAL FIX: Don't open modal if clicking on video inside container
+      const video = sliderContainer.querySelector('.slider-video, video');
+      if (video && (target === video || target.closest('video'))) {
+        return; // Let video controls work
+      }
+      
       const img = sliderContainer.querySelector('.slider-photo') as HTMLImageElement;
       if (img?.src && !isModalOpen) {
         e.preventDefault();

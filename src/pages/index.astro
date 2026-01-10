@@ -217,13 +217,13 @@ const DEBUG_MODE = false;
                   class="solution-video"
                   controls
                   preload="none"
-                  poster="/video1-poster.webp"
+                  poster="/videos/IMG_7008-poster.webp"
                   playsinline
                   muted
                   loop
-                  data-src="/video1.mp4"
+                  data-src="/videos/IMG_7008-optimized.mp4"
                 >
-                  <source data-src="/video1.mp4" type="video/mp4">
+                  <source data-src="/videos/IMG_7008-optimized.mp4" type="video/mp4">
                   Ваш браузер не поддерживает воспроизведение видео.
                 </video>
               </div>
@@ -232,13 +232,43 @@ const DEBUG_MODE = false;
                   class="solution-video"
                   controls
                   preload="none"
-                  poster="/video2-poster.webp"
+                  poster="/videos/IMG_6460-poster.webp"
                   playsinline
                   muted
                   loop
-                  data-src="/video2.mp4"
+                  data-src="/videos/IMG_6460-optimized.mp4"
                 >
-                  <source data-src="/video2.mp4" type="video/mp4">
+                  <source data-src="/videos/IMG_6460-optimized.mp4" type="video/mp4">
+                  Ваш браузер не поддерживает воспроизведение видео.
+                </video>
+              </div>
+              <div class="video-wrapper" data-video="3">
+                <video 
+                  class="solution-video"
+                  controls
+                  preload="none"
+                  poster="/videos/video1-poster.webp"
+                  playsinline
+                  muted
+                  loop
+                  data-src="/videos/video1-optimized.mp4"
+                >
+                  <source data-src="/videos/video1-optimized.mp4" type="video/mp4">
+                  Ваш браузер не поддерживает воспроизведение видео.
+                </video>
+              </div>
+              <div class="video-wrapper" data-video="4">
+                <video 
+                  class="solution-video"
+                  controls
+                  preload="none"
+                  poster="/videos/video2-poster.webp"
+                  playsinline
+                  muted
+                  loop
+                  data-src="/videos/video2-optimized.mp4"
+                >
+                  <source data-src="/videos/video2-optimized.mp4" type="video/mp4">
                   Ваш браузер не поддерживает воспроизведение видео.
                 </video>
               </div>
@@ -703,6 +733,49 @@ const DEBUG_MODE = false;
                           decoding="async"
                           width="500"
                           height="625"
+                          sizes="(max-width: 768px) 90vw, 500px"
+                        />
+                        <div class="shimmer-overlay"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Model 6 -->
+                <div class="swiper-slide">
+                  <div class="student-model-card">
+                    <div class="student-model-image-wrapper">
+                      <div class="shimmer-wrapper">
+                        <img 
+                          src="/images/student-models/IMG_1962.JPG"
+                          alt="Модель ученика 6"
+                          class="student-model-photo lazy-image"
+                          loading="lazy"
+                          decoding="async"
+                          width="500"
+                          height="625"
+                          sizes="(max-width: 768px) 90vw, 500px"
+                        />
+                        <div class="shimmer-overlay"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Model 7 -->
+                <div class="swiper-slide">
+                  <div class="student-model-card">
+                    <div class="student-model-image-wrapper">
+                      <div class="shimmer-wrapper">
+                        <img 
+                          src="/images/student-models/IMG_1963.JPG"
+                          alt="Модель ученика 7"
+                          class="student-model-photo lazy-image"
+                          loading="lazy"
+                          decoding="async"
+                          width="500"
+                          height="625"
+                          sizes="(max-width: 768px) 90vw, 500px"
                         />
                         <div class="shimmer-overlay"></div>
                       </div>
@@ -2606,7 +2679,9 @@ const DEBUG_MODE = false;
     transform: translateZ(0);
     will-change: transform;
     overflow: hidden;
+    border-radius: var(--radius-lg);
   }
+  
   
   /* Subtle gradient overlay on video wrapper */
   .video-wrapper::after {
@@ -2643,6 +2718,7 @@ const DEBUG_MODE = false;
     min-width: 100%;
     min-height: 100%;
   }
+  
   
   .solution-video[data-loaded="true"] {
     opacity: 1;
