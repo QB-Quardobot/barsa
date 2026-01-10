@@ -1398,9 +1398,11 @@ inset 0 1px 0 rgba(255, 255, 255, 0.15);
 transition: all 0.4s ease;
 /* IMAGE FIX: Override any lazy loading styles */
 background-color: transparent !important;
-/* CRITICAL: Force image to be visible even if lazy loading fails */
+/* CRITICAL: Force image to be visible even if lazy loading fails - especially on mobile */
 transform: none !important;
 filter: none !important;
+z-index: 2 !important;
+position: relative !important;
 }
 
 .ilya-photo:hover {
@@ -4774,16 +4776,18 @@ border-radius: var(--radius-2xl);
 border: 2px solid rgba(96, 165, 250, 0.3);
 box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
 transition: transform 0.3s ease;
-/* IMAGE FIX: Ensure image is always visible - override ALL lazy loading styles */
+/* IMAGE FIX: Ensure image is always visible - override ALL lazy loading styles - CRITICAL for mobile */
 opacity: 1 !important;
 visibility: visible !important;
 display: block !important;
 background-color: transparent !important;
 /* SPACING FIX: Reduce bottom margin to minimize empty space */
 margin-bottom: 1rem;
-/* CRITICAL: Force image to be visible even if lazy loading fails */
+/* CRITICAL: Force image to be visible even if lazy loading fails - especially on mobile */
 transform: none !important;
 filter: none !important;
+z-index: 2 !important;
+position: relative !important;
 }
 
 .real-photo:hover {
@@ -4911,12 +4915,18 @@ opacity: 1 !important;
 visibility: visible !important;
 }
 
-/* IMAGE FIX: Force shimmer overlay to be hidden for ilya-photo and real-photo */
+/* IMAGE FIX: Force shimmer overlay to be hidden for ilya-photo and real-photo - CRITICAL for mobile */
+.ilya-photo-wrapper .shimmer-overlay,
+.ilya-real-photo .shimmer-overlay,
 .ilya-photo + .shimmer-overlay,
-.real-photo + .shimmer-overlay {
+.real-photo + .shimmer-overlay,
+.shimmer-wrapper:has(.ilya-photo) .shimmer-overlay,
+.shimmer-wrapper:has(.real-photo) .shimmer-overlay {
 opacity: 0 !important;
 display: none !important;
 visibility: hidden !important;
+pointer-events: none !important;
+z-index: -1 !important;
 }
 
 /* Optimizations */
