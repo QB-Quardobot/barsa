@@ -2154,15 +2154,8 @@ import '../styles/animations-extended.css';
         video.addEventListener('click', (e) => {
           e.stopPropagation();
           e.stopImmediatePropagation();
-          ensureSwiperVisible();
         }, { capture: true });
-        
-        video.addEventListener('play', () => ensureSwiperVisible(), { capture: true });
-        video.addEventListener('pause', () => ensureSwiperVisible(), { capture: true });
       });
-      
-      // CRITICAL FIX: Monitor swiper visibility periodically
-      setInterval(ensureSwiperVisible, 1000);
     }
     
     // Initialize when DOM is ready

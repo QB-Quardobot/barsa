@@ -488,13 +488,14 @@ function createSwiperConfig(config: SwiperConfig) {
     slidesPerView: 1,
     spaceBetween: 0,
     centeredSlides: true,
-    // MOBILE FIX: Disable cssMode for proper touch handling on mobile
-    cssMode: false,
-    // MOBILE FIX: Enable simulateTouch for proper mobile touch support
-    simulateTouch: true,
+    // MOBILE FIX: Enable cssMode for proper touch handling on mobile
+    // This allows browser to use native CSS Scroll Snap which is more stable
+    cssMode: true,
+    // MOBILE FIX: Disable simulateTouch for proper native scroll support
+    simulateTouch: false,
     allowTouchMove: true,
-    // MOBILE FIX: Use passive listeners only where safe
-    passiveListeners: false,
+    // MOBILE FIX: Use passive listeners for better performance
+    passiveListeners: true,
     touchStartPreventDefault: false,
     touchReleaseOnEdges: true,
     freeMode: false,
@@ -954,8 +955,9 @@ function setupSwiperDestroyObserver(): void {
         
         if (!swiper) return;
         
-        // If Swiper is far above viewport (more than 1000px), destroy it
-        if (!entry.isIntersecting && entry.boundingClientRect.top < -1000) {
+        // If Swiper is far above viewport (more than 2000px), destroy it to free memory
+        // Increased threshold to 2000px to prevent accidental destruction during fast scrolling
+        if (!entry.isIntersecting && entry.boundingClientRect.top < -2000) {
           try {
             // Destroy Swiper instance to free memory and remove event listeners
             if (swiper.destroy && typeof swiper.destroy === 'function') {
@@ -965,11 +967,16 @@ function setupSwiperDestroyObserver(): void {
             // Remove from instances map
             swiperInstances.delete(container);
             
-            // Remove lazy attributes to allow re-initialization if needed
-            container.removeAttribute('data-swiper-lazy');
-            container.removeAttribute('data-swiper-type');
+            // Allow re-initialization by resetting attributes
+            container.removeAttribute('data-destroy-observed');
+            container.removeAttribute('data-swiper-initialized');
             
-            // Unobserve this container
+            // Re-observe for initialization when it comes back into view
+            if ((container as any).__swiperObserver) {
+              (container as any).__swiperObserver.observe(container);
+            }
+            
+            // Unobserve from destroy observer
             if (globalDestroyObserver) {
               globalDestroyObserver.unobserve(container);
             }
@@ -1210,20 +1217,7 @@ function createTestimonialsSwiper(swiperContainer: HTMLElement): void {
           }
         });
         
-        // CRITICAL FIX: Ensure swiper remains visible after slide change
-        requestAnimationFrame(() => {
-          if (swiperContainer) {
-            swiperContainer.style.display = 'block';
-            swiperContainer.style.visibility = 'visible';
-            swiperContainer.style.opacity = '1';
-          }
-          const wrapper = swiperContainer.querySelector('.swiper-wrapper') as HTMLElement;
-          if (wrapper) {
-            wrapper.style.display = 'flex';
-            wrapper.style.visibility = 'visible';
-            wrapper.style.opacity = '1';
-          }
-        });
+        // Video management handled above
       } catch (e) {
         // Graceful degradation
       }

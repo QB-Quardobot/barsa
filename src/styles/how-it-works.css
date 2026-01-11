@@ -3548,10 +3548,10 @@ scroll-snap-stop: always;
 transform: translateZ(0);
 -webkit-transform: translateZ(0);
 /* OPTIMIZED: CSS Containment Strategy - removed paint, contain is applied on SECTIONS */
-contain: layout style;
-will-change: transform;
-
-/* Full width on mobile */
+  contain: layout style;
+  will-change: auto;
+  
+  /* Full width on mobile */
 width: 100%;
 min-width: 100%;
 padding: 0 0.5rem;
@@ -4202,8 +4202,7 @@ display: none !important;
 .student-models-swiper {
   /* GPU acceleration for smooth scrolling */
   transform: translateZ(0);
-  will-change: transform;
-  /* OPTIMIZED: CSS Containment Strategy - removed paint, contain is applied on SECTIONS */
+  /* OPTIMIZED: Removed will-change to prevent memory exhaustion on mobile */
   contain: layout style;
 }
 
@@ -4439,7 +4438,7 @@ background: rgba(255, 255, 255, 0.95);
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   contain: layout style paint;
-  will-change: transform;
+  /* OPTIMIZED: Removed will-change to prevent memory exhaustion on mobile */
   width: 100%;
   min-width: 100%;
   padding: 0 1rem;
