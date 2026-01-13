@@ -66,6 +66,24 @@ import '../styles/animations-extended.css';
             <span class="hero-feature-text">Без опыта</span>
           </div>
         </div>
+        
+        <!-- Animated Stats Section -->
+        <div class="hero-stats reveal-up">
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value" data-target="400" data-suffix="+">0</div>
+              <div class="stat-label">учеников</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" data-target="300" data-suffix="+">0</div>
+              <div class="stat-label">$ тыс. заработано</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" data-target="100" data-suffix="%">0</div>
+              <div class="stat-label">довольных</div>
+            </div>
+          </div>
+        </div>
       </div>
       
       <!-- Video Player -->
@@ -2364,5 +2382,55 @@ import '../styles/animations-extended.css';
     
     // Add event listener with capture phase (runs before other handlers)
     document.addEventListener('click', handlePricingButtonClick, true);
+  })();
+  
+  // Animated Stats Counter
+  (function() {
+    function animateCounter(element, target, suffix = '', duration = 2000) {
+      const start = 0;
+      const increment = target / (duration / 16);
+      let current = start;
+      
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+          current = target;
+          clearInterval(timer);
+        }
+        element.textContent = Math.floor(current) + suffix;
+      }, 16);
+    }
+    
+    function initStatsAnimation() {
+      const statsSection = document.querySelector('.hero-stats');
+      if (!statsSection) return;
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const statValues = entry.target.querySelectorAll('.stat-value');
+            statValues.forEach(stat => {
+              const target = parseInt(stat.getAttribute('data-target') || '0');
+              const suffix = stat.getAttribute('data-suffix') || '';
+              if (target > 0) {
+                animateCounter(stat, target, suffix);
+              }
+            });
+            observer.unobserve(entry.target);
+          }
+        });
+      }, {
+        threshold: 0.3,
+        rootMargin: '0px'
+      });
+      
+      observer.observe(statsSection);
+    }
+    
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initStatsAnimation);
+    } else {
+      initStatsAnimation();
+    }
   })();
 </script>
