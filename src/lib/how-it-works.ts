@@ -1740,6 +1740,9 @@ const TARIFFS: Record<string, TariffData> = {
   }
 };
 
+// Global reference to openOfferModal function (will be set by initOfferModal)
+let openOfferModalGlobal: ((tariffId: string, currency: 'rub' | 'eur', paymentUrl: string) => void) | null = null;
+
 export function initCurrencyModal(): void {
   const modal = document.getElementById('currencyModal') as HTMLElement;
   if (!modal) return;
@@ -1881,10 +1884,18 @@ export function initCurrencyModal(): void {
     btn.addEventListener('click', handleClick, { passive: false });
   });
   
-  // Currency button click handlers (for analytics)
-  // HAPTIC FIX: Use global triggerHaptic function
+  // Currency button click handlers - теперь открывают модальное окно оферты
   if (rubBtn) {
-    rubBtn.addEventListener('click', () => {
+    const handleRubClick = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (!currentTariff) return;
+      
+      const tariff = TARIFFS[currentTariff];
+      if (!tariff) return;
+      
+      // Haptic feedback
       if (typeof (window as any).triggerAppHaptic === 'function') {
         (window as any).triggerAppHaptic('medium');
       } else if (typeof (window as any).triggerHaptic === 'function') {
@@ -1892,11 +1903,40 @@ export function initCurrencyModal(): void {
       } else if ((window as any).Telegram?.WebApp?.HapticFeedback) {
         (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('medium');
       }
-    });
+      
+      // Сохраняем значения перед закрытием модального окна
+      const tariffId = currentTariff;
+      const paymentUrl = tariff.rub.url;
+      
+      // Закрываем модальное окно выбора валюты
+      closeModal();
+      
+      // Открываем модальное окно оферты
+      requestAnimationFrame(() => {
+        if (openOfferModalGlobal && tariffId) {
+          openOfferModalGlobal(tariffId, 'rub', paymentUrl);
+        } else {
+          // Fallback: если модальное окно оферты еще не инициализировано, используем прямой переход
+          console.warn('Offer modal not initialized, redirecting directly');
+          window.location.href = paymentUrl;
+        }
+      });
+    };
+    
+    rubBtn.addEventListener('click', handleRubClick, { passive: false });
   }
   
   if (eurBtn) {
-    createEventListener(eurBtn, 'click', () => {
+    const handleEurClick = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (!currentTariff) return;
+      
+      const tariff = TARIFFS[currentTariff];
+      if (!tariff) return;
+      
+      // Haptic feedback
       if (typeof (window as any).triggerAppHaptic === 'function') {
         (window as any).triggerAppHaptic('medium');
       } else if (typeof (window as any).triggerHaptic === 'function') {
@@ -1904,13 +1944,437 @@ export function initCurrencyModal(): void {
       } else if ((window as any).Telegram?.WebApp?.HapticFeedback) {
         (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('medium');
       }
-    });
+      
+      // Сохраняем значения перед закрытием модального окна
+      const tariffId = currentTariff;
+      const paymentUrl = tariff.eur.url;
+      
+      // Закрываем модальное окно выбора валюты
+      closeModal();
+      
+      // Открываем модальное окно оферты
+      requestAnimationFrame(() => {
+        if (openOfferModalGlobal && tariffId) {
+          openOfferModalGlobal(tariffId, 'eur', paymentUrl);
+        } else {
+          // Fallback: если модальное окно оферты еще не инициализировано, используем прямой переход
+          console.warn('Offer modal not initialized, redirecting directly');
+          window.location.href = paymentUrl;
+        }
+      });
+    };
+    
+    createEventListener(eurBtn, 'click', handleEurClick, { passive: false });
   }
   
   // Expose functions globally for Telegram WebApp BackButton
   // TYPESCRIPT: Use type-safe window extensions (defined in types.ts)
   window.closeCurrencyModal = closeModal;
   window.isCurrencyModalOpen = () => isModalOpen;
+}
+
+/**
+ * Initialize Offer Confirmation Modal
+ * Handles the offer agreement and customer data collection before payment
+ */
+export function initOfferModal(): void {
+  const modal = document.getElementById('offerModal') as HTMLElement;
+  if (!modal) return;
+  
+  const backdrop = modal.querySelector('.offer-modal-backdrop') as HTMLElement;
+  const closeBtn = modal.querySelector('.offer-modal-close') as HTMLElement;
+  const form = modal.querySelector('#offerForm') as HTMLFormElement;
+  const firstNameInput = modal.querySelector('#offerFirstName') as HTMLInputElement;
+  const lastNameInput = modal.querySelector('#offerLastName') as HTMLInputElement;
+  const emailInput = modal.querySelector('#offerEmail') as HTMLInputElement;
+  const agreementCheckbox = modal.querySelector('#offerAgreement') as HTMLInputElement;
+  const submitBtn = modal.querySelector('#offerSubmitBtn') as HTMLButtonElement;
+  const offerText = modal.querySelector('#offerText') as HTMLElement;
+  
+  let isModalOpen = false;
+  let currentTariffId: string | null = null;
+  let currentCurrency: 'rub' | 'eur' | null = null;
+  let currentPaymentUrl: string | null = null;
+  let isSubmitting = false;
+  
+  // Текст оферты (пользователь должен предоставить актуальный текст)
+  const OFFER_TEXT = `ПУБЛИЧНАЯ ОФЕРТА
+
+Настоящая публичная оферта (далее — «Оферта») является официальным предложением об оказании информационно-консультационных услуг.
+
+1. ОБЩИЕ ПОЛОЖЕНИЯ
+1.1. Настоящая Оферта определяет условия оказания информационно-консультационных услуг.
+1.2. Акцептом настоящей Оферты является совершение действий по оплате услуг.
+1.3. Исполнитель вправе в любое время изменить условия настоящей Оферты.
+
+2. ПРЕДМЕТ ОФЕРТЫ
+2.1. Исполнитель обязуется предоставить Заказчику информационно-консультационные услуги в соответствии с выбранным тарифом.
+2.2. Услуги предоставляются в электронном виде через платформу Telegram.
+
+3. СТОИМОСТЬ И ПОРЯДОК ОПЛАТЫ
+3.1. Стоимость услуг указана на сайте и может изменяться без предварительного уведомления.
+3.2. Оплата производится единовременно в полном объеме до начала оказания услуг.
+3.3. Возврат средств возможен в соответствии с законодательством РФ.
+
+4. ПРАВА И ОБЯЗАННОСТИ СТОРОН
+4.1. Заказчик обязуется предоставить достоверную информацию при регистрации.
+4.2. Исполнитель обязуется предоставить услуги в соответствии с условиями Оферты.
+
+5. ЗАКЛЮЧИТЕЛЬНЫЕ ПОЛОЖЕНИЯ
+5.1. Настоящая Оферта вступает в силу с момента акцепта Заказчиком.
+5.2. Все споры решаются путем переговоров, а при невозможности — в судебном порядке.`;
+
+  function openOfferModal(tariffId: string, currency: 'rub' | 'eur', paymentUrl: string): void {
+    if (isModalOpen || !TARIFFS[tariffId]) return;
+    
+    currentTariffId = tariffId;
+    currentCurrency = currency;
+    currentPaymentUrl = paymentUrl;
+    
+    // Сброс формы
+    if (form) {
+      form.reset();
+      clearErrors();
+      updateSubmitButton();
+    }
+    
+    // Установка текста оферты
+    if (offerText) {
+      offerText.textContent = OFFER_TEXT;
+    }
+    
+    // Показываем модальное окно
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    isModalOpen = true;
+    isSubmitting = false;
+    
+    scheduleRAF(() => {
+      modal.classList.add('is-open');
+      backdrop?.classList.add('is-active');
+    });
+    
+    // Haptic feedback
+    if (typeof (window as any).triggerAppHaptic === 'function') {
+      (window as any).triggerAppHaptic('light');
+    } else if (typeof (window as any).triggerHaptic === 'function') {
+      (window as any).triggerHaptic('light');
+    } else if ((window as any).Telegram?.WebApp?.HapticFeedback) {
+      (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('light');
+    }
+  }
+  
+  function closeOfferModal(): void {
+    if (!isModalOpen) return;
+    
+    modal.classList.remove('is-open');
+    backdrop?.classList.remove('is-active');
+    
+    setTimeout(() => {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+      isModalOpen = false;
+      currentTariffId = null;
+      currentCurrency = null;
+      currentPaymentUrl = null;
+      
+      // Сброс формы
+      if (form) {
+        form.reset();
+        clearErrors();
+        updateSubmitButton();
+      }
+    }, 200);
+    
+    // Haptic feedback
+    if ((window as any).Telegram?.WebApp?.HapticFeedback) {
+      (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('light');
+    }
+  }
+  
+  function clearErrors(): void {
+    const errorElements = modal.querySelectorAll('.form-error');
+    errorElements.forEach(el => {
+      (el as HTMLElement).textContent = '';
+    });
+    
+    const inputs = modal.querySelectorAll('.form-input, .form-checkbox');
+    inputs.forEach(input => {
+      (input as HTMLElement).setAttribute('aria-invalid', 'false');
+    });
+  }
+  
+  function showError(input: HTMLInputElement, message: string): void {
+    const fieldName = input.name;
+    const errorEl = modal.querySelector(`#${fieldName}Error`) as HTMLElement;
+    if (errorEl) {
+      errorEl.textContent = message;
+    }
+    input.setAttribute('aria-invalid', 'true');
+  }
+  
+  function validateForm(): boolean {
+    clearErrors();
+    let isValid = true;
+    
+    // Валидация имени
+    if (!firstNameInput || !firstNameInput.value.trim()) {
+      if (firstNameInput) {
+        showError(firstNameInput, 'Пожалуйста, введите имя');
+      }
+      isValid = false;
+    }
+    
+    // Валидация фамилии
+    if (!lastNameInput || !lastNameInput.value.trim()) {
+      if (lastNameInput) {
+        showError(lastNameInput, 'Пожалуйста, введите фамилию');
+      }
+      isValid = false;
+    }
+    
+    // Валидация email
+    if (!emailInput || !emailInput.value.trim()) {
+      if (emailInput) {
+        showError(emailInput, 'Пожалуйста, введите email');
+      }
+      isValid = false;
+    } else if (emailInput && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())) {
+      showError(emailInput, 'Пожалуйста, введите корректный email');
+      isValid = false;
+    }
+    
+    // Валидация чекбокса согласия
+    if (!agreementCheckbox || !agreementCheckbox.checked) {
+      if (agreementCheckbox) {
+        const errorEl = modal.querySelector('#agreementError') as HTMLElement;
+        if (errorEl) {
+          errorEl.textContent = 'Необходимо согласиться с условиями оферты';
+        }
+        agreementCheckbox.setAttribute('aria-invalid', 'true');
+      }
+      isValid = false;
+    }
+    
+    return isValid;
+  }
+  
+  function updateSubmitButton(): void {
+    if (!submitBtn) return;
+    
+    const hasFirstName = firstNameInput && firstNameInput.value.trim().length > 0;
+    const hasLastName = lastNameInput && lastNameInput.value.trim().length > 0;
+    const hasEmail = emailInput && emailInput.value.trim().length > 0;
+    const hasAgreement = agreementCheckbox && agreementCheckbox.checked;
+    
+    submitBtn.disabled = !(hasFirstName && hasLastName && hasEmail && hasAgreement) || isSubmitting;
+  }
+  
+  async function saveUserData(data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    tariffId: string;
+    tariffName: string;
+    currency: string;
+    paymentUrl: string;
+    timestamp: string;
+  }): Promise<void> {
+    // Получаем API endpoint из переменных окружения или используем значение по умолчанию
+    const API_ENDPOINT = (import.meta.env.PUBLIC_API_ENDPOINT as string) || 'http://localhost:8000/api/offer-confirmation';
+    
+    // Определяем payment_type на основе валюты и тарифа
+    // Для основного процесса оплаты используем формат: tariff_{tariffId}_{currency}
+    const paymentType = `tariff_${data.tariffId}_${data.currency}`;
+    
+    // Сохранение в localStorage (fallback)
+    try {
+      const savedData = JSON.parse(localStorage.getItem('offerConfirmations') || '[]');
+      savedData.push(data);
+      localStorage.setItem('offerConfirmations', JSON.stringify(savedData));
+    } catch (e) {
+      console.error('Failed to save to localStorage:', e);
+    }
+    
+    // Отправка на API сервер (с интеграциями: Google Sheets, Email, Webhook)
+    try {
+      const response = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          first_name: data.firstName,
+          last_name: data.lastName,
+          email: data.email,
+          payment_type: paymentType,
+          additional_data: {
+            tariff_id: data.tariffId,
+            tariff_name: data.tariffName,
+            currency: data.currency,
+            payment_url: data.paymentUrl,
+            timestamp: data.timestamp
+          }
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Ошибка сервера' }));
+        console.warn('Failed to save to API:', errorData.detail || 'Unknown error');
+        // Не прерываем процесс, просто логируем ошибку
+      } else {
+        const result = await response.json();
+        console.log('Data saved to API successfully:', result);
+      }
+    } catch (error) {
+      console.error('Error sending data to API:', error);
+      // Не прерываем процесс, просто логируем ошибку
+    }
+  }
+  
+  async function handleSubmit(e: Event): Promise<void> {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isSubmitting) return;
+    
+    if (!validateForm()) {
+      // Haptic feedback для ошибки
+      if ((window as any).Telegram?.WebApp?.HapticFeedback) {
+        (window as any).Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+      }
+      return;
+    }
+    
+    if (!currentTariffId || !currentCurrency || !currentPaymentUrl) {
+      console.error('Missing payment data');
+      return;
+    }
+    
+    isSubmitting = true;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Обработка...';
+    }
+    
+    // Haptic feedback
+    if (typeof (window as any).triggerAppHaptic === 'function') {
+      (window as any).triggerAppHaptic('medium');
+    } else if (typeof (window as any).triggerHaptic === 'function') {
+      (window as any).triggerHaptic('medium');
+    } else if ((window as any).Telegram?.WebApp?.HapticFeedback) {
+      (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+    }
+    
+    try {
+      const tariff = TARIFFS[currentTariffId];
+      
+      // Сохранение данных
+      await saveUserData({
+        firstName: firstNameInput?.value.trim() || '',
+        lastName: lastNameInput?.value.trim() || '',
+        email: emailInput?.value.trim() || '',
+        tariffId: currentTariffId,
+        tariffName: tariff?.name || '',
+        currency: currentCurrency,
+        paymentUrl: currentPaymentUrl,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Редирект на Tribute
+      window.location.href = currentPaymentUrl;
+    } catch (error) {
+      console.error('Error saving user data:', error);
+      // Даже при ошибке сохранения разрешаем переход к оплате
+      window.location.href = currentPaymentUrl;
+    }
+  }
+  
+  // Event listeners
+  if (closeBtn) {
+    const handleClose = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeOfferModal();
+    };
+    
+    closeBtn.addEventListener('click', handleClose, { passive: false });
+    closeBtn.addEventListener('touchend', handleClose, { passive: false });
+  }
+  
+  if (backdrop) {
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) {
+        e.preventDefault();
+        closeOfferModal();
+      }
+    }, { passive: false });
+  }
+  
+  // Close on Escape key
+  createEventListener(document, 'keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && isModalOpen) {
+      e.preventDefault();
+      closeOfferModal();
+    }
+  }, { passive: false });
+  
+  // Form validation on input
+  if (firstNameInput) {
+    createEventListener(firstNameInput, 'input', () => {
+      if (firstNameInput.value.trim()) {
+        const errorEl = modal.querySelector('#firstNameError') as HTMLElement;
+        if (errorEl) errorEl.textContent = '';
+        firstNameInput.setAttribute('aria-invalid', 'false');
+      }
+      updateSubmitButton();
+    });
+  }
+  
+  if (lastNameInput) {
+    createEventListener(lastNameInput, 'input', () => {
+      if (lastNameInput.value.trim()) {
+        const errorEl = modal.querySelector('#lastNameError') as HTMLElement;
+        if (errorEl) errorEl.textContent = '';
+        lastNameInput.setAttribute('aria-invalid', 'false');
+      }
+      updateSubmitButton();
+    });
+  }
+  
+  if (emailInput) {
+    createEventListener(emailInput, 'input', () => {
+      if (emailInput.value.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())) {
+        const errorEl = modal.querySelector('#emailError') as HTMLElement;
+        if (errorEl) errorEl.textContent = '';
+        emailInput.setAttribute('aria-invalid', 'false');
+      }
+      updateSubmitButton();
+    });
+  }
+  
+  if (agreementCheckbox) {
+    createEventListener(agreementCheckbox, 'change', () => {
+      if (agreementCheckbox.checked) {
+        const errorEl = modal.querySelector('#agreementError') as HTMLElement;
+        if (errorEl) errorEl.textContent = '';
+        agreementCheckbox.setAttribute('aria-invalid', 'false');
+      }
+      updateSubmitButton();
+    });
+  }
+  
+  if (form) {
+    form.addEventListener('submit', handleSubmit, { passive: false });
+  }
+  
+  // Expose functions globally
+  (window as any).openOfferModal = openOfferModal;
+  (window as any).closeOfferModal = closeOfferModal;
+  (window as any).isOfferModalOpen = () => isModalOpen;
+  
+  // Make openOfferModal available globally for initCurrencyModal
+  openOfferModalGlobal = openOfferModal;
 }
 
 
@@ -1925,6 +2389,7 @@ export function initHowItWorks(): void {
     preventOrphans();
     initLazyLoading();
     initPhotoModal();
+    initOfferModal(); // Инициализируем сначала, чтобы openOfferModalGlobal был доступен
     initCurrencyModal();
     initSmoothScroll();
     

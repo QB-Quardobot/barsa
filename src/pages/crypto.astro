@@ -1,0 +1,465 @@
+---
+// Страница оферты для криптоплатежа
+// Доступна только по прямой ссылке, не индексируется
+import Base from '../layouts/Base.astro';
+
+// Текст оферты (заменить на актуальный)
+const OFFER_TEXT = `ПУБЛИЧНАЯ ОФЕРТА
+
+Настоящая публичная оферта (далее — «Оферта») является официальным предложением об оказании информационно-консультационных услуг.
+
+1. ОБЩИЕ ПОЛОЖЕНИЯ
+1.1. Настоящая Оферта определяет условия оказания информационно-консультационных услуг.
+1.2. Акцептом настоящей Оферты является совершение действий по оплате услуг.
+1.3. Исполнитель вправе в любое время изменить условия настоящей Оферты.
+
+2. ПРЕДМЕТ ОФЕРТЫ
+2.1. Исполнитель обязуется предоставить Заказчику информационно-консультационные услуги в соответствии с выбранным тарифом.
+2.2. Услуги предоставляются в электронном виде через платформу Telegram.
+
+3. СТОИМОСТЬ И ПОРЯДОК ОПЛАТЫ
+3.1. Стоимость услуг указана на сайте и может изменяться без предварительного уведомления.
+3.2. Оплата производится единовременно в полном объеме до начала оказания услуг.
+3.3. Возврат средств возможен в соответствии с законодательством РФ.
+
+4. ПРАВА И ОБЯЗАННОСТИ СТОРОН
+4.1. Заказчик обязуется предоставить достоверную информацию при регистрации.
+4.2. Исполнитель обязуется предоставить услуги в соответствии с условиями Оферты.
+
+5. ЗАКЛЮЧИТЕЛЬНЫЕ ПОЛОЖЕНИЯ
+5.1. Настоящая Оферта вступает в силу с момента акцепта Заказчиком.
+5.2. Все споры решаются путем переговоров, а при невозможности — в судебном порядке.`;
+
+const API_ENDPOINT = import.meta.env.PUBLIC_API_ENDPOINT || 'http://localhost:8000/api/offer-confirmation';
+---
+
+<Base 
+  title="Подтверждение условий и переход к оплате"
+  description="Подтверждение условий оферты"
+>
+  <main id="main-content" class="offer-page">
+    <div class="offer-container">
+      <h1 class="offer-title">Подтверждение условий и переход к оплате</h1>
+      
+      <div class="offer-section">
+        <div class="offer-text-container">
+          <div class="offer-text">{OFFER_TEXT}</div>
+        </div>
+      </div>
+
+      <form id="offerForm" class="offer-form" novalidate>
+        <div class="form-group">
+          <label for="firstName" class="form-label">Имя <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="firstName" 
+            name="firstName" 
+            class="form-input" 
+            required 
+            autocomplete="given-name"
+            aria-required="true"
+            aria-invalid="false"
+          />
+          <span class="form-error" id="firstNameError" role="alert"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="lastName" class="form-label">Фамилия <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="lastName" 
+            name="lastName" 
+            class="form-input" 
+            required 
+            autocomplete="family-name"
+            aria-required="true"
+            aria-invalid="false"
+          />
+          <span class="form-error" id="lastNameError" role="alert"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="email" class="form-label">Email <span class="required">*</span></label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            class="form-input" 
+            required 
+            autocomplete="email"
+            aria-required="true"
+            aria-invalid="false"
+          />
+          <span class="form-error" id="emailError" role="alert"></span>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              id="agreement" 
+              name="agreement" 
+              class="form-checkbox" 
+              required
+              aria-required="true"
+              aria-invalid="false"
+            />
+            <span class="checkbox-text">Я ознакомился(лась) и согласен(на) с условиями оферты</span>
+          </label>
+          <span class="form-error" id="agreementError" role="alert"></span>
+        </div>
+
+        <button type="submit" class="offer-submit-btn" id="submitBtn" disabled>
+          Далее
+        </button>
+      </form>
+    </div>
+  </main>
+</Base>
+
+<script>
+  const form = document.getElementById('offerForm') as HTMLFormElement;
+  const firstNameInput = document.getElementById('firstName') as HTMLInputElement;
+  const lastNameInput = document.getElementById('lastName') as HTMLInputElement;
+  const emailInput = document.getElementById('email') as HTMLInputElement;
+  const agreementCheckbox = document.getElementById('agreement') as HTMLInputElement;
+  const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+  
+  const API_ENDPOINT = import.meta.env.PUBLIC_API_ENDPOINT || 'http://localhost:8000/api/offer-confirmation';
+  const PAYMENT_TYPE = 'crypto';
+  
+  let isSubmitting = false;
+  
+  function clearErrors(): void {
+    const errorElements = document.querySelectorAll('.form-error');
+    errorElements.forEach(el => {
+      (el as HTMLElement).textContent = '';
+    });
+    
+    const inputs = document.querySelectorAll('.form-input, .form-checkbox');
+    inputs.forEach(input => {
+      (input as HTMLElement).setAttribute('aria-invalid', 'false');
+    });
+  }
+  
+  function showError(input: HTMLInputElement, message: string): void {
+    const fieldName = input.name;
+    const errorEl = document.getElementById(`${fieldName}Error`) as HTMLElement;
+    if (errorEl) {
+      errorEl.textContent = message;
+    }
+    input.setAttribute('aria-invalid', 'true');
+  }
+  
+  function validateForm(): boolean {
+    clearErrors();
+    let isValid = true;
+    
+    if (!firstNameInput.value.trim()) {
+      showError(firstNameInput, 'Пожалуйста, введите имя');
+      isValid = false;
+    }
+    
+    if (!lastNameInput.value.trim()) {
+      showError(lastNameInput, 'Пожалуйста, введите фамилию');
+      isValid = false;
+    }
+    
+    if (!emailInput.value.trim()) {
+      showError(emailInput, 'Пожалуйста, введите email');
+      isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())) {
+      showError(emailInput, 'Пожалуйста, введите корректный email');
+      isValid = false;
+    }
+    
+    if (!agreementCheckbox.checked) {
+      const errorEl = document.getElementById('agreementError') as HTMLElement;
+      if (errorEl) {
+        errorEl.textContent = 'Необходимо согласиться с условиями оферты';
+      }
+      agreementCheckbox.setAttribute('aria-invalid', 'true');
+      isValid = false;
+    }
+    
+    return isValid;
+  }
+  
+  function updateSubmitButton(): void {
+    const hasFirstName = firstNameInput.value.trim().length > 0;
+    const hasLastName = lastNameInput.value.trim().length > 0;
+    const hasEmail = emailInput.value.trim().length > 0;
+    const hasAgreement = agreementCheckbox.checked;
+    
+    submitBtn.disabled = !(hasFirstName && hasLastName && hasEmail && hasAgreement) || isSubmitting;
+  }
+  
+  async function handleSubmit(e: Event): Promise<void> {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isSubmitting) return;
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    isSubmitting = true;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Обработка...';
+    
+    try {
+      // Отправляем данные на API
+      const response = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          first_name: firstNameInput.value.trim(),
+          last_name: lastNameInput.value.trim(),
+          email: emailInput.value.trim(),
+          payment_type: PAYMENT_TYPE,
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Ошибка сервера' }));
+        throw new Error(errorData.detail || 'Ошибка при сохранении данных');
+      }
+      
+      const data = await response.json();
+      
+      // Переходим на страницу оплаты с параметрами
+      const params = new URLSearchParams({
+        type: PAYMENT_TYPE,
+        email: emailInput.value.trim(),
+      });
+      window.location.href = `/payment?${params.toString()}`;
+      
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Произошла ошибка при отправке данных. Пожалуйста, попробуйте еще раз.');
+      isSubmitting = false;
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Далее';
+    }
+  }
+  
+  // Event listeners
+  firstNameInput?.addEventListener('input', () => {
+    if (firstNameInput.value.trim()) {
+      const errorEl = document.getElementById('firstNameError') as HTMLElement;
+      if (errorEl) errorEl.textContent = '';
+      firstNameInput.setAttribute('aria-invalid', 'false');
+    }
+    updateSubmitButton();
+  });
+  
+  lastNameInput?.addEventListener('input', () => {
+    if (lastNameInput.value.trim()) {
+      const errorEl = document.getElementById('lastNameError') as HTMLElement;
+      if (errorEl) errorEl.textContent = '';
+      lastNameInput.setAttribute('aria-invalid', 'false');
+    }
+    updateSubmitButton();
+  });
+  
+  emailInput?.addEventListener('input', () => {
+    if (emailInput.value.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())) {
+      const errorEl = document.getElementById('emailError') as HTMLElement;
+      if (errorEl) errorEl.textContent = '';
+      emailInput.setAttribute('aria-invalid', 'false');
+    }
+    updateSubmitButton();
+  });
+  
+  agreementCheckbox?.addEventListener('change', () => {
+    if (agreementCheckbox.checked) {
+      const errorEl = document.getElementById('agreementError') as HTMLElement;
+      if (errorEl) errorEl.textContent = '';
+      agreementCheckbox.setAttribute('aria-invalid', 'false');
+    }
+    updateSubmitButton();
+  });
+  
+  form?.addEventListener('submit', handleSubmit);
+</script>
+
+<style>
+  .offer-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+    padding: 2rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .offer-container {
+    max-width: 600px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+  
+  .offer-title {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95);
+    text-align: center;
+    margin: 0 0 2rem;
+  }
+  
+  .offer-section {
+    margin-bottom: 2rem;
+  }
+  
+  .offer-text-container {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+  }
+  
+  .offer-text {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  
+  .offer-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-label {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 0.5rem;
+  }
+  
+  .required {
+    color: rgba(239, 68, 68, 0.9);
+  }
+  
+  .form-input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.95);
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  
+  .form-input:focus {
+    outline: none;
+    border-color: rgba(96, 165, 250, 0.5);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+  }
+  
+  .form-input:invalid:not(:placeholder-shown) {
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+  
+  .form-error {
+    display: block;
+    font-size: 0.85rem;
+    color: rgba(239, 68, 68, 0.9);
+    margin-top: 0.375rem;
+    min-height: 1.25rem;
+  }
+  
+  .checkbox-group {
+    margin-bottom: 0.5rem;
+  }
+  
+  .checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.9);
+  }
+  
+  .form-checkbox {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    margin-top: 0.125rem;
+    cursor: pointer;
+    accent-color: rgba(96, 165, 250, 1);
+  }
+  
+  .checkbox-text {
+    flex: 1;
+  }
+  
+  .offer-submit-btn {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, rgba(96, 165, 250, 1) 0%, rgba(139, 92, 246, 1) 100%);
+    border: none;
+    border-radius: 12px;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+  }
+  
+  .offer-submit-btn:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(96, 165, 250, 0.3);
+  }
+  
+  .offer-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  @media (max-width: 640px) {
+    .offer-container {
+      padding: 1.5rem;
+      border-radius: 20px;
+    }
+    
+    .offer-title {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .offer-text-container {
+      max-height: 200px;
+      padding: 1rem;
+    }
+    
+    .offer-text {
+      font-size: 0.85rem;
+    }
+  }
+</style>

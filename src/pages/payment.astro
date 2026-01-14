@@ -1,0 +1,146 @@
+---
+// Страница оплаты
+// Доступна только по прямой ссылке, не индексируется
+import Base from '../layouts/Base.astro';
+
+// Платёжные ссылки (заменить на актуальные)
+const PAYMENT_LINKS = {
+  installment: import.meta.env.PUBLIC_INSTALLMENT_PAYMENT_URL || 'https://example.com/installment',
+  crypto: import.meta.env.PUBLIC_CRYPTO_PAYMENT_URL || 'https://example.com/crypto',
+};
+
+// Получаем тип оплаты из URL параметров
+const url = Astro.url;
+const paymentType = url.searchParams.get('type') || 'installment';
+const email = url.searchParams.get('email') || '';
+
+// Определяем платёжную ссылку
+const paymentUrl = PAYMENT_LINKS[paymentType as keyof typeof PAYMENT_LINKS] || PAYMENT_LINKS.installment;
+---
+
+<Base 
+  title="Оплата"
+  description="Переход к оплате"
+>
+  <main id="main-content" class="payment-page">
+    <div class="payment-container">
+      <h1 class="payment-title">Оплата</h1>
+      
+      <p class="payment-text">
+        Нажмите кнопку ниже для перехода к оплате
+      </p>
+      
+      <a 
+        href={paymentUrl} 
+        class="payment-btn" 
+        id="paymentBtn"
+        rel="noopener noreferrer"
+      >
+        Оплатить
+      </a>
+    </div>
+  </main>
+</Base>
+
+<script>
+  const paymentBtn = document.getElementById('paymentBtn') as HTMLAnchorElement;
+  
+  // Логируем переход на оплату
+  if (paymentBtn) {
+    paymentBtn.addEventListener('click', () => {
+      const paymentType = new URLSearchParams(window.location.search).get('type') || 'unknown';
+      const email = new URLSearchParams(window.location.search).get('email') || 'unknown';
+      
+      // Можно отправить аналитику или логирование
+      console.log('Payment redirect:', {
+        type: paymentType,
+        email: email,
+        timestamp: new Date().toISOString()
+      });
+    });
+  }
+</script>
+
+<style>
+  .payment-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+    padding: 2rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .payment-container {
+    max-width: 500px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 3rem 2rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    text-align: center;
+  }
+  
+  .payment-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95);
+    margin: 0 0 1.5rem;
+  }
+  
+  .payment-text {
+    font-size: 1.125rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0 0 2.5rem;
+    line-height: 1.6;
+  }
+  
+  .payment-btn {
+    display: inline-block;
+    width: 100%;
+    padding: 1.25rem 2rem;
+    background: linear-gradient(135deg, rgba(96, 165, 250, 1) 0%, rgba(139, 92, 246, 1) 100%);
+    border: none;
+    border-radius: 12px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  
+  .payment-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(96, 165, 250, 0.3);
+  }
+  
+  .payment-btn:active {
+    transform: translateY(0);
+  }
+  
+  @media (max-width: 640px) {
+    .payment-container {
+      padding: 2rem 1.5rem;
+      border-radius: 20px;
+    }
+    
+    .payment-title {
+      font-size: 1.75rem;
+      margin-bottom: 1.25rem;
+    }
+    
+    .payment-text {
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .payment-btn {
+      padding: 1rem 1.5rem;
+      font-size: 1.125rem;
+    }
+  }
+</style>

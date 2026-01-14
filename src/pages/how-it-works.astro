@@ -66,24 +66,6 @@ import '../styles/animations-extended.css';
             <span class="hero-feature-text">Без опыта</span>
           </div>
         </div>
-        
-        <!-- Animated Stats Section -->
-        <div class="hero-stats reveal-up">
-          <div class="stats-grid">
-            <div class="stat-item">
-              <div class="stat-value" data-target="400" data-suffix="+">0</div>
-              <div class="stat-label">учеников</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value" data-target="300" data-suffix="+">0</div>
-              <div class="stat-label">$ тыс. заработано</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value" data-target="100" data-suffix="%">0</div>
-              <div class="stat-label">довольных</div>
-            </div>
-          </div>
-        </div>
       </div>
       
       <!-- Video Player -->
@@ -724,7 +706,6 @@ import '../styles/animations-extended.css';
             <p class="tariff-includes-title">Внутри всё, что входит в базу, и добавлены расширенные блоки:</p>
             <ul class="tariff-list">
               <li>• <strong>AI 18+ Эстетика</strong> — как создавать фото и видео-контент со&nbsp;вкусом.</li>
-              <li>• <strong>Мультитаскинг и безопасность</strong> — как вести <strong>10,20,30+ аккаунтов</strong> соц.сетей с помощью моей платформы.</li>
               <li>• <strong>Совмещение предметов и локаций</strong> — создаешь любые сцены из&nbsp;чего&nbsp;угодно.</li>
               <li>• <strong>AI-Блогер</strong> — оживляешь модель, чтобы она говорила и продавала как&nbsp;человек.</li>
               <li>• <strong>Воронки и продвижение</strong> — полная стратегия автоворонки и&nbsp;прогрева.</li>
@@ -2003,6 +1984,90 @@ import '../styles/animations-extended.css';
         <span class="support-icon">💬</span>
         <span>Написать в поддержку</span>
       </a>
+    </div>
+  </div>
+
+  <!-- Offer Confirmation Modal -->
+  <div id="offerModal" class="offer-modal" style="display: none;" role="dialog" aria-labelledby="offerModalTitle" aria-modal="true">
+    <div class="offer-modal-backdrop"></div>
+    <div class="offer-modal-content">
+      <button type="button" class="offer-modal-close" aria-label="Закрыть">&times;</button>
+      <h3 id="offerModalTitle" class="offer-modal-title">Подтверждение условий перед оплатой</h3>
+      
+      <div class="offer-section">
+        <div class="offer-text-container" id="offerTextContainer">
+          <div class="offer-text" id="offerText">
+            <!-- Текст оферты будет вставлен динамически -->
+          </div>
+        </div>
+      </div>
+
+      <form id="offerForm" class="offer-form" novalidate>
+        <div class="form-group">
+          <label for="offerFirstName" class="form-label">Имя <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="offerFirstName" 
+            name="firstName" 
+            class="form-input" 
+            required 
+            autocomplete="given-name"
+            aria-required="true"
+            aria-invalid="false"
+          />
+          <span class="form-error" id="firstNameError" role="alert"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="offerLastName" class="form-label">Фамилия <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="offerLastName" 
+            name="lastName" 
+            class="form-input" 
+            required 
+            autocomplete="family-name"
+            aria-required="true"
+            aria-invalid="false"
+          />
+          <span class="form-error" id="lastNameError" role="alert"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="offerEmail" class="form-label">Email <span class="required">*</span></label>
+          <input 
+            type="email" 
+            id="offerEmail" 
+            name="email" 
+            class="form-input" 
+            required 
+            autocomplete="email"
+            aria-required="true"
+            aria-invalid="false"
+          />
+          <span class="form-error" id="emailError" role="alert"></span>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              id="offerAgreement" 
+              name="agreement" 
+              class="form-checkbox" 
+              required
+              aria-required="true"
+              aria-invalid="false"
+            />
+            <span class="checkbox-text">Я ознакомился(лась) и согласен(на) с условиями оферты</span>
+          </label>
+          <span class="form-error" id="agreementError" role="alert"></span>
+        </div>
+
+        <button type="submit" class="offer-submit-btn" id="offerSubmitBtn" disabled>
+          Далее
+        </button>
+      </form>
     </div>
   </div>
 

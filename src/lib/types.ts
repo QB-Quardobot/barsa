@@ -136,6 +136,9 @@ declare global {
     isPhotoModalOpen?: () => boolean;
     closeCurrencyModal?: () => void;
     isCurrencyModalOpen?: () => boolean;
+    openOfferModal?: (tariffId: string, currency: 'rub' | 'eur', paymentUrl: string) => void;
+    closeOfferModal?: () => void;
+    isOfferModalOpen?: () => boolean;
   }
 }
 

@@ -30,6 +30,30 @@ class SendTime(Base):
     material_id = Column(Integer, nullable=False)
 
 
+class OfferConfirmation(Base):
+    """Модель для хранения подтверждений оферты и данных клиентов"""
+    __tablename__ = 'offer_confirmations'
+    
+    # id записи в базе данных
+    confirmation_id = Column(Integer, primary_key=True, autoincrement=True)
+    # Имя клиента
+    first_name = Column(String, nullable=False)
+    # Фамилия клиента
+    last_name = Column(String, nullable=False)
+    # Email клиента
+    email = Column(String, nullable=False)
+    # Тип оплаты: 'installment' (рассрочка) или 'crypto' (крипта)
+    payment_type = Column(String, nullable=False)
+    # Дата и время подтверждения
+    confirmed_at = Column(DateTime(timezone=True), nullable=False)
+    # IP адрес (опционально, для логирования)
+    ip_address = Column(String)
+    # User Agent (опционально, для логирования)
+    user_agent = Column(String)
+    # Дополнительные данные (JSON строка, если нужно)
+    additional_data = Column(String)
+
+
 # class Materials(Base):
 #     __tablename__ = 'materials'
 #

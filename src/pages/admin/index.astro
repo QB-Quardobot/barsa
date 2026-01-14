@@ -1,0 +1,190 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+
+const API_BASE = import.meta.env.PUBLIC_API_BASE || 'http://localhost:8000/api';
+---
+
+<AdminLayout title="Обзор">
+  <div class="dashboard-header">
+    <h1 class="page-title">Панель управления</h1>
+    <p class="page-subtitle">Статистика и обзор активности</p>
+  </div>
+
+  <div class="stats-grid" id="stats-grid">
+    <div class="premium-card loading-skeleton">
+      <div class="stat-label">Всего лидов</div>
+      <div class="stat-value">...</div>
+    </div>
+    <div class="premium-card loading-skeleton">
+      <div class="stat-label">Крипта</div>
+      <div class="stat-value">...</div>
+    </div>
+    <div class="premium-card loading-skeleton">
+      <div class="stat-label">Рассрочка</div>
+      <div class="stat-value">...</div>
+    </div>
+    <div class="premium-card loading-skeleton">
+      <div class="stat-label">Пользователи бота</div>
+      <div class="stat-value">...</div>
+    </div>
+  </div>
+
+  <div class="dashboard-sections">
+    <div class="premium-card">
+      <div class="card-header">
+        <h2 class="card-title">Последние подтверждения</h2>
+        <a href="/admin/leads" class="view-all">Все лиды</a>
+      </div>
+      <div class="table-container">
+        <table class="premium-table" id="leads-table">
+          <thead>
+            <tr>
+              <th>Имя</th>
+              <th>Email</th>
+              <th>Тип</th>
+              <th>Дата</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                Загрузка данных...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .dashboard-header {
+      margin-bottom: 32px;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+    }
+
+    .page-subtitle {
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .view-all {
+      color: var(--of-blue);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .view-all:hover {
+      text-decoration: underline;
+    }
+
+    .loading-skeleton {
+      opacity: 0.6;
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 0.3; }
+      100% { opacity: 0.6; }
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+  </style>
+
+  <script define:vars={{ apiBase: API_BASE }}>
+    const API_BASE = apiBase;
+
+    async function fetchStats() {
+      try {
+        const response = await fetch(`${API_BASE}/admin/stats`);
+        const data = await response.json();
+        
+        const grid = document.getElementById('stats-grid');
+        if (grid) {
+          grid.innerHTML = `
+            <div class="premium-card">
+              <div class="stat-label">Всего лидов</div>
+              <div class="stat-value">${data.total_confirmations}</div>
+            </div>
+            <div class="premium-card">
+              <div class="stat-label">Крипта</div>
+              <div class="stat-value">${data.total_crypto}</div>
+            </div>
+            <div class="premium-card">
+              <div class="stat-label">Рассрочка</div>
+              <div class="stat-value">${data.total_installment}</div>
+            </div>
+            <div class="premium-card">
+              <div class="stat-label">Пользователи бота</div>
+              <div class="stat-value">${data.total_users}</div>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    }
+
+    async function fetchLatestLeads() {
+      try {
+        const response = await fetch(`${API_BASE}/admin/confirmations?limit=5`);
+        const data = await response.json();
+        
+        const tableBody = document.querySelector('#leads-table tbody');
+        if (tableBody) {
+          if (data.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 40px;">Лидов пока нет</td></tr>`;
+            return;
+          }
+
+          tableBody.innerHTML = data.map(lead => `
+            <tr>
+              <td>${lead.first_name} ${lead.last_name}</td>
+              <td>${lead.email}</td>
+              <td>
+                <span class="badge ${lead.payment_type === 'crypto' ? 'badge-purple' : 'badge-blue'}">
+                  ${lead.payment_type === 'crypto' ? 'Крипта' : 'Рассрочка'}
+                </span>
+              </td>
+              <td>${new Date(lead.confirmed_at).toLocaleDateString('ru-RU')}</td>
+            </tr>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('Error fetching leads:', error);
+      }
+    }
+
+    // Initial load
+    fetchStats();
+    fetchLatestLeads();
+
+    // Auto-refresh every 30 seconds
+    setInterval(() => {
+      fetchStats();
+      fetchLatestLeads();
+    }, 30000);
+  </script>
+</AdminLayout>

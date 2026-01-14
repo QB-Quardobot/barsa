@@ -1,0 +1,93 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+
+const API_BASE = import.meta.env.PUBLIC_API_BASE || 'http://localhost:8000/api';
+---
+
+<AdminLayout title="Лиды">
+  <div class="dashboard-header">
+    <h1 class="page-title">Подтверждения оферты</h1>
+    <p class="page-subtitle">Все клиенты, подтвердившие покупку</p>
+  </div>
+
+  <div class="premium-card">
+    <div class="table-container">
+      <table class="premium-table" id="leads-table">
+        <thead>
+          <tr>
+            <th>Имя</th>
+            <th>Email</th>
+            <th>Тип оплаты</th>
+            <th>IP адрес</th>
+            <th>Дата подтверждения</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 40px;">
+              Загрузка данных...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <style>
+    .dashboard-header {
+      margin-bottom: 32px;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+    }
+
+    .page-subtitle {
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+  </style>
+
+  <script define:vars={{ apiBase: API_BASE }}>
+    const API_BASE = apiBase;
+
+    async function fetchLeads() {
+      try {
+        const response = await fetch(`${API_BASE}/admin/confirmations`);
+        const data = await response.json();
+        
+        const tableBody = document.querySelector('#leads-table tbody');
+        if (tableBody) {
+          if (data.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 40px;">Лидов пока нет</td></tr>`;
+            return;
+          }
+
+          tableBody.innerHTML = data.map(lead => `
+            <tr>
+              <td>${lead.first_name} ${lead.last_name}</td>
+              <td>${lead.email}</td>
+              <td>
+                <span class="badge ${lead.payment_type === 'crypto' ? 'badge-purple' : 'badge-blue'}">
+                  ${lead.payment_type === 'crypto' ? 'Крипта' : 'Рассрочка'}
+                </span>
+              </td>
+              <td style="font-family: monospace; font-size: 13px;">${lead.ip_address || '-'}</td>
+              <td>${new Date(lead.confirmed_at).toLocaleString('ru-RU')}</td>
+            </tr>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('Error fetching leads:', error);
+      }
+    }
+
+    fetchLeads();
+  </script>
+</AdminLayout>
