@@ -2030,38 +2030,44 @@ export function initOfferModal(): void {
     currentTariffId = tariffId;
     currentCurrency = currency;
     currentPaymentUrl = paymentUrl;
+    isSubmitting = false;
     
-    // Сброс формы
-    if (form) {
-      form.reset();
-      clearErrors();
-      updateSubmitButton();
-    }
-    
-    // Установка текста оферты
-    if (offerText) {
-      offerText.textContent = OFFER_TEXT;
-    }
-    
-    // Показываем модальное окно
+    // Показываем модальное окно сразу для предотвращения мерцания
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
     isModalOpen = true;
-    isSubmitting = false;
     
-    scheduleRAF(() => {
-      modal.classList.add('is-open');
-      backdrop?.classList.add('is-active');
+    // Используем двойной RAF для оптимизации: первый для DOM операций, второй для анимации
+    requestAnimationFrame(() => {
+      // Сброс формы и установка текста в первом RAF
+      if (form) {
+        form.reset();
+        clearErrors();
+        updateSubmitButton();
+      }
+      
+      // Установка текста оферты
+      if (offerText) {
+        offerText.textContent = OFFER_TEXT;
+      }
+      
+      // Анимация во втором RAF для плавности
+      requestAnimationFrame(() => {
+        modal.classList.add('is-open');
+        backdrop?.classList.add('is-active');
+      });
     });
     
-    // Haptic feedback
-    if (typeof (window as any).triggerAppHaptic === 'function') {
-      (window as any).triggerAppHaptic('light');
-    } else if (typeof (window as any).triggerHaptic === 'function') {
-      (window as any).triggerHaptic('light');
-    } else if ((window as any).Telegram?.WebApp?.HapticFeedback) {
-      (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('light');
-    }
+    // Haptic feedback (отложенный для оптимизации)
+    requestAnimationFrame(() => {
+      if (typeof (window as any).triggerAppHaptic === 'function') {
+        (window as any).triggerAppHaptic('light');
+      } else if (typeof (window as any).triggerHaptic === 'function') {
+        (window as any).triggerHaptic('light');
+      } else if ((window as any).Telegram?.WebApp?.HapticFeedback) {
+        (window as any).Telegram.WebApp.HapticFeedback.impactOccurred('light');
+      }
+    });
   }
   
   function closeOfferModal(): void {

@@ -6011,11 +6011,11 @@ transform: translateY(0) scale(1) !important;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   opacity: 0;
-  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.2s ease;
 }
 
 .offer-modal-backdrop.is-active {
@@ -6025,28 +6025,28 @@ transform: translateY(0) scale(1) !important;
 .offer-modal-content {
   position: relative;
   width: 100%;
-  max-width: 500px;
-  max-height: 90vh;
-  border-radius: 30px;
-  padding: 2rem 1.75rem 1.75rem;
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  max-width: 420px;
+  max-height: 85vh;
+  border-radius: 24px;
+  padding: 1.5rem 1.5rem 1.5rem;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 
-    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    0 20px 40px -12px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(255, 255, 255, 0.05) inset;
-  transform: translate3d(0, 20px, 0) scale(0.95);
+  transform: translateY(15px);
   opacity: 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.15s ease, opacity 0.15s ease;
   overflow-y: auto;
   overflow-x: hidden;
-  transform: translateZ(0);
+  contain: layout style paint;
   will-change: transform, opacity;
 }
 
 .offer-modal.is-open .offer-modal-content {
-  transform: translate3d(0, 0, 0) scale(1);
+  transform: translateY(0);
   opacity: 1;
 }
 
@@ -6083,11 +6083,12 @@ transform: translateY(0) scale(1) !important;
 }
 
 .offer-modal-title {
-  font-size: clamp(1.25rem, 4vw, 1.5rem);
+  font-size: clamp(1.125rem, 3.5vw, 1.375rem);
   font-weight: 700;
   color: rgba(255, 255, 255, 0.95);
   text-align: center;
-  margin: 0 0 1.5rem;
+  margin: 0 0 1.25rem;
+  padding: 0 3rem;
   position: relative;
   z-index: 2;
 }
@@ -6099,13 +6100,15 @@ transform: translateY(0) scale(1) !important;
 }
 
 .offer-text-container {
-  max-height: 200px;
+  max-height: 180px;
   overflow-y: auto;
-  padding: 1rem;
+  padding: 0.875rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  margin-bottom: 1rem;
+  border-radius: 10px;
+  margin-bottom: 0.875rem;
+  contain: layout style;
+  -webkit-overflow-scrolling: touch;
 }
 
 .offer-text {
@@ -6122,7 +6125,7 @@ transform: translateY(0) scale(1) !important;
 }
 
 .form-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 .form-label {
@@ -6174,7 +6177,7 @@ transform: translateY(0) scale(1) !important;
 }
 
 .checkbox-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .checkbox-label {
@@ -6194,7 +6197,6 @@ transform: translateY(0) scale(1) !important;
   margin-top: 0.125rem;
   cursor: pointer;
   accent-color: rgba(96, 165, 250, 1);
-  transform: translateZ(0);
 }
 
 .checkbox-text {
@@ -6234,46 +6236,47 @@ transform: translateY(0) scale(1) !important;
 /* Mobile optimizations for offer modal */
 @media (max-width: 640px) {
   .offer-modal-content {
-    max-width: 100%;
-    max-height: 95vh;
-    padding: 1.75rem 1.25rem 1.25rem;
-    border-radius: 20px;
+    max-width: calc(100% - 2rem);
+    max-height: 90vh;
+    padding: 1.25rem 1rem 1rem;
+    border-radius: 18px;
   }
   
   .offer-modal-title {
-    font-size: 1.25rem;
-    margin-bottom: 1.25rem;
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    padding: 0 2.5rem;
   }
   
   .offer-text-container {
-    max-height: 150px;
-    padding: 0.875rem;
+    max-height: 140px;
+    padding: 0.75rem;
   }
   
   .offer-text {
-    font-size: 0.85rem;
+    font-size: 0.8125rem;
   }
   
   .form-group {
-    margin-bottom: 1rem;
+    margin-bottom: 0.875rem;
   }
   
   .form-input {
-    padding: 0.75rem 0.875rem;
-    font-size: 0.95rem;
+    padding: 0.6875rem 0.75rem;
+    font-size: 0.9rem;
   }
   
   .offer-submit-btn {
-    padding: 0.875rem 1.25rem;
-    font-size: 1rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
   }
   
   .offer-modal-close {
-    width: 36px;
-    height: 36px;
-    font-size: 1.25rem;
-    top: 0.75rem;
-    right: 0.75rem;
+    width: 32px;
+    height: 32px;
+    font-size: 1.125rem;
+    top: 0.625rem;
+    right: 0.625rem;
   }
 }
 
