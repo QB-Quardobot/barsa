@@ -118,13 +118,13 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
             const payment = formatPaymentType(lead.payment_type || '');
             return `
             <tr>
-              <td>${lead.first_name} ${lead.last_name}</td>
-              <td>${lead.email}</td>
-              <td>
+              <td data-label="Имя">${lead.first_name} ${lead.last_name}</td>
+              <td data-label="Email">${lead.email}</td>
+              <td data-label="Тип оплаты">
                 <span class="badge ${payment.badge}">${payment.label}</span>
               </td>
-              <td style="font-family: monospace; font-size: 13px;">${lead.ip_address || '-'}</td>
-              <td>${new Date(lead.confirmed_at).toLocaleString('ru-RU')}</td>
+              <td data-label="IP адрес" style="font-family: monospace; font-size: 13px;">${lead.ip_address || '-'}</td>
+              <td data-label="Дата подтверждения">${new Date(lead.confirmed_at).toLocaleString('ru-RU')}</td>
             </tr>
           `;
           }).join('');

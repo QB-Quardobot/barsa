@@ -19,8 +19,9 @@ const { title } = Astro.props;
     :root {
       --of-blue: #00aff0;
       --of-blue-hover: #0091c7;
-      --bg-dark: #000000;
-      --card-bg: #121212;
+      --bg-dark: #050505;
+      --card-bg: rgba(18, 18, 20, 0.9);
+      --card-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
       --card-border: rgba(255, 255, 255, 0.1);
       --text-primary: #ffffff;
       --text-secondary: #8a96a3;
@@ -28,7 +29,10 @@ const { title } = Astro.props;
     }
 
     body {
-      background-color: var(--bg-dark);
+      background:
+        radial-gradient(900px 480px at 10% -10%, rgba(0, 175, 240, 0.12), transparent 60%),
+        radial-gradient(600px 380px at 90% 0%, rgba(0, 175, 240, 0.08), transparent 60%),
+        var(--bg-dark);
       color: var(--text-primary);
       font-family: var(--font-sans);
       margin: 0;
@@ -39,6 +43,8 @@ const { title } = Astro.props;
     .admin-container {
       display: flex;
       min-height: 100vh;
+      width: 100%;
+      position: relative;
     }
 
     /* Sidebar Styles */
@@ -49,8 +55,10 @@ const { title } = Astro.props;
       flex-direction: column;
       position: fixed;
       height: 100vh;
-      background: var(--bg-dark);
+      background: rgba(8, 8, 10, 0.95);
+      backdrop-filter: blur(12px);
       z-index: 50;
+      transition: transform 0.25s ease;
     }
 
     .sidebar-header {
@@ -58,6 +66,7 @@ const { title } = Astro.props;
       display: flex;
       align-items: center;
       gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     .logo-text {
@@ -83,26 +92,36 @@ const { title } = Astro.props;
       color: var(--text-secondary);
       text-decoration: none;
       border-radius: 12px;
+      border: 1px solid transparent;
       font-weight: 500;
       transition: all 0.2s ease;
       margin-bottom: 4px;
     }
 
     .nav-item:hover {
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.08);
       color: var(--text-primary);
     }
 
     .nav-item.active {
-      background: rgba(0, 175, 240, 0.1);
+      background: rgba(0, 175, 240, 0.12);
+      border-color: rgba(0, 175, 240, 0.3);
       color: var(--of-blue);
+      box-shadow: 0 10px 24px rgba(0, 175, 240, 0.15);
+    }
+
+    .nav-item:focus-visible {
+      outline: 2px solid rgba(0, 175, 240, 0.6);
+      outline-offset: 2px;
     }
 
     /* Main Content Styles */
     .main-content {
       flex: 1;
       margin-left: 260px;
-      padding: 32px;
+      padding: 36px 36px 48px;
+      min-width: 0;
     }
 
     @media (max-width: 1024px) {
@@ -119,11 +138,17 @@ const { title } = Astro.props;
 
     @media (max-width: 640px) {
       .sidebar {
-        display: none;
+        transform: translateX(-100%);
+        width: 78%;
+        max-width: 320px;
+      }
+      .sidebar.is-open {
+        transform: translateX(0);
+        box-shadow: 10px 0 40px rgba(0, 0, 0, 0.5);
       }
       .main-content {
         margin-left: 0;
-        padding: 20px;
+        padding: 86px 18px 36px;
       }
     }
 
@@ -131,9 +156,11 @@ const { title } = Astro.props;
     .premium-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 16px;
+      border-radius: 18px;
       padding: 24px;
       transition: border-color 0.2s ease;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(8px);
     }
 
     .premium-card:hover {
@@ -179,6 +206,9 @@ const { title } = Astro.props;
       color: var(--text-secondary);
       font-weight: 500;
       border-bottom: 1px solid var(--card-border);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
     }
 
     .premium-table td {
@@ -190,12 +220,17 @@ const { title } = Astro.props;
       border-bottom: none;
     }
 
+    .premium-table tbody tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
     .badge {
       padding: 4px 12px;
       border-radius: 100px;
       font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     .badge-blue {
@@ -228,6 +263,7 @@ const { title } = Astro.props;
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -246,6 +282,7 @@ const { title } = Astro.props;
       border: 1px solid var(--card-border);
       border-radius: 16px;
       padding: 24px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
     }
 
     .auth-title {
@@ -271,6 +308,12 @@ const { title } = Astro.props;
       margin-bottom: 12px;
     }
 
+    .auth-input:focus {
+      outline: none;
+      border-color: rgba(0, 175, 240, 0.5);
+      box-shadow: 0 0 0 3px rgba(0, 175, 240, 0.15);
+    }
+
     .auth-submit {
       width: 100%;
       padding: 12px 14px;
@@ -292,6 +335,121 @@ const { title } = Astro.props;
       font-size: 13px;
       min-height: 18px;
     }
+
+    .table-container {
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(8, 8, 10, 0.6);
+      overflow: hidden;
+    }
+
+    .mobile-topbar {
+      display: none;
+    }
+
+    .menu-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-primary);
+      border-radius: 10px;
+      padding: 10px;
+      display: inline-flex;
+      flex-direction: column;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .menu-btn span {
+      display: block;
+      width: 18px;
+      height: 2px;
+      background: currentColor;
+      border-radius: 2px;
+    }
+
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 40;
+    }
+
+    .sidebar-backdrop.is-visible {
+      display: block;
+    }
+
+    body.admin-menu-open {
+      overflow: hidden;
+    }
+
+    @media (max-width: 640px) {
+      .mobile-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 14px 16px;
+        background: rgba(8, 8, 10, 0.92);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        z-index: 45;
+        backdrop-filter: blur(12px);
+      }
+
+      .mobile-brand {
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        font-size: 12px;
+      }
+
+      .logout-btn.mobile-logout {
+        padding: 8px 10px;
+        font-size: 11px;
+      }
+
+      .premium-table thead {
+        display: none;
+      }
+
+      .premium-table,
+      .premium-table tbody,
+      .premium-table tr,
+      .premium-table td {
+        display: block;
+        width: 100%;
+      }
+
+      .premium-table tr {
+        border-bottom: 1px solid var(--card-border);
+        padding: 10px 0;
+      }
+
+      .premium-table td {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 16px;
+      }
+
+      .premium-table td::before {
+        content: attr(data-label);
+        color: var(--text-secondary);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .premium-table td[colspan] {
+        justify-content: center;
+      }
+
+      .premium-table td[colspan]::before {
+        content: '';
+      }
+    }
   </style>
 </head>
 <body>
@@ -305,10 +463,10 @@ const { title } = Astro.props;
     </form>
   </div>
   <div class="admin-container">
-    <aside class="sidebar">
+    <aside class="sidebar" id="adminSidebar">
       <div class="sidebar-header">
         <div class="logo-text">ADMIN<span class="logo-accent">PANEL</span></div>
-        <button class="logout-btn" id="adminLogoutBtn" type="button">Выйти</button>
+        <button class="logout-btn" type="button" data-admin-logout>Выйти</button>
       </div>
       <nav class="sidebar-nav">
         <a href="/admin" class={`nav-item ${Astro.url.pathname === '/admin' ? 'active' : ''}`}>
@@ -331,8 +489,23 @@ const { title } = Astro.props;
           <i data-lucide="external-link"></i>
           <span class="nav-text">На сайт</span>
         </a>
+        <a href="https://t.me/ai_producer_ilya" target="_blank" rel="noopener noreferrer" class="nav-item">
+          <i data-lucide="message-circle"></i>
+          <span class="nav-text">Техподдержка</span>
+        </a>
       </nav>
     </aside>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <header class="mobile-topbar">
+      <button class="menu-btn" id="adminMenuToggle" type="button" aria-label="Открыть меню" aria-controls="adminSidebar" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="mobile-brand">ADMIN<span class="logo-accent">PANEL</span></div>
+      <button class="logout-btn mobile-logout" type="button" data-admin-logout>Выйти</button>
+    </header>
 
     <main class="main-content">
       <slot />
@@ -350,7 +523,22 @@ const { title } = Astro.props;
     const authForm = document.getElementById('adminAuthForm');
     const tokenInput = document.getElementById('adminTokenInput');
     const authError = document.getElementById('adminAuthError');
-    const logoutBtn = document.getElementById('adminLogoutBtn');
+    const logoutButtons = document.querySelectorAll('[data-admin-logout]');
+    const menuToggle = document.getElementById('adminMenuToggle');
+    const sidebar = document.getElementById('adminSidebar');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+    function setMenuOpen(open) {
+      if (!sidebar) return;
+      sidebar.classList.toggle('is-open', open);
+      if (sidebarBackdrop) {
+        sidebarBackdrop.classList.toggle('is-visible', open);
+      }
+      document.body.classList.toggle('admin-menu-open', open);
+      if (menuToggle) {
+        menuToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+    }
 
     function setAuthOverlayVisible(visible) {
       if (!authOverlay) return;
@@ -427,14 +615,33 @@ const { title } = Astro.props;
       });
     }
 
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => {
-        try {
-          localStorage.removeItem(ADMIN_TOKEN_KEY);
-        } catch (e) {}
-        setAuthOverlayVisible(true);
+    if (logoutButtons && logoutButtons.length > 0) {
+      logoutButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          try {
+            localStorage.removeItem(ADMIN_TOKEN_KEY);
+          } catch (e) {}
+          setAuthOverlayVisible(true);
+          setMenuOpen(false);
+        });
       });
     }
+
+    if (menuToggle) {
+      menuToggle.addEventListener('click', () => {
+        const isOpen = sidebar && sidebar.classList.contains('is-open');
+        setMenuOpen(!isOpen);
+      });
+    }
+
+    if (sidebarBackdrop) {
+      sidebarBackdrop.addEventListener('click', () => setMenuOpen(false));
+    }
+
+    const sidebarLinks = document.querySelectorAll('.sidebar .nav-item');
+    sidebarLinks.forEach((link) => {
+      link.addEventListener('click', () => setMenuOpen(false));
+    });
 
     // Initial auth check
     window.ensureAdminAuth && window.ensureAdminAuth();

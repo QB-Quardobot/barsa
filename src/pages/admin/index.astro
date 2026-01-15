@@ -226,12 +226,12 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
             const payment = formatPaymentType(lead.payment_type || '');
             return `
             <tr>
-              <td>${lead.first_name} ${lead.last_name}</td>
-              <td>${lead.email}</td>
-              <td>
+              <td data-label="Имя">${lead.first_name} ${lead.last_name}</td>
+              <td data-label="Email">${lead.email}</td>
+              <td data-label="Тип">
                 <span class="badge ${payment.badge}">${payment.label}</span>
               </td>
-              <td>${new Date(lead.confirmed_at).toLocaleDateString('ru-RU')}</td>
+              <td data-label="Дата">${new Date(lead.confirmed_at).toLocaleDateString('ru-RU')}</td>
             </tr>
           `;
           }).join('');

@@ -103,11 +103,11 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
 
           tableBody.innerHTML = data.map(user => `
             <tr>
-              <td style="font-family: monospace; font-size: 13px;">${user.user_id}</td>
-              <td>${user.username ? `@${user.username}` : '-'}</td>
-              <td>${user.name || '-'}</td>
-              <td>${user.surname || '-'}</td>
-              <td>${user.reg_date || '-'}</td>
+              <td data-label="ID" style="font-family: monospace; font-size: 13px;">${user.user_id}</td>
+              <td data-label="Username">${user.username ? `@${user.username}` : '-'}</td>
+              <td data-label="Имя">${user.name || '-'}</td>
+              <td data-label="Фамилия">${user.surname || '-'}</td>
+              <td data-label="Дата регистрации">${user.reg_date || '-'}</td>
             </tr>
           `).join('');
         }
