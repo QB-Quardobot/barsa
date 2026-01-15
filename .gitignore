@@ -32,3 +32,12 @@ npm-debug.log*
 bot/barcelona_bots/.env
 bot/barcelona_bots/*.db
 bot/logs/*.log
+
+# Google Sheets credentials (секретные данные)
+bot/credentials.json
+**/credentials.json
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!tailwind.config.js
