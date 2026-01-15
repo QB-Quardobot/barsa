@@ -107,6 +107,17 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
         email = (data.email or "").strip()
         payment_type = (data.payment_type or "").strip()
 
+        # Попробовать восстановить payment_type из additional_data
+        if not payment_type and isinstance(data.additional_data, dict):
+            candidate = data.additional_data.get("payment_type")
+            if candidate:
+                payment_type = str(candidate).strip()
+            else:
+                tariff_id = data.additional_data.get("tariff_id")
+                currency = data.additional_data.get("currency")
+                if tariff_id and currency:
+                    payment_type = f"tariff_{tariff_id}_{currency}".strip()
+
         # Валидация email
         if not email:
             raise HTTPException(
@@ -116,14 +127,12 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
         if not re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", email):
             logger.warning(f"Invalid email format received: {email}")
 
-        # Валидация типа оплаты
+        # Валидация типа оплаты (fallback на unknown, чтобы не терять лиды)
         if not payment_type:
-            raise HTTPException(
-                status_code=400,
-                detail="payment_type must be a non-empty string"
-            )
-        elif payment_type not in ['installment', 'crypto']:
-            logger.warning(f"Unknown payment_type received: {payment_type} (allowed: installment, crypto)")
+            payment_type = "unknown"
+            logger.warning("payment_type missing, using fallback 'unknown'")
+        elif payment_type not in ['installment', 'crypto'] and not payment_type.startswith("tariff_"):
+            logger.warning(f"Unknown payment_type received: {payment_type} (allowed: installment, crypto, tariff_*)")
         
         # Получаем IP адрес и User-Agent
         ip_address = request.client.host if request.client else None
