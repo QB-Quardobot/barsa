@@ -7,11 +7,15 @@ import json
 import os
 import shutil
 import subprocess
+import re
 from datetime import datetime
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, Field
+from typing import Optional, Dict, Any
 import uvicorn
 
 from config.logger import logger
@@ -36,12 +40,15 @@ app.add_middleware(
 
 
 class OfferConfirmationRequest(BaseModel):
-    """Модель запроса для подтверждения оферты"""
-    first_name: str
-    last_name: str
-    email: EmailStr
-    payment_type: str  # 'installment' or 'crypto'
-    additional_data: dict = None
+    """Модель запроса для подтверждения оферты (поддерживает snake_case и camelCase)"""
+    first_name: Optional[str] = Field(default=None, alias="firstName")
+    last_name: Optional[str] = Field(default=None, alias="lastName")
+    email: Optional[str] = None
+    payment_type: Optional[str] = Field(default=None, alias="paymentType")
+    additional_data: Optional[Any] = Field(default=None, alias="additionalData")
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class OfferConfirmationResponse(BaseModel):
@@ -70,6 +77,17 @@ async def api_health_check():
     return {"status": "ok", "timestamp": datetime.now().isoformat()}
 
 
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Логирует некорректные запросы, чтобы не терять лиды из-за 422."""
+    try:
+        raw_body = await request.body()
+        logger.warning(f"Validation error on {request.url.path}: {exc.errors()} | body={raw_body[:200]!r}")
+    except Exception:
+        logger.warning(f"Validation error on {request.url.path}: {exc.errors()}")
+    return JSONResponse(status_code=400, content={"detail": "Invalid request payload"})
+
+
 @app.post("/api/offer-confirmation", response_model=OfferConfirmationResponse)
 async def confirm_offer(request: Request, data: OfferConfirmationRequest):
     """
@@ -83,14 +101,29 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
         OfferConfirmationResponse с результатом сохранения
     """
     try:
+        # Нормализация входных данных
+        first_name = (data.first_name or "").strip()
+        last_name = (data.last_name or "").strip()
+        email = (data.email or "").strip()
+        payment_type = (data.payment_type or "").strip()
+
+        # Валидация email
+        if not email:
+            raise HTTPException(
+                status_code=400,
+                detail="email is required"
+            )
+        if not re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", email):
+            logger.warning(f"Invalid email format received: {email}")
+
         # Валидация типа оплаты
-        if not data.payment_type or not str(data.payment_type).strip():
+        if not payment_type:
             raise HTTPException(
                 status_code=400,
                 detail="payment_type must be a non-empty string"
             )
-        elif data.payment_type not in ['installment', 'crypto']:
-            logger.warning(f"Unknown payment_type received: {data.payment_type} (allowed: installment, crypto)")
+        elif payment_type not in ['installment', 'crypto']:
+            logger.warning(f"Unknown payment_type received: {payment_type} (allowed: installment, crypto)")
         
         # Получаем IP адрес и User-Agent
         ip_address = request.client.host if request.client else None
@@ -99,14 +132,17 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
         # Преобразуем additional_data в JSON строку если есть
         additional_data_str = None
         if data.additional_data:
-            additional_data_str = json.dumps(data.additional_data)
+            try:
+                additional_data_str = json.dumps(data.additional_data)
+            except Exception:
+                additional_data_str = json.dumps({"raw": str(data.additional_data)})
         
         # Сохраняем в БД
         confirmation_id = await save_offer_confirmation(
-            first_name=data.first_name,
-            last_name=data.last_name,
-            email=data.email,
-            payment_type=data.payment_type,
+            first_name=first_name or "—",
+            last_name=last_name or "—",
+            email=email,
+            payment_type=payment_type,
             ip_address=ip_address,
             user_agent=user_agent,
             additional_data=additional_data_str
@@ -114,27 +150,27 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
         
         logger.info(
             f"Offer confirmation saved: ID={confirmation_id}, "
-            f"Email={data.email}, Type={data.payment_type}"
+            f"Email={email}, Type={payment_type}"
         )
         
         # Интеграции (выполняются параллельно, не блокируют ответ)
         # Google Sheets
         try:
             from integrations import save_to_google_sheets
-            logger.info(f"Attempting to save to Google Sheets: {data.email}, {data.payment_type}")
+            logger.info(f"Attempting to save to Google Sheets: {email}, {payment_type}")
             result = save_to_google_sheets(
-                first_name=data.first_name,
-                last_name=data.last_name,
-                email=data.email,
-                payment_type=data.payment_type,
+                first_name=first_name or "—",
+                last_name=last_name or "—",
+                email=email,
+                payment_type=payment_type,
                 ip_address=ip_address,
                 user_agent=user_agent,
                 additional_data=data.additional_data
             )
             if result:
-                logger.info(f"Successfully saved to Google Sheets: {data.email}")
+                logger.info(f"Successfully saved to Google Sheets: {email}")
             else:
-                logger.warning(f"Google Sheets save returned False for: {data.email}")
+                logger.warning(f"Google Sheets save returned False for: {email}")
         except Exception as e:
             logger.error(f"Google Sheets integration failed: {e}", exc_info=True)
         
@@ -142,10 +178,10 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
         try:
             from integrations import send_email_notification
             send_email_notification(
-                first_name=data.first_name,
-                last_name=data.last_name,
-                email=data.email,
-                payment_type=data.payment_type,
+                first_name=first_name or "—",
+                last_name=last_name or "—",
+                email=email,
+                payment_type=payment_type,
                 ip_address=ip_address,
                 user_agent=user_agent,
                 additional_data=data.additional_data
@@ -157,10 +193,10 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
         try:
             from integrations import send_webhook_notification
             await send_webhook_notification(
-                first_name=data.first_name,
-                last_name=data.last_name,
-                email=data.email,
-                payment_type=data.payment_type,
+                first_name=first_name or "—",
+                last_name=last_name or "—",
+                email=email,
+                payment_type=payment_type,
                 ip_address=ip_address,
                 user_agent=user_agent,
                 additional_data=data.additional_data

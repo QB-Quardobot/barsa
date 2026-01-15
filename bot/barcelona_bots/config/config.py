@@ -4,7 +4,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+# Always load .env from the bot directory, regardless of cwd
+_env_path = Path(__file__).parent.parent / ".env"
+load_dotenv(_env_path)
 
 USER_TOKEN = os.getenv("USER_TOKEN")
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")

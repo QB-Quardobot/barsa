@@ -34,6 +34,14 @@ class GoogleSheetsIntegration:
             spreadsheet_id = os.getenv('GOOGLE_SHEETS_ID')
             worksheet_name = os.getenv('GOOGLE_SHEETS_WORKSHEET_NAME', 'Offer Confirmations')
             
+            if credentials_path and not os.path.exists(credentials_path):
+                fallback_path = os.getenv('GOOGLE_SHEETS_CREDENTIALS_FALLBACK', '/var/www/illariooo.ru/bot/credentials.json')
+                if os.path.exists(fallback_path):
+                    logger.warning(
+                        f"Credentials path not found ({credentials_path}). Using fallback: {fallback_path}"
+                    )
+                    credentials_path = fallback_path
+
             if not credentials_path:
                 logger.warning("GOOGLE_SHEETS_CREDENTIALS_PATH not set, Google Sheets integration disabled")
                 return False

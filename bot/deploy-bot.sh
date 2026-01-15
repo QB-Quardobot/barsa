@@ -81,7 +81,7 @@ deploy() {
     # Copy bot files
     log_info "Copying bot files..."
     rsync -avz --exclude='__pycache__' --exclude='*.pyc' --exclude='.venv' \
-        --exclude='*.db' --exclude='*.log' \
+        --exclude='*.db' --exclude='*.log' --exclude='.env' --exclude='.env.*' \
         ./ ${SERVER_USER}@${SERVER_IP}:${DEPLOY_PATH}/
     
     log_success "Files copied"
