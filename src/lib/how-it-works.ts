@@ -1760,7 +1760,7 @@ export function initCurrencyModal(): void {
   let currentTariff: string | null = null;
   
   // Support link for tariffs 1 and 2 (also used for crypto payment)
-  const supportLink = 'https://t.me/illariooo';
+  const supportLink = 'https://t.me/ai_producer_ilya';
   
   function openModal(tariffId: string): void {
     if (isModalOpen || !TARIFFS[tariffId]) return;
