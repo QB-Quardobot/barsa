@@ -100,6 +100,13 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
     Returns:
         OfferConfirmationResponse с результатом сохранения
     """
+    # Логируем входящий запрос
+    logger.info(f"=== INCOMING REQUEST ===")
+    logger.info(f"Method: {request.method}, URL: {request.url}")
+    logger.info(f"Headers: {dict(request.headers)}")
+    logger.info(f"Client IP: {request.client.host if request.client else 'unknown'}")
+    logger.info(f"Data received: first_name={data.first_name}, last_name={data.last_name}, email={data.email}, payment_type={data.payment_type}")
+    
     try:
         # Нормализация входных данных
         first_name = (data.first_name or "").strip()
@@ -183,9 +190,11 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
         
         # Интеграции (выполняются параллельно, не блокируют ответ)
         # Google Sheets
+        logger.info(f"=== STARTING GOOGLE SHEETS INTEGRATION ===")
         try:
             from integrations import save_to_google_sheets
             logger.info(f"Attempting to save to Google Sheets: {email}, {payment_type}")
+            logger.info(f"Parameters: first_name={first_name}, last_name={last_name}, email={email}, payment_type={payment_type}")
             result = save_to_google_sheets(
                 first_name=first_name or "—",
                 last_name=last_name or "—",
@@ -195,12 +204,15 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
                 user_agent=user_agent,
                 additional_data=extra_additional if extra_additional else None
             )
+            logger.info(f"Google Sheets save_to_google_sheets returned: {result} (type: {type(result)})")
             if result:
-                logger.info(f"Successfully saved to Google Sheets: {email}")
+                logger.info(f"✅ Successfully saved to Google Sheets: {email}")
             else:
-                logger.warning(f"Google Sheets save returned False for: {email}")
+                logger.warning(f"❌ Google Sheets save returned False for: {email}")
         except Exception as e:
-            logger.error(f"Google Sheets integration failed: {e}", exc_info=True)
+            logger.error(f"❌ Google Sheets integration failed: {e}", exc_info=True)
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
         
         # Email уведомления
         try:
@@ -464,7 +476,15 @@ async def cleanup_cache(request: Request):
 def run_api_server(host: str = "0.0.0.0", port: int = 8000):
     """Запускает API сервер"""
     logger.info(f"Starting API server on {host}:{port}")
-    uvicorn.run(app, host=host, port=port, log_level="info")
+    logger.info(f"API endpoints will be available at: http://{host}:{port}/api/offer-confirmation")
+    uvicorn.run(
+        app, 
+        host=host, 
+        port=port, 
+        log_level="info",
+        access_log=True,
+        log_config=None  # Use default uvicorn logging
+    )
 
 
 if __name__ == "__main__":

@@ -327,10 +327,31 @@ server {
         try_files $uri $uri/ /index.html =404;
     }
     
-    # API Rate Limiting (if you add API endpoints)
+    # API Proxy to Backend
     location /api/ {
         limit_req zone=api burst=10 nodelay;
-        try_files $uri $uri/ =404;
+        
+        # Proxy settings
+        proxy_pass http://127.0.0.1:8000/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $server_name;
+        
+        # Timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        
+        # Buffering
+        proxy_buffering off;
+        proxy_request_buffering off;
+        
+        # Logging
+        access_log /var/log/nginx/api-access.log;
+        error_log /var/log/nginx/api-error.log;
     }
     
     # Health Check Endpoint

@@ -41,7 +41,10 @@ async def run_api_server():
         "api_server:app",
         host=api_host,
         port=api_port,
-        log_level="info"
+        log_level="info",
+        access_log=True,
+        forwarded_allow_ips="*",  # Разрешаем проксирование от Nginx
+        proxy_headers=True  # Включаем поддержку прокси заголовков
     )
     server = uvicorn.Server(config)
     await server.serve()
