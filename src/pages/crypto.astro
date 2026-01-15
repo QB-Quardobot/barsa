@@ -210,17 +210,33 @@ const API_ENDPOINT = import.meta.env.PUBLIC_API_ENDPOINT || '/api/offer-confirma
     
     try {
       // Отправляем данные на API
+      const additionalData = {
+        payment_type: PAYMENT_TYPE,
+        email: emailInput.value.trim(),
+        source: 'crypto',
+        page: window.location.pathname
+      };
+
+      const payload = {
+        first_name: firstNameInput.value.trim(),
+        last_name: lastNameInput.value.trim(),
+        email: emailInput.value.trim(),
+        payment_type: PAYMENT_TYPE,
+        additional_data: additionalData,
+        // camelCase duplicates for safety
+        firstName: firstNameInput.value.trim(),
+        lastName: lastNameInput.value.trim(),
+        paymentType: PAYMENT_TYPE,
+        additionalData
+      };
+
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          first_name: firstNameInput.value.trim(),
-          last_name: lastNameInput.value.trim(),
-          email: emailInput.value.trim(),
-          payment_type: PAYMENT_TYPE,
-        }),
+        body: JSON.stringify(payload),
+        keepalive: true,
       });
       
       if (!response.ok) {

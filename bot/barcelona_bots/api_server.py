@@ -118,12 +118,28 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
                 if tariff_id and currency:
                     payment_type = f"tariff_{tariff_id}_{currency}".strip()
 
-        # Валидация email
-        if not email:
-            raise HTTPException(
-                status_code=400,
-                detail="email is required"
+        # Подготавливаем additional_data
+        extra_additional: dict = {}
+        if isinstance(data.additional_data, dict):
+            extra_additional = dict(data.additional_data)
+        elif data.additional_data is not None:
+            extra_additional = {"raw_additional_data": str(data.additional_data)}
+
+        # Валидация email (fallback, чтобы не терять лиды)
+        if not email and extra_additional:
+            candidate_email = (
+                extra_additional.get("email")
+                or extra_additional.get("user_email")
             )
+            if candidate_email:
+                email = str(candidate_email).strip()
+
+        if not email:
+            fallback_email = f"unknown+{int(datetime.now().timestamp())}@invalid.local"
+            logger.warning(f"Email missing in request, using fallback: {fallback_email}")
+            email = fallback_email
+            extra_additional["missing_email"] = True
+
         if not re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", email):
             logger.warning(f"Invalid email format received: {email}")
 
@@ -133,6 +149,9 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
             logger.warning("payment_type missing, using fallback 'unknown'")
         elif payment_type not in ['installment', 'crypto'] and not payment_type.startswith("tariff_"):
             logger.warning(f"Unknown payment_type received: {payment_type} (allowed: installment, crypto, tariff_*)")
+
+        if extra_additional is not None:
+            extra_additional.setdefault("payment_type", payment_type)
         
         # Получаем IP адрес и User-Agent
         ip_address = request.client.host if request.client else None
@@ -140,11 +159,11 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
         
         # Преобразуем additional_data в JSON строку если есть
         additional_data_str = None
-        if data.additional_data:
+        if extra_additional:
             try:
-                additional_data_str = json.dumps(data.additional_data)
+                additional_data_str = json.dumps(extra_additional)
             except Exception:
-                additional_data_str = json.dumps({"raw": str(data.additional_data)})
+                additional_data_str = json.dumps({"raw": str(extra_additional)})
         
         # Сохраняем в БД
         confirmation_id = await save_offer_confirmation(
@@ -174,7 +193,7 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
                 payment_type=payment_type,
                 ip_address=ip_address,
                 user_agent=user_agent,
-                additional_data=data.additional_data
+                additional_data=extra_additional if extra_additional else None
             )
             if result:
                 logger.info(f"Successfully saved to Google Sheets: {email}")
@@ -193,7 +212,7 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
                 payment_type=payment_type,
                 ip_address=ip_address,
                 user_agent=user_agent,
-                additional_data=data.additional_data
+                additional_data=extra_additional if extra_additional else None
             )
         except Exception as e:
             logger.warning(f"Email notification failed: {e}")
@@ -208,7 +227,7 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
                 payment_type=payment_type,
                 ip_address=ip_address,
                 user_agent=user_agent,
-                additional_data=data.additional_data
+                additional_data=extra_additional if extra_additional else None
             )
         except Exception as e:
             logger.warning(f"Webhook integration failed: {e}")

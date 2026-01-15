@@ -2295,7 +2295,12 @@ export function initOfferModal(): void {
     
     // Определяем payment_type на основе валюты и тарифа
     // Для основного процесса оплаты используем формат: tariff_{tariffId}_{currency}
-    const paymentType = `tariff_${data.tariffId}_${data.currency}`;
+    const normalizedTariffId = data.tariffId || 'unknown';
+    const normalizedCurrency = data.currency || 'unknown';
+    const paymentType = `tariff_${normalizedTariffId}_${normalizedCurrency}`;
+    const normalizedEmail = (data.email || '').trim();
+    const normalizedFirstName = (data.firstName || '').trim();
+    const normalizedLastName = (data.lastName || '').trim();
     
     // Сохранение в localStorage (fallback)
     try {
@@ -2308,24 +2313,39 @@ export function initOfferModal(): void {
     
     // Отправка на API сервер (с интеграциями: Google Sheets, Email, Webhook)
     try {
+      const additionalData = {
+        tariff_id: data.tariffId,
+        tariff_name: data.tariffName,
+        currency: data.currency,
+        payment_url: data.paymentUrl,
+        timestamp: data.timestamp,
+        payment_type: paymentType,
+        email: normalizedEmail,
+        source: 'how-it-works',
+        page: window.location.pathname
+      };
+
+      const payload = {
+        // snake_case
+        first_name: normalizedFirstName,
+        last_name: normalizedLastName,
+        email: normalizedEmail,
+        payment_type: paymentType,
+        additional_data: additionalData,
+        // camelCase duplicates for safety (older/newer clients)
+        firstName: normalizedFirstName,
+        lastName: normalizedLastName,
+        paymentType: paymentType,
+        additionalData: additionalData
+      };
+
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          first_name: data.firstName,
-          last_name: data.lastName,
-          email: data.email,
-          payment_type: paymentType,
-          additional_data: {
-            tariff_id: data.tariffId,
-            tariff_name: data.tariffName,
-            currency: data.currency,
-            payment_url: data.paymentUrl,
-            timestamp: data.timestamp
-          }
-        }),
+        body: JSON.stringify(payload),
+        keepalive: true,
       });
       
       if (!response.ok) {
@@ -2338,6 +2358,37 @@ export function initOfferModal(): void {
       }
     } catch (error) {
       console.error('Error sending data to API:', error);
+      try {
+        // Fallback: try to send data in background
+        if (navigator.sendBeacon) {
+          const blob = new Blob(
+            [JSON.stringify({
+              first_name: normalizedFirstName,
+              last_name: normalizedLastName,
+              email: normalizedEmail,
+              payment_type: paymentType,
+              additional_data: {
+                tariff_id: data.tariffId,
+                tariff_name: data.tariffName,
+                currency: data.currency,
+                payment_url: data.paymentUrl,
+                timestamp: data.timestamp,
+                payment_type: paymentType,
+                email: normalizedEmail,
+                source: 'how-it-works',
+                page: window.location.pathname
+              },
+              firstName: normalizedFirstName,
+              lastName: normalizedLastName,
+              paymentType: paymentType
+            })],
+            { type: 'application/json' }
+          );
+          navigator.sendBeacon(API_ENDPOINT, blob);
+        }
+      } catch (beaconError) {
+        console.error('Failed to send beacon:', beaconError);
+      }
       // Не прерываем процесс, просто логируем ошибку
     }
   }
