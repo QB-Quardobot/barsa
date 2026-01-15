@@ -9,7 +9,7 @@
    - CDN resources: Cache-first с длительным TTL
 */
 
-const SW_VERSION = 'v2.5';
+const SW_VERSION = 'v2.6';
 const CACHE_NAME = `ai-model-${SW_VERSION}`;
 const RUNTIME_CACHE = `runtime-${SW_VERSION}`;
 const STATIC_CACHE = `static-${SW_VERSION}`;
