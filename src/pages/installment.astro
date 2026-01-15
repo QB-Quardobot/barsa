@@ -127,6 +127,37 @@ const API_ENDPOINT = import.meta.env.PUBLIC_API_ENDPOINT || '/api/offer-confirma
   
   const API_ENDPOINT = import.meta.env.PUBLIC_API_ENDPOINT || '/api/offer-confirmation';
   const PAYMENT_TYPE = 'installment';
+  const DEBUG_ENABLED = new URLSearchParams(window.location.search).has('debug')
+    || localStorage.getItem('offerDebug') === '1';
+  const DEBUG_STORE = DEBUG_ENABLED || localStorage.getItem('offerDebugAlways') === '1';
+  const DEBUG_STORAGE_KEY = 'offerDebugLogs';
+  function logDebug(level: 'info' | 'warn' | 'error', message: string, data?: any): void {
+    const entry = {
+      ts: new Date().toISOString(),
+      level,
+      message,
+      data
+    };
+    if (DEBUG_STORE) {
+      try {
+        const logs = JSON.parse(localStorage.getItem(DEBUG_STORAGE_KEY) || '[]');
+        logs.push(entry);
+        localStorage.setItem(DEBUG_STORAGE_KEY, JSON.stringify(logs.slice(-200)));
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    const prefix = '[offer-installment]';
+    if (level === 'error') {
+      console.error(prefix, message, data || '');
+    } else if (level === 'warn') {
+      console.warn(prefix, message, data || '');
+    } else if (DEBUG_ENABLED) {
+      console.info(prefix, message, data || '');
+    }
+  }
+
   
   let isSubmitting = false;
   
@@ -201,6 +232,7 @@ const API_ENDPOINT = import.meta.env.PUBLIC_API_ENDPOINT || '/api/offer-confirma
     if (isSubmitting) return;
     
     if (!validateForm()) {
+      logDebug('warn', 'validation_failed');
       return;
     }
     
@@ -230,6 +262,7 @@ const API_ENDPOINT = import.meta.env.PUBLIC_API_ENDPOINT || '/api/offer-confirma
         additionalData
       };
 
+      logDebug('info', 'api_request', { endpoint: API_ENDPOINT, payload });
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: {
@@ -241,10 +274,12 @@ const API_ENDPOINT = import.meta.env.PUBLIC_API_ENDPOINT || '/api/offer-confirma
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ detail: 'Ошибка сервера' }));
+        logDebug('warn', 'api_response_error', { status: response.status, error: errorData });
         throw new Error(errorData.detail || 'Ошибка при сохранении данных');
       }
       
       const data = await response.json();
+      logDebug('info', 'api_response_ok', { status: response.status, result: data });
       
       // Переходим на страницу оплаты с параметрами
       const params = new URLSearchParams({
@@ -255,6 +290,7 @@ const API_ENDPOINT = import.meta.env.PUBLIC_API_ENDPOINT || '/api/offer-confirma
       
     } catch (error) {
       console.error('Error submitting form:', error);
+      logDebug('error', 'api_request_failed', String(error));
       alert('Произошла ошибка при отправке данных. Пожалуйста, попробуйте еще раз.');
       isSubmitting = false;
       submitBtn.disabled = false;

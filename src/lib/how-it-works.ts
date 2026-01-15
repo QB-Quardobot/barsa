@@ -1990,6 +1990,10 @@ export function initOfferModal(): void {
   const privacyCheckbox = modal.querySelector('#offerPrivacy') as HTMLInputElement;
   const agreementCheckbox = modal.querySelector('#offerAgreement') as HTMLInputElement;
   const submitBtn = modal.querySelector('#offerSubmitBtn') as HTMLButtonElement;
+  const debugPanel = modal.querySelector('#offerDebugPanel') as HTMLElement | null;
+  const debugOutput = modal.querySelector('#offerDebugOutput') as HTMLElement | null;
+  const debugCopyBtn = modal.querySelector('#offerDebugCopy') as HTMLButtonElement | null;
+  const debugClearBtn = modal.querySelector('#offerDebugClear') as HTMLButtonElement | null;
   
   let isModalOpen = false;
   let currentTariffId: string | null = null;
@@ -1997,6 +2001,100 @@ export function initOfferModal(): void {
   let currentPaymentUrl: string | null = null;
   let isSubmitting = false;
   const PREFILL_STORAGE_KEY = 'offerFormPrefill';
+  const DEBUG_STORAGE_KEY = 'offerDebugLogs';
+  const DEBUG_ENABLED = new URLSearchParams(window.location.search).has('debug')
+    || localStorage.getItem('offerDebug') === '1';
+  const DEBUG_STORE = DEBUG_ENABLED || localStorage.getItem('offerDebugAlways') === '1';
+
+  type DebugEntry = {
+    ts: string;
+    level: 'info' | 'warn' | 'error';
+    message: string;
+    data?: any;
+  };
+
+  function getDebugLogs(): DebugEntry[] {
+    try {
+      return JSON.parse(localStorage.getItem(DEBUG_STORAGE_KEY) || '[]');
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function setDebugLogs(logs: DebugEntry[]): void {
+    if (!DEBUG_STORE) return;
+    try {
+      const trimmed = logs.slice(-200);
+      localStorage.setItem(DEBUG_STORAGE_KEY, JSON.stringify(trimmed));
+    } catch (e) {
+      // ignore storage failures
+    }
+  }
+
+  function renderDebugLogs(): void {
+    if (!debugOutput) return;
+    const logs = getDebugLogs();
+    debugOutput.textContent = logs.map((entry) => {
+      const line = `[${entry.ts}] ${entry.level.toUpperCase()} ${entry.message}`;
+      return entry.data ? `${line} | ${JSON.stringify(entry.data)}` : line;
+    }).join('\n');
+  }
+
+  function debugLog(level: DebugEntry['level'], message: string, data?: any): void {
+    const entry: DebugEntry = {
+      ts: new Date().toISOString(),
+      level,
+      message,
+      data
+    };
+    if (DEBUG_STORE) {
+      const logs = getDebugLogs();
+      logs.push(entry);
+      setDebugLogs(logs);
+      renderDebugLogs();
+    }
+
+    const prefix = '[offer-form]';
+    if (level === 'error') {
+      console.error(prefix, message, data || '');
+    } else if (level === 'warn') {
+      console.warn(prefix, message, data || '');
+    } else if (DEBUG_ENABLED) {
+      console.info(prefix, message, data || '');
+    }
+  }
+
+  if (debugPanel && DEBUG_ENABLED) {
+    debugPanel.hidden = false;
+    renderDebugLogs();
+  }
+
+  if (debugCopyBtn) {
+    debugCopyBtn.addEventListener('click', async () => {
+      const logs = getDebugLogs();
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(logs, null, 2));
+        debugLog('info', 'Debug logs copied');
+      } catch (e) {
+        debugLog('error', 'Failed to copy debug logs', String(e));
+      }
+    });
+  }
+
+  if (debugClearBtn) {
+    debugClearBtn.addEventListener('click', () => {
+      localStorage.removeItem(DEBUG_STORAGE_KEY);
+      if (debugOutput) debugOutput.textContent = '';
+      debugLog('info', 'Debug logs cleared');
+    });
+  }
+
+  (window as any).__offerDebug = {
+    getLogs: getDebugLogs,
+    clearLogs: () => localStorage.removeItem(DEBUG_STORAGE_KEY),
+    enable: () => localStorage.setItem('offerDebug', '1'),
+    disable: () => localStorage.removeItem('offerDebug')
+  };
   
   // Текст оферты (пользователь должен предоставить актуальный текст)
   const OFFER_TEXT = `ПУБЛИЧНАЯ ОФЕРТА
@@ -2138,6 +2236,7 @@ export function initOfferModal(): void {
     currentCurrency = currency;
     currentPaymentUrl = paymentUrl;
     isSubmitting = false;
+    debugLog('info', 'modal_open', { tariffId, currency, paymentUrl });
     
     // Показываем модальное окно сразу для предотвращения мерцания
     modal.style.display = 'flex';
@@ -2178,6 +2277,7 @@ export function initOfferModal(): void {
     
     modal.classList.remove('is-open');
     backdrop?.classList.remove('is-active');
+    debugLog('info', 'modal_close');
     
     setTimeout(() => {
       modal.style.display = 'none';
@@ -2225,6 +2325,7 @@ export function initOfferModal(): void {
   function validateForm(): boolean {
     clearErrors();
     let isValid = true;
+    const issues: string[] = [];
     
     // Валидация имени
     if (!firstNameInput || !firstNameInput.value.trim()) {
@@ -2232,6 +2333,7 @@ export function initOfferModal(): void {
         showError(firstNameInput, 'Пожалуйста, введите имя');
       }
       isValid = false;
+      issues.push('first_name_missing');
     }
     
     // Валидация фамилии
@@ -2240,6 +2342,7 @@ export function initOfferModal(): void {
         showError(lastNameInput, 'Пожалуйста, введите фамилию');
       }
       isValid = false;
+      issues.push('last_name_missing');
     }
     
     // Валидация email
@@ -2248,9 +2351,11 @@ export function initOfferModal(): void {
         showError(emailInput, 'Пожалуйста, введите email');
       }
       isValid = false;
+      issues.push('email_missing');
     } else if (emailInput && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())) {
       showError(emailInput, 'Пожалуйста, введите корректный email');
       isValid = false;
+      issues.push('email_invalid');
     }
     
     // Валидация чекбокса согласия
@@ -2263,8 +2368,12 @@ export function initOfferModal(): void {
         agreementCheckbox.setAttribute('aria-invalid', 'true');
       }
       isValid = false;
+      issues.push('agreement_missing');
     }
     
+    if (!isValid) {
+      debugLog('warn', 'validation_failed', { issues });
+    }
     return isValid;
   }
   
@@ -2339,6 +2448,8 @@ export function initOfferModal(): void {
         additionalData: additionalData
       };
 
+      debugLog('info', 'api_request', { endpoint: API_ENDPOINT, payload });
+
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: {
@@ -2350,14 +2461,17 @@ export function initOfferModal(): void {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ detail: 'Ошибка сервера' }));
+        debugLog('warn', 'api_response_error', { status: response.status, error: errorData });
         console.warn('Failed to save to API:', errorData.detail || 'Unknown error');
         // Не прерываем процесс, просто логируем ошибку
       } else {
         const result = await response.json();
+        debugLog('info', 'api_response_ok', { status: response.status, result });
         console.log('Data saved to API successfully:', result);
       }
     } catch (error) {
       console.error('Error sending data to API:', error);
+      debugLog('error', 'api_request_failed', String(error));
       try {
         // Fallback: try to send data in background
         if (navigator.sendBeacon) {
@@ -2384,10 +2498,12 @@ export function initOfferModal(): void {
             })],
             { type: 'application/json' }
           );
-          navigator.sendBeacon(API_ENDPOINT, blob);
+          const beaconOk = navigator.sendBeacon(API_ENDPOINT, blob);
+          debugLog('info', 'beacon_sent', { ok: beaconOk });
         }
       } catch (beaconError) {
         console.error('Failed to send beacon:', beaconError);
+        debugLog('error', 'beacon_failed', String(beaconError));
       }
       // Не прерываем процесс, просто логируем ошибку
     }
@@ -2409,6 +2525,11 @@ export function initOfferModal(): void {
     
     if (!currentTariffId || !currentCurrency || !currentPaymentUrl) {
       console.error('Missing payment data');
+      debugLog('error', 'missing_payment_data', {
+        currentTariffId,
+        currentCurrency,
+        currentPaymentUrl
+      });
       return;
     }
     

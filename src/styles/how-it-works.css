@@ -6093,6 +6093,59 @@ transform: translateY(0) scale(1) !important;
   z-index: 2;
 }
 
+.offer-debug-panel {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  background: rgba(15, 23, 42, 0.5);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+}
+
+.offer-debug-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.offer-debug-title {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.offer-debug-actions {
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.offer-debug-btn {
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.offer-debug-btn:hover {
+  border-color: rgba(0, 175, 240, 0.5);
+  color: #fff;
+}
+
+.offer-debug-output {
+  margin: 0;
+  max-height: 180px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  line-height: 1.4;
+}
+
 .offer-section {
   margin-bottom: 1.5rem;
   position: relative;
