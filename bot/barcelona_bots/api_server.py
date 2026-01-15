@@ -48,7 +48,7 @@ class OfferConfirmationRequest(BaseModel):
     additional_data: Optional[Any] = Field(default=None, alias="additionalData")
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class OfferConfirmationResponse(BaseModel):
