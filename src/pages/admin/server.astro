@@ -454,8 +454,10 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
       result.className = 'cleanup-result';
       result.textContent = '';
       
-      // @ts-ignore
-      lucide.createIcons();
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        // @ts-ignore
+        window.lucide.createIcons();
+      }
 
       try {
         const authed = await ensureAdminAuth();
@@ -499,7 +501,9 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
     setInterval(fetchServerInfo, 30000);
     
     // Инициализация иконок
-    // @ts-ignore
-    lucide.createIcons();
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      // @ts-ignore
+      window.lucide.createIcons();
+    }
   </script>
 </AdminLayout>

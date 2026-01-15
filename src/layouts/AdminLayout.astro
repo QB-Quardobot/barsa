@@ -14,9 +14,7 @@ const { title } = Astro.props;
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>{title} | Admin Panel</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Use system fonts to avoid CSP issues with external fonts -->
   <style is:global>
     :root {
       --of-blue: #00aff0;
@@ -26,7 +24,7 @@ const { title } = Astro.props;
       --card-border: rgba(255, 255, 255, 0.1);
       --text-primary: #ffffff;
       --text-secondary: #8a96a3;
-      --font-sans: 'Inter', sans-serif;
+      --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
     body {
@@ -295,7 +293,6 @@ const { title } = Astro.props;
       min-height: 18px;
     }
   </style>
-  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
   <div class="admin-auth-overlay" id="adminAuthOverlay" aria-hidden="true">
@@ -343,9 +340,10 @@ const { title } = Astro.props;
   </div>
 
   <script>
-    // Initialize Lucide icons
-    // @ts-ignore
-    lucide.createIcons();
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      // @ts-ignore
+      window.lucide.createIcons();
+    }
 
     const ADMIN_TOKEN_KEY = 'adminAuthToken';
     const authOverlay = document.getElementById('adminAuthOverlay');
