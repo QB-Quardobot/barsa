@@ -77,10 +77,17 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
         const authed = await ensureAdminAuth();
         if (!authed) return;
         const response = await adminFetch(`${API_BASE}/admin/confirmations`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
         const data = await response.json();
         
         const tableBody = document.querySelector('#leads-table tbody');
         if (tableBody) {
+          if (!Array.isArray(data)) {
+            tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 40px;">Ошибка загрузки данных</td></tr>`;
+            return;
+          }
           if (data.length === 0) {
             tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 40px;">Лидов пока нет</td></tr>`;
             return;
@@ -103,6 +110,10 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
         }
       } catch (error) {
         console.error('Error fetching leads:', error);
+        const tableBody = document.querySelector('#leads-table tbody');
+        if (tableBody) {
+          tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 40px;">Ошибка загрузки данных</td></tr>`;
+        }
       }
     }
 

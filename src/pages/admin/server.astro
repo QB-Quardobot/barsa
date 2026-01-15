@@ -313,6 +313,9 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
         const authed = await ensureAdminAuth();
         if (!authed) return;
         const response = await adminFetch(`${API_BASE}/admin/server-info`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
         const data = await response.json();
         
         // Обновляем статистику
@@ -465,6 +468,9 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
         const response = await adminFetch(`${API_BASE}/admin/cleanup-cache`, {
           method: 'POST'
         });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
         const data = await response.json();
 
         if (data.success) {

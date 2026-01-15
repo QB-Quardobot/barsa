@@ -185,16 +185,16 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
 
 
 # Admin Endpoints
-ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")
+ADMIN_PANEL_TOKEN = os.getenv("ADMIN_PANEL_TOKEN")
 
 def verify_admin(request: Request):
-    if not ADMIN_TOKEN:
-        raise HTTPException(status_code=500, detail="ADMIN_TOKEN not configured")
+    if not ADMIN_PANEL_TOKEN:
+        raise HTTPException(status_code=500, detail="ADMIN_PANEL_TOKEN not configured")
     token = request.headers.get("X-Admin-Token")
     auth_header = request.headers.get("Authorization", "")
     if not token and auth_header.lower().startswith("bearer "):
         token = auth_header[7:].strip()
-    if token != ADMIN_TOKEN:
+    if token != ADMIN_PANEL_TOKEN:
         raise HTTPException(status_code=403, detail="Unauthorized")
 
 @app.get("/api/admin/stats")
