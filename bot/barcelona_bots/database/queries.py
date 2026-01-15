@@ -1,6 +1,6 @@
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from config.logger import logger
 from database.database import connection
@@ -48,7 +48,32 @@ async def save_offer_confirmation(
     user_agent: str = None,
     additional_data: str = None
 ):
-    """Сохраняет подтверждение оферты и данные клиента"""
+    """Сохраняет подтверждение оферты и данные клиента.
+
+    Возвращает (confirmation_id, is_duplicate).
+    """
+    recent_threshold = datetime.now(timezone.utc) - timedelta(seconds=60)
+    dup_query = select(OfferConfirmation).where(
+        OfferConfirmation.email == email,
+        OfferConfirmation.payment_type == payment_type,
+        OfferConfirmation.confirmed_at >= recent_threshold
+    )
+    if ip_address:
+        dup_query = dup_query.where(OfferConfirmation.ip_address == ip_address)
+    if user_agent:
+        dup_query = dup_query.where(OfferConfirmation.user_agent == user_agent)
+
+    existing = (await session.execute(
+        dup_query.order_by(OfferConfirmation.confirmed_at.desc()).limit(1)
+    )).scalars().first()
+
+    if existing:
+        logger.warning(
+            f"Duplicate confirmation detected (last 60s): "
+            f"Email={email}, Type={payment_type}, ID={existing.confirmation_id}"
+        )
+        return existing.confirmation_id, True
+
     confirmation = OfferConfirmation(
         first_name=first_name,
         last_name=last_name,
@@ -62,7 +87,7 @@ async def save_offer_confirmation(
     session.add(confirmation)
     await session.commit()
     logger.info(f"Сохранено подтверждение оферты: {email}, тип оплаты: {payment_type}")
-    return confirmation.confirmation_id
+    return confirmation.confirmation_id, False
 
 
 @connection

@@ -30,7 +30,6 @@ const OFFER_TEXT = `ПУБЛИЧНАЯ ОФЕРТА
 5.1. Настоящая Оферта вступает в силу с момента акцепта Заказчиком.
 5.2. Все споры решаются путем переговоров, а при невозможности — в судебном порядке.`;
 
-const API_ENDPOINT = import.meta.env.PUBLIC_API_ENDPOINT || '/api/offer-confirmation';
 ---
 
 <Base 
@@ -124,8 +123,26 @@ const API_ENDPOINT = import.meta.env.PUBLIC_API_ENDPOINT || '/api/offer-confirma
   const emailInput = document.getElementById('email') as HTMLInputElement;
   const agreementCheckbox = document.getElementById('agreement') as HTMLInputElement;
   const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
-  
-  const API_ENDPOINT = import.meta.env.PUBLIC_API_ENDPOINT || '/api/offer-confirmation';
+
+  function getSafeApiEndpoint(): string {
+    const fallback = '/api/offer-confirmation';
+    const raw = import.meta.env.PUBLIC_API_ENDPOINT;
+    if (!raw) return fallback;
+    try {
+      const url = new URL(raw, window.location.origin);
+      if (window.location.protocol === 'https:' && url.protocol !== 'https:') {
+        return fallback;
+      }
+      if (url.origin !== window.location.origin) {
+        return fallback;
+      }
+      return url.toString();
+    } catch (error) {
+      return fallback;
+    }
+  }
+
+  const API_ENDPOINT = getSafeApiEndpoint();
   const PAYMENT_TYPE = 'crypto';
   const DEBUG_ENABLED = new URLSearchParams(window.location.search).has('debug')
     || localStorage.getItem('offerDebug') === '1';

@@ -173,7 +173,7 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
                 additional_data_str = json.dumps({"raw": str(extra_additional)})
         
         # Сохраняем в БД
-        confirmation_id = await save_offer_confirmation(
+        confirmation_id, is_duplicate = await save_offer_confirmation(
             first_name=first_name or "—",
             last_name=last_name or "—",
             email=email,
@@ -185,8 +185,16 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
         
         logger.info(
             f"Offer confirmation saved: ID={confirmation_id}, "
-            f"Email={email}, Type={payment_type}"
+            f"Email={email}, Type={payment_type}, Duplicate={is_duplicate}"
         )
+
+        if is_duplicate:
+            logger.warning("Duplicate request detected; skipping integrations")
+            return OfferConfirmationResponse(
+                success=True,
+                confirmation_id=confirmation_id,
+                message="Duplicate request ignored"
+            )
         
         # Интеграции (выполняются параллельно, не блокируют ответ)
         # Google Sheets

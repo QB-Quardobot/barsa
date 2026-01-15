@@ -585,7 +585,6 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
         
         if (!tg) {
             logger.log('[TG-Init] WebApp not available - running in browser');
-            console.log('[TG-Init] WebApp not available - running in browser (console)');
           return false;
         }
         
@@ -597,7 +596,6 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           tg.ready();
           
           logger.log('[TG-Init] Calling expand()...');
-          console.log('[TG-Init] Calling expand()... (console)');
           tg.expand();
           
           logger.log('[TG-Init] Calling enableClosingConfirmation()...');
@@ -1442,7 +1440,6 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
           init();
         } catch (error) {
           logger.error('[Init] Load handler error:', error);
-          console.error('[Init] Load handler error (console):', error);
         }
       };
       

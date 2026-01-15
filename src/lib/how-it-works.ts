@@ -2064,6 +2064,30 @@ export function initOfferModal(): void {
     }
   }
 
+  function getSafeApiEndpoint(): string {
+    const fallback = '/api/offer-confirmation';
+    const raw = (import.meta.env.PUBLIC_API_ENDPOINT as string | undefined) || '';
+    if (!raw) return fallback;
+    try {
+      const base = typeof window !== 'undefined' ? window.location.origin : '';
+      const url = base ? new URL(raw, base) : new URL(raw);
+      if (typeof window !== 'undefined') {
+        if (window.location.protocol === 'https:' && url.protocol !== 'https:') {
+          debugLog('warn', 'api_endpoint_insecure', { raw, resolved: url.toString() });
+          return fallback;
+        }
+        if (url.origin !== window.location.origin) {
+          debugLog('warn', 'api_endpoint_cross_origin', { raw, resolved: url.toString() });
+          return fallback;
+        }
+      }
+      return url.toString();
+    } catch (error) {
+      debugLog('warn', 'api_endpoint_invalid', { raw, error: String(error) });
+      return fallback;
+    }
+  }
+
   if (debugPanel && DEBUG_ENABLED) {
     debugPanel.hidden = false;
     renderDebugLogs();
@@ -2400,7 +2424,7 @@ export function initOfferModal(): void {
     timestamp: string;
   }): Promise<void> {
     // Получаем API endpoint из переменных окружения или используем значение по умолчанию
-    const API_ENDPOINT = (import.meta.env.PUBLIC_API_ENDPOINT as string) || '/api/offer-confirmation';
+    const API_ENDPOINT = getSafeApiEndpoint();
     
     // Определяем payment_type на основе валюты и тарифа
     // Для основного процесса оплаты используем формат: tariff_{tariffId}_{currency}
@@ -2449,11 +2473,15 @@ export function initOfferModal(): void {
       };
 
       debugLog('info', 'api_request', { endpoint: API_ENDPOINT, payload });
-      console.log('🚀 Отправляю запрос на:', API_ENDPOINT, payload);
 
       // Пробуем сначала fetch с keepalive
       let fetchSuccess = false;
       try {
+        const timeoutSignal = (
+          typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal
+            ? (AbortSignal as typeof AbortSignal & { timeout: (ms: number) => AbortSignal }).timeout(3000)
+            : undefined
+        );
         const response = await Promise.race([
           fetch(API_ENDPOINT, {
             method: 'POST',
@@ -2462,7 +2490,7 @@ export function initOfferModal(): void {
             },
             body: JSON.stringify(payload),
             keepalive: true,
-            signal: AbortSignal.timeout(3000) // Таймаут 3 секунды
+            signal: timeoutSignal
           }),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
         ]) as Response;
@@ -2470,12 +2498,10 @@ export function initOfferModal(): void {
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ detail: 'Ошибка сервера' }));
           debugLog('warn', 'api_response_error', { status: response.status, error: errorData });
-          console.warn('❌ Failed to save to API:', response.status, errorData);
           fetchSuccess = false;
         } else {
           const result = await response.json();
           debugLog('info', 'api_response_ok', { status: response.status, result });
-          console.log('✅ Data saved to API successfully:', result);
           fetchSuccess = true;
         }
       } catch (fetchError) {
@@ -2490,14 +2516,11 @@ export function initOfferModal(): void {
           const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
           const beaconOk = navigator.sendBeacon(API_ENDPOINT, blob);
           debugLog('info', 'beacon_fallback', { ok: beaconOk, endpoint: API_ENDPOINT });
-          console.log(beaconOk ? '✅ Beacon sent successfully' : '❌ Beacon failed');
         } else {
-          console.error('❌ Both fetch and sendBeacon failed!');
           debugLog('error', 'all_methods_failed', 'No way to send data');
         }
       }
     } catch (error) {
-      console.error('Error sending data to API:', error);
       debugLog('error', 'api_request_failed', String(error));
       try {
         // Fallback: try to send data in background
@@ -2529,7 +2552,6 @@ export function initOfferModal(): void {
           debugLog('info', 'beacon_sent', { ok: beaconOk });
         }
       } catch (beaconError) {
-        console.error('Failed to send beacon:', beaconError);
         debugLog('error', 'beacon_failed', String(beaconError));
       }
       // Не прерываем процесс, просто логируем ошибку
@@ -2551,7 +2573,6 @@ export function initOfferModal(): void {
     }
     
     if (!currentTariffId || !currentCurrency || !currentPaymentUrl) {
-      console.error('Missing payment data');
       debugLog('error', 'missing_payment_data', {
         currentTariffId,
         currentCurrency,
@@ -2603,21 +2624,20 @@ export function initOfferModal(): void {
       // Редирект на Tribute (не ждем завершения сохранения)
       // Используем небольшую задержку, чтобы дать время на отправку запроса
       if (currentPaymentUrl) {
+        const paymentUrl = currentPaymentUrl;
         setTimeout(() => {
-          window.location.href = currentPaymentUrl;
+          window.location.href = paymentUrl;
         }, 100);
       } else {
-        console.error('currentPaymentUrl is null!');
         debugLog('error', 'missing_payment_url', 'currentPaymentUrl is null');
       }
     } catch (error) {
-      console.error('Error in handleSubmit:', error);
       debugLog('error', 'submit_error', String(error));
       // Даже при ошибке разрешаем переход к оплате
       if (currentPaymentUrl) {
         window.location.href = currentPaymentUrl;
       } else {
-        console.error('Cannot redirect: currentPaymentUrl is null!');
+        debugLog('error', 'redirect_failed', 'currentPaymentUrl is null');
       }
     }
   }
