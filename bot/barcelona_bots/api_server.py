@@ -185,31 +185,36 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
 
 
 # Admin Endpoints
-ADMIN_TOKEN = "admin_secret_123"  # В идеале вынести в .env
+ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")
 
 def verify_admin(request: Request):
+    if not ADMIN_TOKEN:
+        raise HTTPException(status_code=500, detail="ADMIN_TOKEN not configured")
     token = request.headers.get("X-Admin-Token")
+    auth_header = request.headers.get("Authorization", "")
+    if not token and auth_header.lower().startswith("bearer "):
+        token = auth_header[7:].strip()
     if token != ADMIN_TOKEN:
         raise HTTPException(status_code=403, detail="Unauthorized")
 
 @app.get("/api/admin/stats")
 async def admin_stats(request: Request):
     """Возвращает статистику для админки"""
-    # verify_admin(request) # Раскомментировать для защиты
+    verify_admin(request)
     stats = await get_admin_stats()
     return stats
 
 @app.get("/api/admin/confirmations")
 async def admin_confirmations(request: Request, limit: int = 100):
     """Возвращает список подтверждений"""
-    # verify_admin(request) # Раскомментировать для защиты
+    verify_admin(request)
     confirmations = await get_all_confirmations(limit=limit)
     return confirmations
 
 @app.get("/api/admin/users")
 async def admin_users(request: Request, limit: int = 100):
     """Возвращает список пользователей бота"""
-    # verify_admin(request) # Раскомментировать для защиты
+    verify_admin(request)
     users = await get_all_users(limit=limit)
     return users
 
@@ -217,7 +222,7 @@ async def admin_users(request: Request, limit: int = 100):
 @app.get("/api/admin/server-info")
 async def server_info(request: Request):
     """Возвращает информацию о сервере: диск, память, CPU"""
-    # verify_admin(request) # Раскомментировать для защиты
+    verify_admin(request)
     try:
         import psutil
         import shutil
@@ -311,7 +316,7 @@ async def server_info(request: Request):
 @app.post("/api/admin/cleanup-cache")
 async def cleanup_cache(request: Request):
     """Очищает кэш и временные файлы"""
-    # verify_admin(request) # Раскомментировать для защиты
+    verify_admin(request)
     try:
         results = {
             "cleaned": [],

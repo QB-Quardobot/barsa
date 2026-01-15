@@ -209,14 +209,109 @@ const { title } = Astro.props;
       background: rgba(168, 85, 247, 0.1);
       color: #a855f7;
     }
+
+    .logout-btn {
+      margin-left: auto;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      color: var(--text-secondary);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .logout-btn:hover {
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .admin-auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 24px;
+    }
+
+    .admin-auth-overlay.is-visible {
+      display: flex;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .auth-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+    }
+
+    .auth-subtitle {
+      color: var(--text-secondary);
+      margin: 0 0 20px 0;
+      font-size: 14px;
+    }
+
+    .auth-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .auth-submit {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: none;
+      background: var(--of-blue);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .auth-submit:hover {
+      background: var(--of-blue-hover);
+    }
+
+    .auth-error {
+      margin-top: 10px;
+      color: #ef4444;
+      font-size: 13px;
+      min-height: 18px;
+    }
   </style>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
+  <div class="admin-auth-overlay" id="adminAuthOverlay" aria-hidden="true">
+    <form class="auth-card" id="adminAuthForm">
+      <h2 class="auth-title">Вход в админку</h2>
+      <p class="auth-subtitle">Введите пароль для доступа к панели</p>
+      <input class="auth-input" id="adminTokenInput" type="password" autocomplete="current-password" placeholder="Пароль" required />
+      <button class="auth-submit" type="submit">Войти</button>
+      <div class="auth-error" id="adminAuthError"></div>
+    </form>
+  </div>
   <div class="admin-container">
     <aside class="sidebar">
       <div class="sidebar-header">
         <div class="logo-text">ADMIN<span class="logo-accent">PANEL</span></div>
+        <button class="logout-btn" id="adminLogoutBtn" type="button">Выйти</button>
       </div>
       <nav class="sidebar-nav">
         <a href="/admin" class={`nav-item ${Astro.url.pathname === '/admin' ? 'active' : ''}`}>
@@ -251,6 +346,100 @@ const { title } = Astro.props;
     // Initialize Lucide icons
     // @ts-ignore
     lucide.createIcons();
+
+    const ADMIN_TOKEN_KEY = 'adminAuthToken';
+    const authOverlay = document.getElementById('adminAuthOverlay');
+    const authForm = document.getElementById('adminAuthForm');
+    const tokenInput = document.getElementById('adminTokenInput');
+    const authError = document.getElementById('adminAuthError');
+    const logoutBtn = document.getElementById('adminLogoutBtn');
+
+    function setAuthOverlayVisible(visible) {
+      if (!authOverlay) return;
+      authOverlay.classList.toggle('is-visible', visible);
+      authOverlay.setAttribute('aria-hidden', visible ? 'false' : 'true');
+      document.body.style.overflow = visible ? 'hidden' : '';
+      if (visible && tokenInput) tokenInput.focus();
+    }
+
+    function getAdminToken() {
+      try {
+        return localStorage.getItem(ADMIN_TOKEN_KEY) || '';
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function setAdminToken(token) {
+      try {
+        localStorage.setItem(ADMIN_TOKEN_KEY, token);
+      } catch (e) {}
+    }
+
+    async function validateAdminToken(token) {
+      if (!token) return false;
+      try {
+        const response = await fetch('/api/admin/stats', {
+          headers: { 'X-Admin-Token': token }
+        });
+        return response.ok;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    window.adminFetch = async (input, init = {}) => {
+      const token = getAdminToken();
+      const headers = new Headers(init.headers || {});
+      if (token) headers.set('X-Admin-Token', token);
+      const response = await fetch(input, { ...init, headers });
+      if (response.status === 403) {
+        setAuthOverlayVisible(true);
+        throw new Error('Unauthorized');
+      }
+      return response;
+    };
+
+    window.ensureAdminAuth = async () => {
+      const token = getAdminToken();
+      if (!token) {
+        setAuthOverlayVisible(true);
+        return false;
+      }
+      const ok = await validateAdminToken(token);
+      setAuthOverlayVisible(!ok);
+      return ok;
+    };
+
+    if (authForm) {
+      authForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!tokenInput) return;
+        const token = tokenInput.value.trim();
+        if (!token) return;
+        const ok = await validateAdminToken(token);
+        if (!ok) {
+          if (authError) authError.textContent = 'Неверный пароль. Попробуйте ещё раз.';
+          return;
+        }
+        setAdminToken(token);
+        if (authError) authError.textContent = '';
+        setAuthOverlayVisible(false);
+        window.location.reload();
+      });
+    }
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        try {
+          localStorage.removeItem(ADMIN_TOKEN_KEY);
+        } catch (e) {}
+        setAuthOverlayVisible(true);
+      });
+    }
+
+    // Initial auth check
+    window.ensureAdminAuth && window.ensureAdminAuth();
   </script>
 </body>
 </html>

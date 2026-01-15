@@ -1,7 +1,7 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 
-const API_BASE = import.meta.env.PUBLIC_API_BASE || 'http://localhost:8000/api';
+const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
 ---
 
 <AdminLayout title="Обзор">
@@ -115,10 +115,27 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || 'http://localhost:8000/api';
 
   <script define:vars={{ apiBase: API_BASE }}>
     const API_BASE = apiBase;
+    const adminFetch = window.adminFetch || fetch;
+    const ensureAdminAuth = window.ensureAdminAuth || (async () => true);
+
+    function formatPaymentType(type) {
+      if (!type) return { label: '—', badge: 'badge-blue' };
+      if (type === 'crypto') return { label: 'Крипта', badge: 'badge-purple' };
+      if (type === 'installment') return { label: 'Рассрочка', badge: 'badge-blue' };
+      if (type.startsWith('tariff_')) {
+        const parts = type.split('_');
+        const tariff = parts[1] || '?';
+        const currency = (parts[2] || '').toUpperCase();
+        return { label: `Тариф ${tariff} ${currency}`.trim(), badge: 'badge-blue' };
+      }
+      return { label: type, badge: 'badge-blue' };
+    }
 
     async function fetchStats() {
       try {
-        const response = await fetch(`${API_BASE}/admin/stats`);
+        const authed = await ensureAdminAuth();
+        if (!authed) return;
+        const response = await adminFetch(`${API_BASE}/admin/stats`);
         const data = await response.json();
         
         const grid = document.getElementById('stats-grid');
@@ -149,7 +166,9 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || 'http://localhost:8000/api';
 
     async function fetchLatestLeads() {
       try {
-        const response = await fetch(`${API_BASE}/admin/confirmations?limit=5`);
+        const authed = await ensureAdminAuth();
+        if (!authed) return;
+        const response = await adminFetch(`${API_BASE}/admin/confirmations?limit=5`);
         const data = await response.json();
         
         const tableBody = document.querySelector('#leads-table tbody');
@@ -159,18 +178,19 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || 'http://localhost:8000/api';
             return;
           }
 
-          tableBody.innerHTML = data.map(lead => `
+          tableBody.innerHTML = data.map(lead => {
+            const payment = formatPaymentType(lead.payment_type || '');
+            return `
             <tr>
               <td>${lead.first_name} ${lead.last_name}</td>
               <td>${lead.email}</td>
               <td>
-                <span class="badge ${lead.payment_type === 'crypto' ? 'badge-purple' : 'badge-blue'}">
-                  ${lead.payment_type === 'crypto' ? 'Крипта' : 'Рассрочка'}
-                </span>
+                <span class="badge ${payment.badge}">${payment.label}</span>
               </td>
               <td>${new Date(lead.confirmed_at).toLocaleDateString('ru-RU')}</td>
             </tr>
-          `).join('');
+          `;
+          }).join('');
         }
       } catch (error) {
         console.error('Error fetching leads:', error);

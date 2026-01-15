@@ -1,7 +1,7 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 
-const API_BASE = import.meta.env.PUBLIC_API_BASE || 'http://localhost:8000/api';
+const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
 ---
 
 <AdminLayout title="Пользователи">
@@ -56,10 +56,14 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || 'http://localhost:8000/api';
 
   <script define:vars={{ apiBase: API_BASE }}>
     const API_BASE = apiBase;
+    const adminFetch = window.adminFetch || fetch;
+    const ensureAdminAuth = window.ensureAdminAuth || (async () => true);
 
     async function fetchUsers() {
       try {
-        const response = await fetch(`${API_BASE}/admin/users`);
+        const authed = await ensureAdminAuth();
+        if (!authed) return;
+        const response = await adminFetch(`${API_BASE}/admin/users`);
         const data = await response.json();
         
         const tableBody = document.querySelector('#users-table tbody');
