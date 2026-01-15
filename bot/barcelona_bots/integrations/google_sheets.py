@@ -70,6 +70,9 @@ class GoogleSheetsIntegration:
                 # Добавляем заголовки
                 self._add_headers()
             
+            # Применяем форматирование для аккуратного вида
+            self._apply_sheet_formatting()
+            
             self._initialized = True
             logger.info(f"Google Sheets integration initialized: {spreadsheet_id}/{worksheet_name}")
             return True
@@ -100,6 +103,70 @@ class GoogleSheetsIntegration:
         if not existing_headers or existing_headers[0] != headers[0]:
             self.worksheet.append_row(headers)
             logger.info("Added headers to Google Sheet")
+
+    def _apply_sheet_formatting(self):
+        """Приводит Google Sheet к аккуратному виду (шапка, ширины, переносы)."""
+        if not self.worksheet or not self.spreadsheet:
+            return
+        
+        try:
+            sheet_id = getattr(self.worksheet, 'id', None) or self.worksheet._properties.get('sheetId')
+            if not sheet_id:
+                return
+            
+            # Цвет шапки (темный) + белый текст
+            header_format = {
+                "backgroundColor": {"red": 0.12, "green": 0.16, "blue": 0.23},
+                "textFormat": {"bold": True, "foregroundColor": {"red": 1, "green": 1, "blue": 1}},
+                "horizontalAlignment": "CENTER",
+                "verticalAlignment": "MIDDLE"
+            }
+            
+            requests = [
+                {
+                    "updateSheetProperties": {
+                        "properties": {
+                            "sheetId": sheet_id,
+                            "gridProperties": {"frozenRowCount": 1}
+                        },
+                        "fields": "gridProperties.frozenRowCount"
+                    }
+                },
+                {
+                    "repeatCell": {
+                        "range": {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": 1},
+                        "cell": {"userEnteredFormat": header_format},
+                        "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)"
+                    }
+                },
+                {
+                    "repeatCell": {
+                        "range": {"sheetId": sheet_id, "startColumnIndex": 7, "endColumnIndex": 8},
+                        "cell": {"userEnteredFormat": {"wrapStrategy": "WRAP"}},
+                        "fields": "userEnteredFormat.wrapStrategy"
+                    }
+                }
+            ]
+            
+            # Ширины колонок (A-H)
+            column_widths = [190, 140, 160, 260, 200, 160, 320, 420]
+            for idx, width in enumerate(column_widths):
+                requests.append({
+                    "updateDimensionProperties": {
+                        "range": {
+                            "sheetId": sheet_id,
+                            "dimension": "COLUMNS",
+                            "startIndex": idx,
+                            "endIndex": idx + 1
+                        },
+                        "properties": {"pixelSize": width},
+                        "fields": "pixelSize"
+                    }
+                })
+            
+            self.spreadsheet.batch_update({"requests": requests})
+        except Exception as e:
+            logger.warning(f"Failed to apply Google Sheets formatting: {e}")
     
     def save_offer_confirmation(
         self,

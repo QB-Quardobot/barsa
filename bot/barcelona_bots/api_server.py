@@ -84,11 +84,13 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
     """
     try:
         # Валидация типа оплаты
-        if data.payment_type not in ['installment', 'crypto']:
+        if not data.payment_type or not str(data.payment_type).strip():
             raise HTTPException(
                 status_code=400,
-                detail="payment_type must be 'installment' or 'crypto'"
+                detail="payment_type must be a non-empty string"
             )
+        elif data.payment_type not in ['installment', 'crypto']:
+            logger.warning(f"Unknown payment_type received: {data.payment_type} (allowed: installment, crypto)")
         
         # Получаем IP адрес и User-Agent
         ip_address = request.client.host if request.client else None

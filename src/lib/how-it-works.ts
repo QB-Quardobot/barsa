@@ -2041,11 +2041,57 @@ export function initOfferModal(): void {
     }
   }
 
+  function getTelegramCloudStorage(): any | null {
+    const tg = getTelegramWebApp();
+    if (!tg || !tg.CloudStorage) return null;
+    return tg.CloudStorage;
+  }
+
+  function readCloudPrefill(callback: (data: { firstName?: string; lastName?: string; email?: string } | null) => void): void {
+    const cloud = getTelegramCloudStorage();
+    if (!cloud || typeof cloud.getItem !== 'function') {
+      callback(null);
+      return;
+    }
+    try {
+      cloud.getItem(PREFILL_STORAGE_KEY, (err: any, value: string | null) => {
+        if (err || !value) {
+          callback(null);
+          return;
+        }
+        try {
+          const parsed = JSON.parse(value);
+          if (!parsed || typeof parsed !== 'object') {
+            callback(null);
+            return;
+          }
+          callback({
+            firstName: typeof parsed.firstName === 'string' ? parsed.firstName : '',
+            lastName: typeof parsed.lastName === 'string' ? parsed.lastName : '',
+            email: typeof parsed.email === 'string' ? parsed.email : ''
+          });
+        } catch (e) {
+          callback(null);
+        }
+      });
+    } catch (e) {
+      callback(null);
+    }
+  }
+
   function setPrefillData(data: { firstName: string; lastName: string; email: string }): void {
     try {
       localStorage.setItem(PREFILL_STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
       // Ignore storage errors (private mode, etc.)
+    }
+    const cloud = getTelegramCloudStorage();
+    if (cloud && typeof cloud.setItem === 'function') {
+      try {
+        cloud.setItem(PREFILL_STORAGE_KEY, JSON.stringify(data), () => {});
+      } catch (e) {
+        // Ignore CloudStorage errors
+      }
     }
   }
 
@@ -2062,6 +2108,19 @@ export function initOfferModal(): void {
       emailInput.value = data.email || '';
     }
     updateSubmitButton();
+    readCloudPrefill((cloudData) => {
+      if (!cloudData) return;
+      if (firstNameInput && !firstNameInput.value) {
+        firstNameInput.value = cloudData.firstName || '';
+      }
+      if (lastNameInput && !lastNameInput.value) {
+        lastNameInput.value = cloudData.lastName || '';
+      }
+      if (emailInput && !emailInput.value) {
+        emailInput.value = cloudData.email || '';
+      }
+      updateSubmitButton();
+    });
   }
 
   function storePrefillFromInputs(): void {
