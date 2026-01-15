@@ -281,8 +281,26 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
 
   <script define:vars={{ apiBase: API_BASE }}>
     const API_BASE = apiBase;
-    const adminFetch = window.adminFetch || fetch;
-    const ensureAdminAuth = window.ensureAdminAuth || (async () => true);
+    
+    function waitForAdminHelpers() {
+      return new Promise((resolve) => {
+        if (window.ensureAdminAuth && window.adminFetch) {
+          resolve(true);
+          return;
+        }
+        let attempts = 0;
+        const interval = setInterval(() => {
+          attempts += 1;
+          if (window.ensureAdminAuth && window.adminFetch) {
+            clearInterval(interval);
+            resolve(true);
+          } else if (attempts >= 40) {
+            clearInterval(interval);
+            resolve(false);
+          }
+        }, 50);
+      });
+    }
 
     function formatBytes(bytes) {
       if (bytes === 0) return '0 B';
@@ -310,6 +328,9 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
 
     async function fetchServerInfo() {
       try {
+        await waitForAdminHelpers();
+        const ensureAdminAuth = window.ensureAdminAuth || (async () => false);
+        const adminFetch = window.adminFetch || fetch;
         const authed = await ensureAdminAuth();
         if (!authed) return;
         const response = await adminFetch(`${API_BASE}/admin/server-info`);
@@ -463,6 +484,9 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
       }
 
       try {
+        await waitForAdminHelpers();
+        const ensureAdminAuth = window.ensureAdminAuth || (async () => false);
+        const adminFetch = window.adminFetch || fetch;
         const authed = await ensureAdminAuth();
         if (!authed) return;
         const response = await adminFetch(`${API_BASE}/admin/cleanup-cache`, {
@@ -500,11 +524,13 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
       }
     }
 
-    // Инициализация
-    fetchServerInfo();
-    
-    // Автообновление каждые 30 секунд
-    setInterval(fetchServerInfo, 30000);
+    async function initAdmin() {
+      await waitForAdminHelpers();
+      await fetchServerInfo();
+      setInterval(fetchServerInfo, 30000);
+    }
+
+    initAdmin();
     
     // Инициализация иконок
     if (window.lucide && typeof window.lucide.createIcons === 'function') {

@@ -115,8 +115,26 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
 
   <script define:vars={{ apiBase: API_BASE }}>
     const API_BASE = apiBase;
-    const adminFetch = window.adminFetch || fetch;
-    const ensureAdminAuth = window.ensureAdminAuth || (async () => true);
+    
+    function waitForAdminHelpers() {
+      return new Promise((resolve) => {
+        if (window.ensureAdminAuth && window.adminFetch) {
+          resolve(true);
+          return;
+        }
+        let attempts = 0;
+        const interval = setInterval(() => {
+          attempts += 1;
+          if (window.ensureAdminAuth && window.adminFetch) {
+            clearInterval(interval);
+            resolve(true);
+          } else if (attempts >= 40) {
+            clearInterval(interval);
+            resolve(false);
+          }
+        }, 50);
+      });
+    }
 
     function formatPaymentType(type) {
       if (!type) return { label: '—', badge: 'badge-blue' };
@@ -133,6 +151,9 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
 
     async function fetchStats() {
       try {
+        await waitForAdminHelpers();
+        const ensureAdminAuth = window.ensureAdminAuth || (async () => false);
+        const adminFetch = window.adminFetch || fetch;
         const authed = await ensureAdminAuth();
         if (!authed) return;
         const response = await adminFetch(`${API_BASE}/admin/stats`);
@@ -179,6 +200,9 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
 
     async function fetchLatestLeads() {
       try {
+        await waitForAdminHelpers();
+        const ensureAdminAuth = window.ensureAdminAuth || (async () => false);
+        const adminFetch = window.adminFetch || fetch;
         const authed = await ensureAdminAuth();
         if (!authed) return;
         const response = await adminFetch(`${API_BASE}/admin/confirmations?limit=5`);
@@ -221,14 +245,16 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
       }
     }
 
-    // Initial load
-    fetchStats();
-    fetchLatestLeads();
+    async function initAdmin() {
+      await waitForAdminHelpers();
+      await fetchStats();
+      await fetchLatestLeads();
+      setInterval(() => {
+        fetchStats();
+        fetchLatestLeads();
+      }, 30000);
+    }
 
-    // Auto-refresh every 30 seconds
-    setInterval(() => {
-      fetchStats();
-      fetchLatestLeads();
-    }, 30000);
+    initAdmin();
   </script>
 </AdminLayout>

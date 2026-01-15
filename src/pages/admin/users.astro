@@ -56,11 +56,32 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
 
   <script define:vars={{ apiBase: API_BASE }}>
     const API_BASE = apiBase;
-    const adminFetch = window.adminFetch || fetch;
-    const ensureAdminAuth = window.ensureAdminAuth || (async () => true);
+    
+    function waitForAdminHelpers() {
+      return new Promise((resolve) => {
+        if (window.ensureAdminAuth && window.adminFetch) {
+          resolve(true);
+          return;
+        }
+        let attempts = 0;
+        const interval = setInterval(() => {
+          attempts += 1;
+          if (window.ensureAdminAuth && window.adminFetch) {
+            clearInterval(interval);
+            resolve(true);
+          } else if (attempts >= 40) {
+            clearInterval(interval);
+            resolve(false);
+          }
+        }, 50);
+      });
+    }
 
     async function fetchUsers() {
       try {
+        await waitForAdminHelpers();
+        const ensureAdminAuth = window.ensureAdminAuth || (async () => false);
+        const adminFetch = window.adminFetch || fetch;
         const authed = await ensureAdminAuth();
         if (!authed) return;
         const response = await adminFetch(`${API_BASE}/admin/users`);
@@ -99,6 +120,11 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE || '/api';
       }
     }
 
-    fetchUsers();
+    async function initAdmin() {
+      await waitForAdminHelpers();
+      await fetchUsers();
+    }
+
+    initAdmin();
   </script>
 </AdminLayout>
