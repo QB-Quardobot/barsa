@@ -1996,6 +1996,7 @@ export function initOfferModal(): void {
   let currentCurrency: 'rub' | 'eur' | null = null;
   let currentPaymentUrl: string | null = null;
   let isSubmitting = false;
+  const PREFILL_STORAGE_KEY = 'offerFormPrefill';
   
   // Текст оферты (пользователь должен предоставить актуальный текст)
   const OFFER_TEXT = `ПУБЛИЧНАЯ ОФЕРТА
@@ -2024,6 +2025,53 @@ export function initOfferModal(): void {
 5.1. Настоящая Оферта вступает в силу с момента акцепта Заказчиком.
 5.2. Все споры решаются путем переговоров, а при невозможности — в судебном порядке.`;
 
+  function getPrefillData(): { firstName?: string; lastName?: string; email?: string } | null {
+    try {
+      const raw = localStorage.getItem(PREFILL_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      return {
+        firstName: typeof parsed.firstName === 'string' ? parsed.firstName : '',
+        lastName: typeof parsed.lastName === 'string' ? parsed.lastName : '',
+        email: typeof parsed.email === 'string' ? parsed.email : ''
+      };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setPrefillData(data: { firstName: string; lastName: string; email: string }): void {
+    try {
+      localStorage.setItem(PREFILL_STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      // Ignore storage errors (private mode, etc.)
+    }
+  }
+
+  function applyPrefill(): void {
+    const data = getPrefillData();
+    if (!data) return;
+    if (firstNameInput && !firstNameInput.value) {
+      firstNameInput.value = data.firstName || '';
+    }
+    if (lastNameInput && !lastNameInput.value) {
+      lastNameInput.value = data.lastName || '';
+    }
+    if (emailInput && !emailInput.value) {
+      emailInput.value = data.email || '';
+    }
+    updateSubmitButton();
+  }
+
+  function storePrefillFromInputs(): void {
+    const firstName = firstNameInput?.value.trim() || '';
+    const lastName = lastNameInput?.value.trim() || '';
+    const email = emailInput?.value.trim() || '';
+    if (!firstName && !lastName && !email) return;
+    setPrefillData({ firstName, lastName, email });
+  }
+
   function openOfferModal(tariffId: string, currency: 'rub' | 'eur', paymentUrl: string): void {
     if (isModalOpen || !TARIFFS[tariffId]) return;
     
@@ -2043,6 +2091,7 @@ export function initOfferModal(): void {
       if (form) {
         form.reset();
         clearErrors();
+        applyPrefill();
         updateSubmitButton();
       }
       
@@ -2183,7 +2232,7 @@ export function initOfferModal(): void {
     timestamp: string;
   }): Promise<void> {
     // Получаем API endpoint из переменных окружения или используем значение по умолчанию
-    const API_ENDPOINT = (import.meta.env.PUBLIC_API_ENDPOINT as string) || 'http://localhost:8000/api/offer-confirmation';
+    const API_ENDPOINT = (import.meta.env.PUBLIC_API_ENDPOINT as string) || '/api/offer-confirmation';
     
     // Определяем payment_type на основе валюты и тарифа
     // Для основного процесса оплаты используем формат: tariff_{tariffId}_{currency}
@@ -2270,6 +2319,7 @@ export function initOfferModal(): void {
     
     try {
       const tariff = TARIFFS[currentTariffId];
+      storePrefillFromInputs();
       
       // Сохранение данных
       await saveUserData({
@@ -2329,6 +2379,7 @@ export function initOfferModal(): void {
         if (errorEl) errorEl.textContent = '';
         firstNameInput.setAttribute('aria-invalid', 'false');
       }
+      storePrefillFromInputs();
       updateSubmitButton();
     });
   }
@@ -2340,6 +2391,7 @@ export function initOfferModal(): void {
         if (errorEl) errorEl.textContent = '';
         lastNameInput.setAttribute('aria-invalid', 'false');
       }
+      storePrefillFromInputs();
       updateSubmitButton();
     });
   }
@@ -2351,6 +2403,7 @@ export function initOfferModal(): void {
         if (errorEl) errorEl.textContent = '';
         emailInput.setAttribute('aria-invalid', 'false');
       }
+      storePrefillFromInputs();
       updateSubmitButton();
     });
   }

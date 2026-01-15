@@ -64,6 +64,12 @@ async def health_check():
     return {"status": "ok", "timestamp": datetime.now().isoformat()}
 
 
+@app.get("/api/health")
+async def api_health_check():
+    """Health check endpoint for /api/ path"""
+    return {"status": "ok", "timestamp": datetime.now().isoformat()}
+
+
 @app.post("/api/offer-confirmation", response_model=OfferConfirmationResponse)
 async def confirm_offer(request: Request, data: OfferConfirmationRequest):
     """
@@ -113,7 +119,8 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
         # Google Sheets
         try:
             from integrations import save_to_google_sheets
-            save_to_google_sheets(
+            logger.info(f"Attempting to save to Google Sheets: {data.email}, {data.payment_type}")
+            result = save_to_google_sheets(
                 first_name=data.first_name,
                 last_name=data.last_name,
                 email=data.email,
@@ -122,8 +129,12 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
                 user_agent=user_agent,
                 additional_data=data.additional_data
             )
+            if result:
+                logger.info(f"Successfully saved to Google Sheets: {data.email}")
+            else:
+                logger.warning(f"Google Sheets save returned False for: {data.email}")
         except Exception as e:
-            logger.warning(f"Google Sheets integration failed: {e}")
+            logger.error(f"Google Sheets integration failed: {e}", exc_info=True)
         
         # Email уведомления
         try:

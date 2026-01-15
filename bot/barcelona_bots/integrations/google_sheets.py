@@ -203,16 +203,24 @@ def save_to_google_sheets(
     Returns:
         bool: True если сохранение успешно
     """
-    sheets = get_google_sheets()
-    if not sheets.is_initialized():
+    try:
+        sheets = get_google_sheets()
+        if not sheets.is_initialized():
+            logger.warning("Google Sheets integration not initialized, cannot save data")
+            return False
+        
+        logger.info(f"Calling save_offer_confirmation for: {email}")
+        result = sheets.save_offer_confirmation(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            payment_type=payment_type,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            additional_data=additional_data
+        )
+        logger.info(f"save_offer_confirmation returned: {result} for {email}")
+        return result
+    except Exception as e:
+        logger.error(f"Error in save_to_google_sheets: {e}", exc_info=True)
         return False
-    
-    return sheets.save_offer_confirmation(
-        first_name=first_name,
-        last_name=last_name,
-        email=email,
-        payment_type=payment_type,
-        ip_address=ip_address,
-        user_agent=user_agent,
-        additional_data=additional_data
-    )
