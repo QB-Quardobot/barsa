@@ -1,0 +1,90 @@
+# Команды для выполнения на сервере (скопируйте и выполните)
+
+# 1. Восстанавливаем из бэкапа
+cp /etc/nginx/sites-available/illariooo.ru.backup /etc/nginx/sites-available/illariooo.ru
+
+# 2. Проверяем конфигурацию
+nginx -t
+
+# 3. Если OK - перезагружаем
+systemctl reload nginx
+
+# 4. Обновляем через Python
+python3 << 'PYTHON'
+import re
+import datetime
+
+config_file = '/etc/nginx/sites-available/illariooo.ru'
+
+# Читаем файл
+with open(config_file, 'r') as f:
+    content = f.read()
+
+# Сохраняем бэкап
+backup_file = config_file + '.backup.' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+with open(backup_file, 'w') as f:
+    f.write(content)
+print(f"✅ Бэкап сохранен: {backup_file}")
+
+# Новый блок API proxy
+new_api_block = '''    # API Proxy to Backend
+    location /api/ {
+        limit_req zone=api burst=10 nodelay;
+        
+        # Proxy settings
+        proxy_pass http://127.0.0.1:8000/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $server_name;
+        
+        # Timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        
+        # Buffering
+        proxy_buffering off;
+        proxy_request_buffering off;
+        
+        # Logging
+        access_log /var/log/nginx/api-access.log;
+        error_log /var/log/nginx/api-error.log;
+    }'''
+
+# Удаляем старый блок location /api/ если есть
+content = re.sub(r'    location /api/.*?\n    }', '', content, flags=re.DOTALL)
+content = re.sub(r'    # API.*?\n    location /api/.*?\n    }', '', content, flags=re.DOTALL)
+
+# Находим блок location / { и добавляем после него
+match = re.search(r'(    location / \{.*?limit_req.*?try_files.*?\n    \})', content, flags=re.DOTALL)
+if match:
+    content = content[:match.end()] + '\n' + new_api_block + content[match.end():]
+    print("✅ Блок API proxy добавлен после location /")
+else:
+    # Альтернативный способ
+    match = re.search(r'(    location / \{.*?\n    \})', content, flags=re.DOTALL)
+    if match:
+        content = content[:match.end()] + '\n' + new_api_block + content[match.end():]
+        print("✅ Блок API proxy добавлен")
+    else:
+        print("❌ Не могу найти место для вставки!")
+        exit(1)
+
+# Сохраняем
+with open(config_file, 'w') as f:
+    f.write(content)
+
+print("✅ Конфигурация обновлена")
+PYTHON
+
+# 5. Проверяем конфигурацию
+nginx -t
+
+# 6. Если OK - перезагружаем
+systemctl reload nginx
+
+# 7. Проверяем что файл логов будет создан
+echo "Лог файл будет создан при первом запросе: /var/log/nginx/api-access.log"

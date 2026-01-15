@@ -2449,25 +2449,52 @@ export function initOfferModal(): void {
       };
 
       debugLog('info', 'api_request', { endpoint: API_ENDPOINT, payload });
+      console.log('🚀 Отправляю запрос на:', API_ENDPOINT, payload);
 
-      const response = await fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-        keepalive: true,
-      });
+      // Пробуем сначала fetch с keepalive
+      let fetchSuccess = false;
+      try {
+        const response = await Promise.race([
+          fetch(API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+            keepalive: true,
+            signal: AbortSignal.timeout(3000) // Таймаут 3 секунды
+          }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+        ]) as Response;
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ detail: 'Ошибка сервера' }));
+          debugLog('warn', 'api_response_error', { status: response.status, error: errorData });
+          console.warn('❌ Failed to save to API:', response.status, errorData);
+          fetchSuccess = false;
+        } else {
+          const result = await response.json();
+          debugLog('info', 'api_response_ok', { status: response.status, result });
+          console.log('✅ Data saved to API successfully:', result);
+          fetchSuccess = true;
+        }
+      } catch (fetchError) {
+        console.warn('⚠️ Fetch failed, trying sendBeacon:', fetchError);
+        debugLog('warn', 'fetch_failed', String(fetchError));
+        fetchSuccess = false;
+      }
       
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: 'Ошибка сервера' }));
-        debugLog('warn', 'api_response_error', { status: response.status, error: errorData });
-        console.warn('Failed to save to API:', errorData.detail || 'Unknown error');
-        // Не прерываем процесс, просто логируем ошибку
-      } else {
-        const result = await response.json();
-        debugLog('info', 'api_response_ok', { status: response.status, result });
-        console.log('Data saved to API successfully:', result);
+      // Если fetch не сработал, используем sendBeacon как fallback
+      if (!fetchSuccess) {
+        if (navigator.sendBeacon) {
+          const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+          const beaconOk = navigator.sendBeacon(API_ENDPOINT, blob);
+          debugLog('info', 'beacon_fallback', { ok: beaconOk, endpoint: API_ENDPOINT });
+          console.log(beaconOk ? '✅ Beacon sent successfully' : '❌ Beacon failed');
+        } else {
+          console.error('❌ Both fetch and sendBeacon failed!');
+          debugLog('error', 'all_methods_failed', 'No way to send data');
+        }
       }
     } catch (error) {
       console.error('Error sending data to API:', error);
@@ -2552,8 +2579,8 @@ export function initOfferModal(): void {
       const tariff = TARIFFS[currentTariffId];
       storePrefillFromInputs();
       
-      // Сохранение данных
-      await saveUserData({
+      // Сохранение данных - НЕ ждем завершения, чтобы не блокировать редирект
+      const savePromise = saveUserData({
         firstName: firstNameInput?.value.trim() || '',
         lastName: lastNameInput?.value.trim() || '',
         email: emailInput?.value.trim() || '',
@@ -2564,12 +2591,34 @@ export function initOfferModal(): void {
         timestamp: new Date().toISOString()
       });
       
-      // Редирект на Tribute
-      window.location.href = currentPaymentUrl;
+      // Даем время на отправку (но не блокируем редирект)
+      Promise.race([
+        savePromise,
+        new Promise(resolve => setTimeout(resolve, 500)) // Максимум 500мс на отправку
+      ]).catch(err => {
+        console.error('Error saving user data (non-blocking):', err);
+        debugLog('error', 'save_timeout', String(err));
+      });
+      
+      // Редирект на Tribute (не ждем завершения сохранения)
+      // Используем небольшую задержку, чтобы дать время на отправку запроса
+      if (currentPaymentUrl) {
+        setTimeout(() => {
+          window.location.href = currentPaymentUrl;
+        }, 100);
+      } else {
+        console.error('currentPaymentUrl is null!');
+        debugLog('error', 'missing_payment_url', 'currentPaymentUrl is null');
+      }
     } catch (error) {
-      console.error('Error saving user data:', error);
-      // Даже при ошибке сохранения разрешаем переход к оплате
-      window.location.href = currentPaymentUrl;
+      console.error('Error in handleSubmit:', error);
+      debugLog('error', 'submit_error', String(error));
+      // Даже при ошибке разрешаем переход к оплате
+      if (currentPaymentUrl) {
+        window.location.href = currentPaymentUrl;
+      } else {
+        console.error('Cannot redirect: currentPaymentUrl is null!');
+      }
     }
   }
   
