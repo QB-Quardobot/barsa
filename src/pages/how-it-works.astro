@@ -1993,14 +1993,6 @@ import '../styles/animations-extended.css';
     <div class="offer-modal-content">
       <button type="button" class="offer-modal-close" aria-label="Закрыть">&times;</button>
       <h3 id="offerModalTitle" class="offer-modal-title">Подтверждение условий перед оплатой</h3>
-      
-      <div class="offer-section">
-        <div class="offer-text-container" id="offerTextContainer">
-          <div class="offer-text" id="offerText">
-            <!-- Текст оферты будет вставлен динамически -->
-          </div>
-        </div>
-      </div>
 
       <form id="offerForm" class="offer-form" novalidate>
         <div class="form-group">
@@ -2052,6 +2044,25 @@ import '../styles/animations-extended.css';
           <label class="checkbox-label">
             <input 
               type="checkbox" 
+              id="offerPrivacy" 
+              name="privacy" 
+              class="form-checkbox" 
+              required
+              aria-required="true"
+              aria-invalid="false"
+            />
+            <span class="custom-checkbox"></span>
+            <span class="checkbox-text">
+              Я даю <a href="/policy" target="_blank" class="checkbox-link">согласие на обработку персональных данных</a>
+            </span>
+          </label>
+          <span class="form-error" id="privacyError" role="alert"></span>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
               id="offerAgreement" 
               name="agreement" 
               class="form-checkbox" 
@@ -2059,7 +2070,10 @@ import '../styles/animations-extended.css';
               aria-required="true"
               aria-invalid="false"
             />
-            <span class="checkbox-text">Я ознакомился(лась) и согласен(на) с условиями оферты</span>
+            <span class="custom-checkbox"></span>
+            <span class="checkbox-text">
+              Я <a href="/offer" target="_blank" class="checkbox-link">ознакомлен(а) с условиями оферты</a>
+            </span>
           </label>
           <span class="form-error" id="agreementError" role="alert"></span>
         </div>

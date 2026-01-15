@@ -1,0 +1,182 @@
+---
+interface Props {
+  src: string;
+  title?: string;
+  downloadUrl?: string;
+  fileName?: string;
+}
+
+const { src, title, downloadUrl, fileName } = Astro.props;
+---
+
+<div class="pdf-viewer-container">
+  {title && (
+    <div class="pdf-viewer-header">
+      <h2 class="pdf-viewer-title">{title}</h2>
+      {downloadUrl && (
+        <a 
+          href={downloadUrl} 
+          download={fileName}
+          class="pdf-download-btn"
+          aria-label="Скачать PDF"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Скачать PDF
+        </a>
+      )}
+    </div>
+  )}
+  
+  <div class="pdf-viewer-wrapper">
+    <iframe
+      src={src}
+      class="pdf-iframe"
+      title={title || "PDF документ"}
+      loading="lazy"
+      allow="fullscreen"
+    ></iframe>
+  </div>
+  
+  {!downloadUrl && (
+    <div class="pdf-fallback">
+      <p class="pdf-fallback-text">
+        Если PDF не отображается, вы можете 
+        <a href={src} download={fileName} class="pdf-fallback-link">скачать документ</a>
+      </p>
+    </div>
+  )}
+</div>
+
+<style>
+  .pdf-viewer-container {
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .pdf-viewer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .pdf-viewer-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95);
+    margin: 0;
+  }
+
+  .pdf-download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, rgba(96, 165, 250, 1) 0%, rgba(139, 92, 246, 1) 100%);
+    color: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    cursor: pointer;
+  }
+
+  .pdf-download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(96, 165, 250, 0.3);
+  }
+
+  .pdf-download-btn:active {
+    transform: translateY(0);
+  }
+
+  .pdf-download-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .pdf-viewer-wrapper {
+    position: relative;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    min-height: 600px;
+  }
+
+  .pdf-iframe {
+    width: 100%;
+    height: 800px;
+    border: none;
+    display: block;
+  }
+
+  .pdf-fallback {
+    margin-top: 1rem;
+    text-align: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+  }
+
+  .pdf-fallback-text {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .pdf-fallback-link {
+    color: rgba(96, 165, 250, 0.9);
+    text-decoration: underline;
+    margin-left: 0.25rem;
+    transition: color 0.15s ease;
+  }
+
+  .pdf-fallback-link:hover {
+    color: rgba(96, 165, 250, 1);
+  }
+
+  @media (max-width: 768px) {
+    .pdf-viewer-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .pdf-viewer-title {
+      font-size: 1.25rem;
+    }
+
+    .pdf-download-btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .pdf-iframe {
+      height: 600px;
+    }
+
+    .pdf-viewer-wrapper {
+      min-height: 500px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .pdf-iframe {
+      height: 500px;
+    }
+
+    .pdf-viewer-wrapper {
+      min-height: 400px;
+    }
+  }
+</style>

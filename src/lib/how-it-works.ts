@@ -1987,9 +1987,9 @@ export function initOfferModal(): void {
   const firstNameInput = modal.querySelector('#offerFirstName') as HTMLInputElement;
   const lastNameInput = modal.querySelector('#offerLastName') as HTMLInputElement;
   const emailInput = modal.querySelector('#offerEmail') as HTMLInputElement;
+  const privacyCheckbox = modal.querySelector('#offerPrivacy') as HTMLInputElement;
   const agreementCheckbox = modal.querySelector('#offerAgreement') as HTMLInputElement;
   const submitBtn = modal.querySelector('#offerSubmitBtn') as HTMLButtonElement;
-  const offerText = modal.querySelector('#offerText') as HTMLElement;
   
   let isModalOpen = false;
   let currentTariffId: string | null = null;
@@ -2039,16 +2039,11 @@ export function initOfferModal(): void {
     
     // Используем двойной RAF для оптимизации: первый для DOM операций, второй для анимации
     requestAnimationFrame(() => {
-      // Сброс формы и установка текста в первом RAF
+      // Сброс формы в первом RAF
       if (form) {
         form.reset();
         clearErrors();
         updateSubmitButton();
-      }
-      
-      // Установка текста оферты
-      if (offerText) {
-        offerText.textContent = OFFER_TEXT;
       }
       
       // Анимация во втором RAF для плавности
@@ -2171,9 +2166,10 @@ export function initOfferModal(): void {
     const hasFirstName = firstNameInput && firstNameInput.value.trim().length > 0;
     const hasLastName = lastNameInput && lastNameInput.value.trim().length > 0;
     const hasEmail = emailInput && emailInput.value.trim().length > 0;
+    const hasPrivacy = privacyCheckbox && privacyCheckbox.checked;
     const hasAgreement = agreementCheckbox && agreementCheckbox.checked;
     
-    submitBtn.disabled = !(hasFirstName && hasLastName && hasEmail && hasAgreement) || isSubmitting;
+    submitBtn.disabled = !(hasFirstName && hasLastName && hasEmail && hasPrivacy && hasAgreement) || isSubmitting;
   }
   
   async function saveUserData(data: {
@@ -2354,6 +2350,17 @@ export function initOfferModal(): void {
         const errorEl = modal.querySelector('#emailError') as HTMLElement;
         if (errorEl) errorEl.textContent = '';
         emailInput.setAttribute('aria-invalid', 'false');
+      }
+      updateSubmitButton();
+    });
+  }
+  
+  if (privacyCheckbox) {
+    createEventListener(privacyCheckbox, 'change', () => {
+      if (privacyCheckbox.checked) {
+        const errorEl = modal.querySelector('#privacyError') as HTMLElement;
+        if (errorEl) errorEl.textContent = '';
+        privacyCheckbox.setAttribute('aria-invalid', 'false');
       }
       updateSubmitButton();
     });

@@ -6182,25 +6182,122 @@ transform: translateY(0) scale(1) !important;
 
 .checkbox-label {
   display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 0.875rem;
   cursor: pointer;
-  font-size: 0.95rem;
-  line-height: 1.5;
+  font-size: 0.7rem;
+  line-height: 1.3;
   color: rgba(255, 255, 255, 0.9);
+  position: relative;
+  word-spacing: normal;
 }
 
 .form-checkbox {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  margin-top: 0.125rem;
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.custom-checkbox {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  accent-color: rgba(96, 165, 250, 1);
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-checkbox::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 10px;
+  border: solid rgba(255, 255, 255, 0.95);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) scale(0);
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  top: 3px;
+  left: 7px;
+}
+
+.form-checkbox:checked + .custom-checkbox {
+  background: linear-gradient(135deg, rgba(96, 165, 250, 1) 0%, rgba(139, 92, 246, 1) 100%);
+  border-color: rgba(96, 165, 250, 0.8);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+}
+
+.form-checkbox:checked + .custom-checkbox::after {
+  transform: rotate(45deg) scale(1);
+}
+
+.checkbox-label:hover .custom-checkbox {
+  border-color: rgba(96, 165, 250, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.checkbox-label:hover .form-checkbox:checked + .custom-checkbox {
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+  transform: scale(1.02);
+}
+
+.form-checkbox:focus + .custom-checkbox {
+  outline: 2px solid rgba(96, 165, 250, 0.5);
+  outline-offset: 2px;
+}
+
+.form-checkbox:disabled + .custom-checkbox {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .checkbox-text {
   flex: 1;
+  line-height: 1.3;
+  word-wrap: break-word;
+  padding: 0;
+  margin: 0;
+  text-indent: 0;
+  min-width: 0;
+}
+
+.checkbox-text * {
+  display: inline !important;
+}
+
+.checkbox-link {
+  color: rgba(96, 165, 250, 0.9);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s ease;
+  cursor: pointer;
+  display: inline !important;
+  white-space: normal;
+  word-break: break-word;
+  margin-left: -0.5em;
+  padding-left: 0;
+  text-indent: 0;
+  word-spacing: normal;
+}
+
+.checkbox-link:hover {
+  color: rgba(96, 165, 250, 1);
+  text-decoration: underline;
+}
+
+.checkbox-link:focus {
+  outline: 2px solid rgba(96, 165, 250, 0.5);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 .offer-submit-btn {

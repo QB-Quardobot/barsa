@@ -1477,6 +1477,11 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
     <!-- Footer with powered by -->
     <footer class="app-footer">
       <div class="footer-content">
+        <nav class="footer-links" aria-label="Дополнительные ссылки">
+          <a href="/offer" class="footer-link">Публичная оферта</a>
+          <span class="footer-separator">•</span>
+          <a href="/policy" class="footer-link">Политика конфиденциальности</a>
+        </nav>
         <p class="footer-powered">
           <span class="powered-text">powered by</span>
           <a href="https://t.me/quardobot" target="_blank" rel="noopener noreferrer" class="powered-link" aria-label="Quardobot Telegram">
@@ -2182,6 +2187,38 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       max-width: 1200px;
       margin: 0 auto;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+    }
+    
+    .footer-links {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .footer-link {
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.5);
+      text-decoration: none;
+      transition: color 0.2s ease;
+      padding: 0.25rem 0;
+    }
+    
+    .footer-link:hover,
+    .footer-link:focus {
+      color: rgba(96, 165, 250, 0.9);
+      outline: none;
+    }
+    
+    .footer-separator {
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 0.75rem;
+      user-select: none;
     }
     
     .footer-powered {
@@ -2279,6 +2316,18 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
       .app-footer {
         padding: 1.25rem 1rem;
         margin-top: 1.5rem;
+      }
+      
+      .footer-content {
+        gap: 0.875rem;
+      }
+      
+      .footer-links {
+        gap: 0.625rem;
+      }
+      
+      .footer-link {
+        font-size: 0.8125rem;
       }
       
       .footer-powered {
