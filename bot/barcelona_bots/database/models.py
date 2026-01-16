@@ -50,6 +50,10 @@ class OfferConfirmation(Base):
     ip_address = Column(String)
     # User Agent (опционально, для логирования)
     user_agent = Column(String)
+    # Telegram user id (опционально)
+    telegram_user_id = Column(String)
+    # Telegram username (опционально)
+    telegram_username = Column(String)
     # Дополнительные данные (JSON строка, если нужно)
     additional_data = Column(String)
 

@@ -1703,16 +1703,16 @@ export function initSmoothScroll(): void {
 
 
 // Tariff data configuration
+interface TariffLink {
+  amount: string;
+  telegramUrl: string;
+  webUrl: string;
+}
+
 interface TariffData {
   name: string;
-  rub: {
-    amount: string;
-    url: string;
-  };
-  eur: {
-    amount: string;
-    url: string;
-  };
+  rub: TariffLink;
+  eur: TariffLink;
 }
 
 const TARIFFS: Record<string, TariffData> = {
@@ -1720,25 +1720,35 @@ const TARIFFS: Record<string, TariffData> = {
     name: 'Самостоятельный',
     rub: {
       amount: '24.000 ₽',
-      url: 'https://t.me/tribute/app?startapp=sFEK'
+      telegramUrl: 'https://t.me/tribute/app?startapp=sFEK',
+      webUrl: 'https://t.me/tribute/app?startapp=sFEK'
     },
     eur: {
       amount: '250 €',
-      url: 'https://t.me/tribute/app?startapp=sFEc'
+      telegramUrl: 'https://t.me/tribute/app?startapp=sFEc',
+      webUrl: 'https://t.me/tribute/app?startapp=sFEc'
     }
   },
   '2': {
     name: 'Все и сразу',
     rub: {
       amount: '46 800 ₽',
-      url: 'https://t.me/tribute/app?startapp=sKRN'
+      telegramUrl: 'https://t.me/tribute/app?startapp=sLm3',
+      webUrl: 'https://web.tribute.tg/s/Lm3'
     },
     eur: {
       amount: '500 €',
-      url: 'https://t.me/tribute/app?startapp=sKRL'
+      telegramUrl: 'https://t.me/tribute/app?startapp=sLm2',
+      webUrl: 'https://web.tribute.tg/s/Lm2'
     }
   }
 };
+
+function getTariffPaymentUrl(tariff: TariffData, currency: 'rub' | 'eur'): string {
+  const useTelegram = isTelegramWebAppAvailable();
+  const link = currency === 'rub' ? tariff.rub : tariff.eur;
+  return useTelegram ? link.telegramUrl : link.webUrl;
+}
 
 // Global reference to openOfferModal function (will be set by initOfferModal)
 let openOfferModalGlobal: ((tariffId: string, currency: 'rub' | 'eur', paymentUrl: string) => void) | null = null;
@@ -1775,13 +1785,16 @@ export function initCurrencyModal(): void {
     
     // INP OPTIMIZATION: Batch DOM updates in RAF
     scheduleRAF(() => {
+      const rubUrl = getTariffPaymentUrl(tariff, 'rub');
+      const eurUrl = getTariffPaymentUrl(tariff, 'eur');
+
       // Update amounts (critical for user feedback)
       if (rubAmount) rubAmount.textContent = tariff.rub.amount;
       if (eurAmount) eurAmount.textContent = tariff.eur.amount;
       
       // Update links (critical for functionality)
-      if (rubBtn) rubBtn.href = tariff.rub.url;
-      if (eurBtn) eurBtn.href = tariff.eur.url;
+      if (rubBtn) rubBtn.href = rubUrl;
+      if (eurBtn) eurBtn.href = eurUrl;
       
       // Update crypto payment link (leads to personal Telegram)
       if (cryptoBtn) {
@@ -1906,7 +1919,7 @@ export function initCurrencyModal(): void {
       
       // Сохраняем значения перед закрытием модального окна
       const tariffId = currentTariff;
-      const paymentUrl = tariff.rub.url;
+      const paymentUrl = getTariffPaymentUrl(tariff, 'rub');
       
       // Закрываем модальное окно выбора валюты
       closeModal();
@@ -1947,7 +1960,7 @@ export function initCurrencyModal(): void {
       
       // Сохраняем значения перед закрытием модального окна
       const tariffId = currentTariff;
-      const paymentUrl = tariff.eur.url;
+      const paymentUrl = getTariffPaymentUrl(tariff, 'eur');
       
       // Закрываем модальное окно выбора валюты
       closeModal();
@@ -2086,6 +2099,18 @@ export function initOfferModal(): void {
       debugLog('warn', 'api_endpoint_invalid', { raw, error: String(error) });
       return fallback;
     }
+  }
+
+  function getTelegramUserInfo(): { id: string; username?: string } | null {
+    const tg = getTelegramWebApp();
+    const user = tg?.initDataUnsafe?.user;
+    if (!user || typeof user.id !== 'number') {
+      return null;
+    }
+    const username = typeof user.username === 'string' && user.username.trim()
+      ? user.username.trim()
+      : undefined;
+    return { id: String(user.id), username };
   }
 
   if (debugPanel && DEBUG_ENABLED) {
@@ -2434,6 +2459,9 @@ export function initOfferModal(): void {
     const normalizedEmail = (data.email || '').trim();
     const normalizedFirstName = (data.firstName || '').trim();
     const normalizedLastName = (data.lastName || '').trim();
+    const telegramUser = getTelegramUserInfo();
+    const telegramUserId = telegramUser?.id;
+    const telegramUsername = telegramUser?.username;
     
     // Сохранение в localStorage (fallback)
     try {
@@ -2455,7 +2483,9 @@ export function initOfferModal(): void {
         payment_type: paymentType,
         email: normalizedEmail,
         source: 'how-it-works',
-        page: window.location.pathname
+        page: window.location.pathname,
+        ...(telegramUserId ? { telegram_user_id: telegramUserId } : {}),
+        ...(telegramUsername ? { telegram_username: telegramUsername } : {})
       };
 
       const payload = {
@@ -2465,11 +2495,15 @@ export function initOfferModal(): void {
         email: normalizedEmail,
         payment_type: paymentType,
         additional_data: additionalData,
+        telegram_user_id: telegramUserId,
+        telegram_username: telegramUsername,
         // camelCase duplicates for safety (older/newer clients)
         firstName: normalizedFirstName,
         lastName: normalizedLastName,
         paymentType: paymentType,
-        additionalData: additionalData
+        additionalData: additionalData,
+        telegramUserId: telegramUserId,
+        telegramUsername: telegramUsername
       };
 
       debugLog('info', 'api_request', { endpoint: API_ENDPOINT, payload });
@@ -2505,7 +2539,6 @@ export function initOfferModal(): void {
           fetchSuccess = true;
         }
       } catch (fetchError) {
-        console.warn('⚠️ Fetch failed, trying sendBeacon:', fetchError);
         debugLog('warn', 'fetch_failed', String(fetchError));
         fetchSuccess = false;
       }
@@ -2540,11 +2573,17 @@ export function initOfferModal(): void {
                 payment_type: paymentType,
                 email: normalizedEmail,
                 source: 'how-it-works',
-                page: window.location.pathname
+                page: window.location.pathname,
+                ...(telegramUserId ? { telegram_user_id: telegramUserId } : {}),
+                ...(telegramUsername ? { telegram_username: telegramUsername } : {})
               },
+              telegram_user_id: telegramUserId,
+              telegram_username: telegramUsername,
               firstName: normalizedFirstName,
               lastName: normalizedLastName,
-              paymentType: paymentType
+              paymentType: paymentType,
+              telegramUserId: telegramUserId,
+              telegramUsername: telegramUsername
             })],
             { type: 'application/json' }
           );

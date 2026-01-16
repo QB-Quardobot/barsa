@@ -100,6 +100,8 @@ class GoogleSheetsIntegration:
             'Имя',
             'Фамилия',
             'Email',
+            'Telegram ID',
+            'Telegram Username',
             'Тип оплаты',
             'IP адрес',
             'User Agent',
@@ -108,9 +110,9 @@ class GoogleSheetsIntegration:
         
         # Проверяем, есть ли уже заголовки
         existing_headers = self.worksheet.row_values(1)
-        if not existing_headers or existing_headers[0] != headers[0]:
-            self.worksheet.append_row(headers)
-            logger.info("Added headers to Google Sheet")
+        if not existing_headers or existing_headers[:len(headers)] != headers:
+            self.worksheet.update('A1', [headers])
+            logger.info("Updated headers in Google Sheet")
 
     def _apply_sheet_formatting(self):
         """Приводит Google Sheet к аккуратному виду (шапка, ширины, переносы)."""
@@ -149,15 +151,15 @@ class GoogleSheetsIntegration:
                 },
                 {
                     "repeatCell": {
-                        "range": {"sheetId": sheet_id, "startColumnIndex": 7, "endColumnIndex": 8},
+                        "range": {"sheetId": sheet_id, "startColumnIndex": 9, "endColumnIndex": 10},
                         "cell": {"userEnteredFormat": {"wrapStrategy": "WRAP"}},
                         "fields": "userEnteredFormat.wrapStrategy"
                     }
                 }
             ]
             
-            # Ширины колонок (A-H)
-            column_widths = [190, 140, 160, 260, 200, 160, 320, 420]
+            # Ширины колонок (A-J)
+            column_widths = [190, 140, 160, 260, 140, 180, 200, 160, 320, 420]
             for idx, width in enumerate(column_widths):
                 requests.append({
                     "updateDimensionProperties": {
@@ -184,6 +186,8 @@ class GoogleSheetsIntegration:
         payment_type: str,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
+        telegram_user_id: Optional[str] = None,
+        telegram_username: Optional[str] = None,
         additional_data: Optional[Dict[str, Any]] = None
     ) -> bool:
         """
@@ -220,6 +224,8 @@ class GoogleSheetsIntegration:
                 first_name,
                 last_name,
                 email,
+                telegram_user_id or '',
+                telegram_username or '',
                 payment_type,
                 ip_address or '',
                 user_agent or '',
@@ -261,6 +267,8 @@ def save_to_google_sheets(
     payment_type: str,
     ip_address: Optional[str] = None,
     user_agent: Optional[str] = None,
+    telegram_user_id: Optional[str] = None,
+    telegram_username: Optional[str] = None,
     additional_data: Optional[Dict[str, Any]] = None
 ) -> bool:
     """
@@ -292,6 +300,8 @@ def save_to_google_sheets(
             payment_type=payment_type,
             ip_address=ip_address,
             user_agent=user_agent,
+            telegram_user_id=telegram_user_id,
+            telegram_username=telegram_username,
             additional_data=additional_data
         )
         logger.info(f"save_offer_confirmation returned: {result} for {email}")

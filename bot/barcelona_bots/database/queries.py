@@ -46,6 +46,8 @@ async def save_offer_confirmation(
     payment_type: str,
     ip_address: str = None,
     user_agent: str = None,
+    telegram_user_id: str = None,
+    telegram_username: str = None,
     additional_data: str = None
 ):
     """Сохраняет подтверждение оферты и данные клиента.
@@ -82,6 +84,8 @@ async def save_offer_confirmation(
         confirmed_at=datetime.now(timezone.utc),
         ip_address=ip_address,
         user_agent=user_agent,
+        telegram_user_id=telegram_user_id,
+        telegram_username=telegram_username,
         additional_data=additional_data
     )
     session.add(confirmation)

@@ -45,6 +45,8 @@ class OfferConfirmationRequest(BaseModel):
     last_name: Optional[str] = Field(default=None, alias="lastName")
     email: Optional[str] = None
     payment_type: Optional[str] = Field(default=None, alias="paymentType")
+    telegram_user_id: Optional[str] = Field(default=None, alias="telegramUserId")
+    telegram_username: Optional[str] = Field(default=None, alias="telegramUsername")
     additional_data: Optional[Any] = Field(default=None, alias="additionalData")
 
     class Config:
@@ -113,6 +115,8 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
         last_name = (data.last_name or "").strip()
         email = (data.email or "").strip()
         payment_type = (data.payment_type or "").strip()
+        telegram_user_id = (data.telegram_user_id or "").strip() or None
+        telegram_username = (data.telegram_username or "").strip() or None
 
         # Попробовать восстановить payment_type из additional_data
         if not payment_type and isinstance(data.additional_data, dict):
@@ -131,6 +135,16 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
             extra_additional = dict(data.additional_data)
         elif data.additional_data is not None:
             extra_additional = {"raw_additional_data": str(data.additional_data)}
+
+        # Telegram user info (fallback from additional_data)
+        if not telegram_user_id:
+            candidate = extra_additional.get("telegram_user_id") or extra_additional.get("telegramUserId")
+            if candidate is not None:
+                telegram_user_id = str(candidate).strip() or None
+        if not telegram_username:
+            candidate = extra_additional.get("telegram_username") or extra_additional.get("telegramUsername")
+            if candidate is not None:
+                telegram_username = str(candidate).strip() or None
 
         # Валидация email (fallback, чтобы не терять лиды)
         if not email and extra_additional:
@@ -159,6 +173,10 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
 
         if extra_additional is not None:
             extra_additional.setdefault("payment_type", payment_type)
+            if telegram_user_id:
+                extra_additional.setdefault("telegram_user_id", telegram_user_id)
+            if telegram_username:
+                extra_additional.setdefault("telegram_username", telegram_username)
         
         # Получаем IP адрес и User-Agent
         ip_address = request.client.host if request.client else None
@@ -180,6 +198,8 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
             payment_type=payment_type,
             ip_address=ip_address,
             user_agent=user_agent,
+            telegram_user_id=telegram_user_id,
+            telegram_username=telegram_username,
             additional_data=additional_data_str
         )
         
@@ -210,6 +230,8 @@ async def confirm_offer(request: Request, data: OfferConfirmationRequest):
                 payment_type=payment_type,
                 ip_address=ip_address,
                 user_agent=user_agent,
+                telegram_user_id=telegram_user_id,
+                telegram_username=telegram_username,
                 additional_data=extra_additional if extra_additional else None
             )
             logger.info(f"Google Sheets save_to_google_sheets returned: {result} (type: {type(result)})")

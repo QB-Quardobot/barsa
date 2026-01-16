@@ -142,6 +142,17 @@ const OFFER_TEXT = `ПУБЛИЧНАЯ ОФЕРТА
     }
   }
 
+  function getTelegramUserInfo(): { id: string; username?: string } | null {
+    const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    if (!user || typeof user.id !== 'number') {
+      return null;
+    }
+    const username = typeof user.username === 'string' && user.username.trim()
+      ? user.username.trim()
+      : undefined;
+    return { id: String(user.id), username };
+  }
+
   const API_ENDPOINT = getSafeApiEndpoint();
   const PAYMENT_TYPE = 'crypto';
   const DEBUG_ENABLED = new URLSearchParams(window.location.search).has('debug')
@@ -259,11 +270,16 @@ const OFFER_TEXT = `ПУБЛИЧНАЯ ОФЕРТА
     
     try {
       // Отправляем данные на API
+      const telegramUser = getTelegramUserInfo();
+      const telegramUserId = telegramUser?.id;
+      const telegramUsername = telegramUser?.username;
       const additionalData = {
         payment_type: PAYMENT_TYPE,
         email: emailInput.value.trim(),
         source: 'crypto',
-        page: window.location.pathname
+        page: window.location.pathname,
+        ...(telegramUserId ? { telegram_user_id: telegramUserId } : {}),
+        ...(telegramUsername ? { telegram_username: telegramUsername } : {})
       };
 
       const payload = {
@@ -272,11 +288,15 @@ const OFFER_TEXT = `ПУБЛИЧНАЯ ОФЕРТА
         email: emailInput.value.trim(),
         payment_type: PAYMENT_TYPE,
         additional_data: additionalData,
+        telegram_user_id: telegramUserId,
+        telegram_username: telegramUsername,
         // camelCase duplicates for safety
         firstName: firstNameInput.value.trim(),
         lastName: lastNameInput.value.trim(),
         paymentType: PAYMENT_TYPE,
-        additionalData
+        additionalData,
+        telegramUserId: telegramUserId,
+        telegramUsername: telegramUsername
       };
 
       logDebug('info', 'api_request', { endpoint: API_ENDPOINT, payload });
