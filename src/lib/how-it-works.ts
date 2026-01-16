@@ -1725,8 +1725,8 @@ const TARIFFS: Record<string, TariffData> = {
     },
     eur: {
       amount: '250 €',
-      telegramUrl: 'https://t.me/tribute/app?startapp=sFEc',
-      webUrl: 'https://t.me/tribute/app?startapp=sFEc'
+      telegramUrl: 'https://t.me/tribute/app?startapp=sGCB',
+      webUrl: 'https://t.me/tribute/app?startapp=sGCB'
     }
   },
   '2': {

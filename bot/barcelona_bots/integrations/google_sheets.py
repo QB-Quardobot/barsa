@@ -68,6 +68,10 @@ class GoogleSheetsIntegration:
             # Получаем или создаем worksheet
             try:
                 self.worksheet = self.spreadsheet.worksheet(worksheet_name)
+                # Проверяем и обновляем заголовки для существующей таблицы
+                self._add_headers()
+                # Проверяем структуру таблицы и исправляем если нужно
+                self._verify_table_structure()
             except gspread.exceptions.WorksheetNotFound:
                 # Создаем новый worksheet если не существует
                 self.worksheet = self.spreadsheet.add_worksheet(
@@ -90,8 +94,37 @@ class GoogleSheetsIntegration:
             self._initialized = False
             return False
     
+    def _verify_table_structure(self):
+        """Проверяет структуру таблицы и исправляет если нужно"""
+        if not self.worksheet:
+            return
+        
+        try:
+            expected_headers = [
+                'Дата и время',
+                'Имя',
+                'Фамилия',
+                'Email',
+                'TG User ID',
+                'TG Username',
+                'Тип оплаты',
+                'IP адрес',
+                'User Agent',
+                'Дополнительные данные'
+            ]
+            
+            existing_headers = self.worksheet.row_values(1)
+            
+            # Если заголовки не совпадают - обновляем
+            if not existing_headers or existing_headers[:len(expected_headers)] != expected_headers:
+                logger.info("Table structure mismatch detected, fixing headers...")
+                self._add_headers()
+                logger.info("Table structure fixed")
+        except Exception as e:
+            logger.warning(f"Could not verify table structure: {e}")
+    
     def _add_headers(self):
-        """Добавляет заголовки в таблицу если она пустая"""
+        """Добавляет или обновляет заголовки в таблице"""
         if not self.worksheet:
             return
         
@@ -110,9 +143,37 @@ class GoogleSheetsIntegration:
         
         # Проверяем, есть ли уже заголовки
         existing_headers = self.worksheet.row_values(1)
+        
+        # Если заголовков нет или они не совпадают - обновляем
         if not existing_headers or existing_headers[:len(headers)] != headers:
-            self.worksheet.update('A1', [headers])
-            logger.info("Updated headers in Google Sheet")
+            # Обновляем заголовки в первой строке
+            # Используем update с range, чтобы точно заменить нужные колонки
+            try:
+                # Получаем количество существующих колонок
+                max_col = len(existing_headers) if existing_headers else 0
+                target_cols = len(headers)
+                
+                # Если нужно больше колонок - расширяем
+                if target_cols > max_col:
+                    # Добавляем пустые ячейки если нужно
+                    if max_col > 0:
+                        # Обновляем существующие + добавляем новые
+                        range_to_update = f'A1:{chr(64 + target_cols)}1'
+                    else:
+                        range_to_update = f'A1:{chr(64 + target_cols)}1'
+                else:
+                    range_to_update = f'A1:{chr(64 + target_cols)}1'
+                
+                # Обновляем заголовки
+                self.worksheet.update(range_to_update, [headers], value_input_option='RAW')
+                logger.info(f"Updated headers in Google Sheet: {headers}")
+            except Exception as e:
+                # Fallback: просто обновляем первую строку
+                try:
+                    self.worksheet.update('A1', [headers])
+                    logger.info(f"Updated headers (fallback method): {headers}")
+                except Exception as e2:
+                    logger.error(f"Failed to update headers: {e2}")
 
     def _apply_sheet_formatting(self):
         """Применяет профессиональное форматирование к Google Sheet."""
@@ -475,18 +536,22 @@ class GoogleSheetsIntegration:
             if additional_data:
                 additional_data_str = json.dumps(additional_data, ensure_ascii=False)
             
-            # Подготавливаем строку данных
+            # Проверяем и обновляем заголовки перед добавлением данных
+            self._add_headers()
+            
+            # Подготавливаем строку данных в правильном порядке
+            # ВАЖНО: порядок должен точно соответствовать заголовкам!
             row_data = [
-                timestamp,
-                first_name,
-                last_name,
-                email,
-                telegram_user_id or '',
-                telegram_username or '',
-                payment_type,
-                ip_address or '',
-                user_agent or '',
-                additional_data_str
+                timestamp,              # Колонка A: Дата и время
+                first_name,            # Колонка B: Имя
+                last_name,             # Колонка C: Фамилия
+                email,                 # Колонка D: Email
+                telegram_user_id or '', # Колонка E: TG User ID
+                telegram_username or '', # Колонка F: TG Username
+                payment_type,          # Колонка G: Тип оплаты
+                ip_address or '',      # Колонка H: IP адрес
+                user_agent or '',      # Колонка I: User Agent
+                additional_data_str    # Колонка J: Дополнительные данные
             ]
             
             # Получаем количество строк ДО добавления для определения четности
@@ -494,7 +559,19 @@ class GoogleSheetsIntegration:
             row_count_before = len(all_values_before)
             
             # Добавляем строку в таблицу
+            # append_row автоматически добавляет в конец таблицы
             self.worksheet.append_row(row_data)
+            
+            # Проверяем, что данные добавились правильно
+            all_values_after = self.worksheet.get_all_values()
+            if len(all_values_after) > row_count_before:
+                new_row = all_values_after[-1]
+                # Проверяем, что количество колонок совпадает
+                if len(new_row) != len(row_data):
+                    logger.warning(
+                        f"Row data mismatch: expected {len(row_data)} columns, got {len(new_row)}. "
+                        f"Row: {new_row}"
+                    )
             
             # Применяем форматирование к новой строке
             try:
