@@ -100,8 +100,8 @@ class GoogleSheetsIntegration:
             'Имя',
             'Фамилия',
             'Email',
-            'Telegram ID',
-            'Telegram Username',
+            'TG User ID',
+            'TG Username',
             'Тип оплаты',
             'IP адрес',
             'User Agent',
@@ -115,7 +115,7 @@ class GoogleSheetsIntegration:
             logger.info("Updated headers in Google Sheet")
 
     def _apply_sheet_formatting(self):
-        """Приводит Google Sheet к аккуратному виду (шапка, ширины, переносы)."""
+        """Применяет профессиональное форматирование к Google Sheet."""
         if not self.worksheet or not self.spreadsheet:
             return
         
@@ -124,42 +124,249 @@ class GoogleSheetsIntegration:
             if not sheet_id:
                 return
             
-            # Цвет шапки (темный) + белый текст
-            header_format = {
-                "backgroundColor": {"red": 0.12, "green": 0.16, "blue": 0.23},
-                "textFormat": {"bold": True, "foregroundColor": {"red": 1, "green": 1, "blue": 1}},
-                "horizontalAlignment": "CENTER",
-                "verticalAlignment": "MIDDLE"
-            }
+            # Получаем количество строк для форматирования
+            try:
+                all_values = self.worksheet.get_all_values()
+                row_count = len(all_values) if all_values else 1
+            except:
+                row_count = 1000  # Fallback для новых таблиц
             
-            requests = [
-                {
-                    "updateSheetProperties": {
-                        "properties": {
-                            "sheetId": sheet_id,
-                            "gridProperties": {"frozenRowCount": 1}
-                        },
-                        "fields": "gridProperties.frozenRowCount"
-                    }
-                },
-                {
-                    "repeatCell": {
-                        "range": {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": 1},
-                        "cell": {"userEnteredFormat": header_format},
-                        "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)"
-                    }
-                },
-                {
-                    "repeatCell": {
-                        "range": {"sheetId": sheet_id, "startColumnIndex": 9, "endColumnIndex": 10},
-                        "cell": {"userEnteredFormat": {"wrapStrategy": "WRAP"}},
-                        "fields": "userEnteredFormat.wrapStrategy"
-                    }
+            # Профессиональная цветовая схема
+            # Шапка: темно-синий градиент с белым текстом
+            header_bg = {"red": 0.13, "green": 0.20, "blue": 0.35}  # #214A5E
+            header_text = {"red": 1.0, "green": 1.0, "blue": 1.0}  # Белый
+            
+            # Чередующиеся цвета строк (светло-серый и белый)
+            even_row_bg = {"red": 0.98, "green": 0.98, "blue": 0.98}  # #FAFAFA
+            odd_row_bg = {"red": 1.0, "green": 1.0, "blue": 1.0}  # Белый
+            
+            # Границы: темно-серые для шапки, светло-серые для данных
+            border_color_header = {"red": 0.2, "green": 0.2, "blue": 0.2}
+            border_color_data = {"red": 0.85, "green": 0.85, "blue": 0.85}
+            
+            requests = []
+            
+            # 1. Замораживаем первую строку (шапку)
+            requests.append({
+                "updateSheetProperties": {
+                    "properties": {
+                        "sheetId": sheet_id,
+                        "gridProperties": {"frozenRowCount": 1}
+                    },
+                    "fields": "gridProperties.frozenRowCount"
                 }
-            ]
+            })
             
-            # Ширины колонок (A-J)
-            column_widths = [190, 140, 160, 260, 140, 180, 200, 160, 320, 420]
+            # 2. Форматирование шапки: фон, текст, выравнивание, границы
+            requests.append({
+                "repeatCell": {
+                    "range": {
+                        "sheetId": sheet_id,
+                        "startRowIndex": 0,
+                        "endRowIndex": 1,
+                        "startColumnIndex": 0,
+                        "endColumnIndex": 10
+                    },
+                    "cell": {
+                        "userEnteredFormat": {
+                            "backgroundColor": header_bg,
+                            "textFormat": {
+                                "bold": True,
+                                "fontSize": 11,
+                                "foregroundColor": header_text,
+                                "fontFamily": "Arial"
+                            },
+                            "horizontalAlignment": "CENTER",
+                            "verticalAlignment": "MIDDLE",
+                            "borders": {
+                                "top": {"style": "SOLID", "width": 2, "color": border_color_header},
+                                "bottom": {"style": "SOLID", "width": 2, "color": border_color_header},
+                                "left": {"style": "SOLID", "width": 1, "color": border_color_header},
+                                "right": {"style": "SOLID", "width": 1, "color": border_color_header}
+                            },
+                            "padding": {
+                                "top": 8,
+                                "bottom": 8,
+                                "left": 8,
+                                "right": 8
+                            }
+                        }
+                    },
+                    "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment,borders,padding)"
+                }
+            })
+            
+            # 3. Высота строки шапки
+            requests.append({
+                "updateDimensionProperties": {
+                    "range": {
+                        "sheetId": sheet_id,
+                        "dimension": "ROWS",
+                        "startIndex": 0,
+                        "endIndex": 1
+                    },
+                    "properties": {"pixelSize": 40},
+                    "fields": "pixelSize"
+                }
+            })
+            
+            # 4. Чередующиеся цвета строк для данных (если есть данные)
+            if row_count > 1:
+                # Четные строки (начиная со 2-й, индекс 1)
+                requests.append({
+                    "repeatCell": {
+                        "range": {
+                            "sheetId": sheet_id,
+                            "startRowIndex": 1,
+                            "endRowIndex": min(row_count, 1000),
+                            "startColumnIndex": 0,
+                            "endColumnIndex": 10
+                        },
+                        "cell": {
+                            "userEnteredFormat": {
+                                "backgroundColor": even_row_bg,
+                                "borders": {
+                                    "top": {"style": "SOLID", "width": 1, "color": border_color_data},
+                                    "bottom": {"style": "SOLID", "width": 1, "color": border_color_data},
+                                    "left": {"style": "SOLID", "width": 1, "color": border_color_data},
+                                    "right": {"style": "SOLID", "width": 1, "color": border_color_data}
+                                },
+                                "padding": {
+                                    "top": 6,
+                                    "bottom": 6,
+                                    "left": 8,
+                                    "right": 8
+                                }
+                            }
+                        },
+                        "fields": "userEnteredFormat(backgroundColor,borders,padding)"
+                    }
+                })
+            
+            # 5. Выравнивание данных по колонкам
+            # Дата и время - по центру
+            requests.append({
+                "repeatCell": {
+                    "range": {
+                        "sheetId": sheet_id,
+                        "startRowIndex": 1,
+                        "endRowIndex": min(row_count, 1000),
+                        "startColumnIndex": 0,
+                        "endColumnIndex": 1
+                    },
+                    "cell": {
+                        "userEnteredFormat": {
+                            "horizontalAlignment": "CENTER",
+                            "textFormat": {"fontFamily": "Arial", "fontSize": 10}
+                        }
+                    },
+                    "fields": "userEnteredFormat(horizontalAlignment,textFormat)"
+                }
+            })
+            
+            # Имя, Фамилия, Email - слева
+            requests.append({
+                "repeatCell": {
+                    "range": {
+                        "sheetId": sheet_id,
+                        "startRowIndex": 1,
+                        "endRowIndex": min(row_count, 1000),
+                        "startColumnIndex": 1,
+                        "endColumnIndex": 4
+                    },
+                    "cell": {
+                        "userEnteredFormat": {
+                            "horizontalAlignment": "LEFT",
+                            "textFormat": {"fontFamily": "Arial", "fontSize": 10}
+                        }
+                    },
+                    "fields": "userEnteredFormat(horizontalAlignment,textFormat)"
+                }
+            })
+            
+            # TG User ID, TG Username - по центру
+            requests.append({
+                "repeatCell": {
+                    "range": {
+                        "sheetId": sheet_id,
+                        "startRowIndex": 1,
+                        "endRowIndex": min(row_count, 1000),
+                        "startColumnIndex": 4,
+                        "endColumnIndex": 6
+                    },
+                    "cell": {
+                        "userEnteredFormat": {
+                            "horizontalAlignment": "CENTER",
+                            "textFormat": {"fontFamily": "Arial", "fontSize": 10}
+                        }
+                    },
+                    "fields": "userEnteredFormat(horizontalAlignment,textFormat)"
+                }
+            })
+            
+            # Тип оплаты - по центру
+            requests.append({
+                "repeatCell": {
+                    "range": {
+                        "sheetId": sheet_id,
+                        "startRowIndex": 1,
+                        "endRowIndex": min(row_count, 1000),
+                        "startColumnIndex": 6,
+                        "endColumnIndex": 7
+                    },
+                    "cell": {
+                        "userEnteredFormat": {
+                            "horizontalAlignment": "CENTER",
+                            "textFormat": {"fontFamily": "Arial", "fontSize": 10}
+                        }
+                    },
+                    "fields": "userEnteredFormat(horizontalAlignment,textFormat)"
+                }
+            })
+            
+            # IP адрес, User Agent - слева, моноширинный шрифт
+            requests.append({
+                "repeatCell": {
+                    "range": {
+                        "sheetId": sheet_id,
+                        "startRowIndex": 1,
+                        "endRowIndex": min(row_count, 1000),
+                        "startColumnIndex": 7,
+                        "endColumnIndex": 9
+                    },
+                    "cell": {
+                        "userEnteredFormat": {
+                            "horizontalAlignment": "LEFT",
+                            "textFormat": {"fontFamily": "Courier New", "fontSize": 9}
+                        }
+                    },
+                    "fields": "userEnteredFormat(horizontalAlignment,textFormat)"
+                }
+            })
+            
+            # Дополнительные данные - слева, с переносом текста
+            requests.append({
+                "repeatCell": {
+                    "range": {
+                        "sheetId": sheet_id,
+                        "startRowIndex": 1,
+                        "endRowIndex": min(row_count, 1000),
+                        "startColumnIndex": 9,
+                        "endColumnIndex": 10
+                    },
+                    "cell": {
+                        "userEnteredFormat": {
+                            "horizontalAlignment": "LEFT",
+                            "wrapStrategy": "WRAP",
+                            "textFormat": {"fontFamily": "Arial", "fontSize": 9}
+                        }
+                    },
+                    "fields": "userEnteredFormat(horizontalAlignment,wrapStrategy,textFormat)"
+                }
+            })
+            
+            # 6. Ширины колонок (оптимизированные)
+            column_widths = [170, 130, 150, 240, 120, 150, 180, 140, 300, 400]
             for idx, width in enumerate(column_widths):
                 requests.append({
                     "updateDimensionProperties": {
@@ -174,7 +381,57 @@ class GoogleSheetsIntegration:
                     }
                 })
             
+            # 7. Высота строк данных
+            requests.append({
+                "updateDimensionProperties": {
+                    "range": {
+                        "sheetId": sheet_id,
+                        "dimension": "ROWS",
+                        "startIndex": 1,
+                        "endIndex": min(row_count, 1000)
+                    },
+                    "properties": {"pixelSize": 28},
+                    "fields": "pixelSize"
+                }
+            })
+            
+            # 8. Внешние границы таблицы (более толстые)
+            requests.append({
+                "updateBorders": {
+                    "range": {
+                        "sheetId": sheet_id,
+                        "startRowIndex": 0,
+                        "endRowIndex": min(row_count, 1000),
+                        "startColumnIndex": 0,
+                        "endColumnIndex": 10
+                    },
+                    "top": {
+                        "style": "SOLID",
+                        "width": 2,
+                        "color": border_color_header
+                    },
+                    "bottom": {
+                        "style": "SOLID",
+                        "width": 2,
+                        "color": border_color_header
+                    },
+                    "left": {
+                        "style": "SOLID",
+                        "width": 2,
+                        "color": border_color_header
+                    },
+                    "right": {
+                        "style": "SOLID",
+                        "width": 2,
+                        "color": border_color_header
+                    }
+                }
+            })
+            
+            # Применяем все форматирование одним батчем
             self.spreadsheet.batch_update({"requests": requests})
+            logger.info("Professional formatting applied to Google Sheet")
+            
         except Exception as e:
             logger.warning(f"Failed to apply Google Sheets formatting: {e}")
     
@@ -232,8 +489,193 @@ class GoogleSheetsIntegration:
                 additional_data_str
             ]
             
+            # Получаем количество строк ДО добавления для определения четности
+            all_values_before = self.worksheet.get_all_values()
+            row_count_before = len(all_values_before)
+            
             # Добавляем строку в таблицу
             self.worksheet.append_row(row_data)
+            
+            # Применяем форматирование к новой строке
+            try:
+                # Индекс новой строки (0-based: 0 = шапка, 1+ = данные)
+                new_row_index = row_count_before  # Это индекс только что добавленной строки
+                
+                # Пропускаем форматирование, если это шапка (индекс 0)
+                if new_row_index == 0:
+                    logger.debug("Skipping formatting for header row")
+                else:
+                    # Определяем четность строки для чередования цветов
+                    # Строка 1 (индекс 0) - шапка, строки 2+ (индекс 1+) - данные
+                    # Для данных: индекс 1 = первая строка данных (нечетная), индекс 2 = вторая (четная)
+                    is_even = (new_row_index % 2 == 0)
+                    row_bg = {"red": 0.98, "green": 0.98, "blue": 0.98} if is_even else {"red": 1.0, "green": 1.0, "blue": 1.0}
+                    border_color = {"red": 0.85, "green": 0.85, "blue": 0.85}
+                    
+                    sheet_id = getattr(self.worksheet, 'id', None) or self.worksheet._properties.get('sheetId')
+                    if sheet_id:
+                        format_requests = [
+                            {
+                                "repeatCell": {
+                                    "range": {
+                                        "sheetId": sheet_id,
+                                        "startRowIndex": new_row_index,
+                                        "endRowIndex": new_row_index + 1,
+                                        "startColumnIndex": 0,
+                                        "endColumnIndex": 10
+                                    },
+                                "cell": {
+                                    "userEnteredFormat": {
+                                        "backgroundColor": row_bg,
+                                        "borders": {
+                                            "top": {"style": "SOLID", "width": 1, "color": border_color},
+                                            "bottom": {"style": "SOLID", "width": 1, "color": border_color},
+                                            "left": {"style": "SOLID", "width": 1, "color": border_color},
+                                            "right": {"style": "SOLID", "width": 1, "color": border_color}
+                                        },
+                                        "padding": {
+                                            "top": 6,
+                                            "bottom": 6,
+                                            "left": 8,
+                                            "right": 8
+                                        }
+                                    }
+                                },
+                                "fields": "userEnteredFormat(backgroundColor,borders,padding)"
+                            }
+                        },
+                        {
+                            "updateDimensionProperties": {
+                                "range": {
+                                    "sheetId": sheet_id,
+                                    "dimension": "ROWS",
+                                    "startIndex": new_row_index,
+                                    "endIndex": new_row_index + 1
+                                },
+                                "properties": {"pixelSize": 28},
+                                "fields": "pixelSize"
+                            }
+                        },
+                        # Выравнивание: дата - центр
+                        {
+                            "repeatCell": {
+                                "range": {
+                                    "sheetId": sheet_id,
+                                    "startRowIndex": new_row_index,
+                                    "endRowIndex": new_row_index + 1,
+                                    "startColumnIndex": 0,
+                                    "endColumnIndex": 1
+                                },
+                                "cell": {
+                                    "userEnteredFormat": {
+                                        "horizontalAlignment": "CENTER",
+                                        "textFormat": {"fontFamily": "Arial", "fontSize": 10}
+                                    }
+                                },
+                                "fields": "userEnteredFormat(horizontalAlignment,textFormat)"
+                            }
+                        },
+                        # Имя, Фамилия, Email - слева
+                        {
+                            "repeatCell": {
+                                "range": {
+                                    "sheetId": sheet_id,
+                                    "startRowIndex": new_row_index,
+                                    "endRowIndex": new_row_index + 1,
+                                    "startColumnIndex": 1,
+                                    "endColumnIndex": 4
+                                },
+                                "cell": {
+                                    "userEnteredFormat": {
+                                        "horizontalAlignment": "LEFT",
+                                        "textFormat": {"fontFamily": "Arial", "fontSize": 10}
+                                    }
+                                },
+                                "fields": "userEnteredFormat(horizontalAlignment,textFormat)"
+                            }
+                        },
+                        # TG User ID, TG Username - центр
+                        {
+                            "repeatCell": {
+                                "range": {
+                                    "sheetId": sheet_id,
+                                    "startRowIndex": new_row_index,
+                                    "endRowIndex": new_row_index + 1,
+                                    "startColumnIndex": 4,
+                                    "endColumnIndex": 6
+                                },
+                                "cell": {
+                                    "userEnteredFormat": {
+                                        "horizontalAlignment": "CENTER",
+                                        "textFormat": {"fontFamily": "Arial", "fontSize": 10}
+                                    }
+                                },
+                                "fields": "userEnteredFormat(horizontalAlignment,textFormat)"
+                            }
+                        },
+                        # Тип оплаты - центр
+                        {
+                            "repeatCell": {
+                                "range": {
+                                    "sheetId": sheet_id,
+                                    "startRowIndex": new_row_index,
+                                    "endRowIndex": new_row_index + 1,
+                                    "startColumnIndex": 6,
+                                    "endColumnIndex": 7
+                                },
+                                "cell": {
+                                    "userEnteredFormat": {
+                                        "horizontalAlignment": "CENTER",
+                                        "textFormat": {"fontFamily": "Arial", "fontSize": 10}
+                                    }
+                                },
+                                "fields": "userEnteredFormat(horizontalAlignment,textFormat)"
+                            }
+                        },
+                        # IP, User Agent - слева, моноширинный
+                        {
+                            "repeatCell": {
+                                "range": {
+                                    "sheetId": sheet_id,
+                                    "startRowIndex": new_row_index,
+                                    "endRowIndex": new_row_index + 1,
+                                    "startColumnIndex": 7,
+                                    "endColumnIndex": 9
+                                },
+                                "cell": {
+                                    "userEnteredFormat": {
+                                        "horizontalAlignment": "LEFT",
+                                        "textFormat": {"fontFamily": "Courier New", "fontSize": 9}
+                                    }
+                                },
+                                "fields": "userEnteredFormat(horizontalAlignment,textFormat)"
+                            }
+                        },
+                        # Дополнительные данные - слева, с переносом
+                        {
+                            "repeatCell": {
+                                "range": {
+                                    "sheetId": sheet_id,
+                                    "startRowIndex": new_row_index,
+                                    "endRowIndex": new_row_index + 1,
+                                    "startColumnIndex": 9,
+                                    "endColumnIndex": 10
+                                },
+                                "cell": {
+                                    "userEnteredFormat": {
+                                        "horizontalAlignment": "LEFT",
+                                        "wrapStrategy": "WRAP",
+                                        "textFormat": {"fontFamily": "Arial", "fontSize": 9}
+                                    }
+                                },
+                                "fields": "userEnteredFormat(horizontalAlignment,wrapStrategy,textFormat)"
+                            }
+                        }
+                    ]
+                    self.spreadsheet.batch_update({"requests": format_requests})
+            except Exception as format_error:
+                # Не критично, если форматирование не применилось
+                logger.debug(f"Could not format new row (non-critical): {format_error}")
             
             logger.info(f"Data saved to Google Sheets: {email}, {payment_type}")
             return True
