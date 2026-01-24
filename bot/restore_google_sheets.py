@@ -114,26 +114,73 @@ async def restore_data_to_sheets():
         logger.info("Все записи уже есть в Google Sheets. Восстановление не требуется.")
         return
     
-            # Добавляем записи в Google Sheets
-            logger.info("Начинаем добавление записей в Google Sheets...")
-            added_count = 0
-            error_count = 0
-            quota_errors = 0
+    # Добавляем записи в Google Sheets
+    logger.info("Начинаем добавление записей в Google Sheets...")
+    logger.info("⚠️  Внимание: добавлены задержки для соблюдения лимитов Google Sheets API")
+    added_count = 0
+    error_count = 0
+    quota_errors = 0
+    
+    for i, conf in enumerate(new_confirmations, 1):
+        try:
+            # Форматируем дату
+            timestamp = conf.confirmed_at.strftime('%Y-%m-%d %H:%M:%S')
             
-            for i, conf in enumerate(new_confirmations, 1):
+            # Парсим additional_data если есть
+            additional_data_dict = None
+            if conf.additional_data:
                 try:
-                    # Форматируем дату
-                    timestamp = conf.confirmed_at.strftime('%Y-%m-%d %H:%M:%S')
-                    
-                    # Парсим additional_data если есть
-                    additional_data_dict = None
-                    if conf.additional_data:
-                        try:
-                            additional_data_dict = json.loads(conf.additional_data)
-                        except:
-                            additional_data_dict = {"raw": conf.additional_data}
-                    
-                    # Подготавливаем данные для добавления
+                    additional_data_dict = json.loads(conf.additional_data)
+                except:
+                    additional_data_dict = {"raw": conf.additional_data}
+            
+            # Подготавливаем данные для добавления
+            result = sheets.save_offer_confirmation(
+                first_name=conf.first_name or "—",
+                last_name=conf.last_name or "—",
+                email=conf.email,
+                payment_type=conf.payment_type,
+                ip_address=conf.ip_address,
+                user_agent=conf.user_agent,
+                telegram_user_id=conf.telegram_user_id,
+                telegram_username=conf.telegram_username,
+                additional_data=additional_data_dict
+            )
+            
+            if result:
+                added_count += 1
+                if i % 10 == 0:
+                    logger.info(f"Добавлено {i}/{len(new_confirmations)} записей...")
+            else:
+                error_count += 1
+                logger.warning(f"Не удалось добавить запись: {conf.email}, {conf.payment_type}")
+            
+            # КРИТИЧНО: Задержка между запросами для соблюдения лимитов API
+            # Google Sheets API: 60 запросов в минуту на пользователя
+            # Делаем задержку 2 секунды = ~30 запросов/минуту (безопасно)
+            await asyncio.sleep(2)
+            
+            # Дополнительная пауза каждые 20 запросов
+            if i % 20 == 0:
+                logger.info(f"Пауза 15 секунд после {i} запросов (защита от лимитов API)...")
+                await asyncio.sleep(15)
+                
+        except Exception as e:
+            error_count += 1
+            error_msg = str(e)
+            
+            # Проверяем на ошибку квоты
+            if "429" in error_msg or "Quota exceeded" in error_msg or "quota" in error_msg.lower():
+                quota_errors += 1
+                logger.warning(
+                    f"⚠️  Превышен лимит API (429) на записи {i}/{len(new_confirmations)}. "
+                    f"Ждем 90 секунд перед продолжением..."
+                )
+                await asyncio.sleep(90)  # Ждем 90 секунд при превышении квоты
+                
+                # Пытаемся повторить запрос
+                try:
+                    logger.info(f"Повторная попытка для записи {i}...")
                     result = sheets.save_offer_confirmation(
                         first_name=conf.first_name or "—",
                         last_name=conf.last_name or "—",
@@ -145,58 +192,15 @@ async def restore_data_to_sheets():
                         telegram_username=conf.telegram_username,
                         additional_data=additional_data_dict
                     )
-                    
                     if result:
                         added_count += 1
-                        if i % 10 == 0:
-                            logger.info(f"Добавлено {i}/{len(new_confirmations)} записей...")
-                    else:
-                        error_count += 1
-                        logger.warning(f"Не удалось добавить запись: {conf.email}, {conf.payment_type}")
-                    
-                    # КРИТИЧНО: Задержка между запросами для соблюдения лимитов API
-                    # Google Sheets API: 60 запросов в минуту на пользователя
-                    # Делаем задержку 2 секунды = ~30 запросов/минуту (безопасно)
-                    await asyncio.sleep(2)
-                    
-                    # Дополнительная пауза каждые 20 запросов
-                    if i % 20 == 0:
-                        logger.info(f"Пауза 15 секунд после {i} запросов (защита от лимитов API)...")
-                        await asyncio.sleep(15)
-                        
-                except Exception as e:
-                    error_count += 1
-                    error_msg = str(e)
-                    
-                    # Проверяем на ошибку квоты
-                    if "429" in error_msg or "Quota exceeded" in error_msg or "quota" in error_msg.lower():
-                        quota_errors += 1
-                        logger.warning(
-                            f"Превышен лимит API (429) на записи {i}. "
-                            f"Ждем 60 секунд перед продолжением..."
-                        )
-                        await asyncio.sleep(90)  # Ждем 90 секунд при превышении квоты
-                        
-                        # Пытаемся повторить запрос
-                        try:
-                            result = sheets.save_offer_confirmation(
-                                first_name=conf.first_name or "—",
-                                last_name=conf.last_name or "—",
-                                email=conf.email,
-                                payment_type=conf.payment_type,
-                                ip_address=conf.ip_address,
-                                user_agent=conf.user_agent,
-                                telegram_user_id=conf.telegram_user_id,
-                                telegram_username=conf.telegram_username,
-                                additional_data=additional_data_dict
-                            )
-                            if result:
-                                added_count += 1
-                                quota_errors -= 1  # Успешно повторили
-                        except:
-                            pass
-                    else:
-                        logger.error(f"Ошибка при добавлении записи {conf.confirmation_id}: {e}")
+                        error_count -= 1
+                        quota_errors -= 1
+                        logger.info(f"✅ Успешно добавлено после повтора: {conf.email}")
+                except Exception as retry_error:
+                    logger.error(f"❌ Повторная попытка не удалась: {retry_error}")
+            else:
+                logger.error(f"Ошибка при добавлении записи {conf.confirmation_id}: {e}")
     
     logger.info("=" * 60)
     logger.info("Восстановление завершено!")
