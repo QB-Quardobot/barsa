@@ -9,8 +9,18 @@ import sys
 from pathlib import Path
 
 # Добавляем путь к модулям бота
-sys.path.insert(0, str(Path(__file__).parent))
+script_dir = Path(__file__).parent.absolute()
+barcelona_bots_dir = script_dir / "barcelona_bots"
 
+# Добавляем barcelona_bots в PYTHONPATH
+if str(barcelona_bots_dir) not in sys.path:
+    sys.path.insert(0, str(barcelona_bots_dir))
+
+# Устанавливаем рабочую директорию для правильной работы с БД и .env
+import os
+os.chdir(str(barcelona_bots_dir))
+
+# Теперь импортируем модули
 from database.database import async_session
 from sqlalchemy import select
 from database.models import OfferConfirmation
