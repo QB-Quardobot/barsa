@@ -558,13 +558,56 @@ class GoogleSheetsIntegration:
             all_values_before = self.worksheet.get_all_values()
             row_count_before = len(all_values_before)
             
-            # Добавляем строку в таблицу
-            # append_row автоматически добавляет в конец таблицы
-            self.worksheet.append_row(row_data)
+            # КРИТИЧЕСКИ ВАЖНО: Используем явное указание следующей пустой строки
+            # Это гарантирует добавление новой строки, а не обновление существующей
+            # Проблема: append_row может неправильно определять таблицу и обновлять существующую строку
+            try:
+                # Определяем следующую пустую строку после всех данных
+                # Если есть только заголовки (1 строка), следующая строка = 2
+                # Если есть данные, следующая строка = количество строк + 1
+                next_row_number = row_count_before + 1
+                
+                # Используем явный диапазон для добавления в конкретную строку
+                range_name = f'A{next_row_number}:J{next_row_number}'
+                
+                # Добавляем данные в явно указанную строку (это ВСЕГДА добавляет новую строку)
+                self.worksheet.update(range_name, [row_data], value_input_option='RAW')
+                
+                logger.info(
+                    f"✅ Added NEW row {next_row_number} (not updated existing): "
+                    f"email={email}, payment_type={payment_type}, timestamp={timestamp}"
+                )
+                
+            except Exception as update_error:
+                # Fallback: пробуем append_row, но с явным указанием таблицы
+                try:
+                    logger.warning(f"Explicit range update failed, trying append_row: {update_error}")
+                    # Пытаемся использовать append_row с явным указанием таблицы
+                    self.worksheet.append_row(row_data, table_range='A1:J1', value_input_option='RAW')
+                    logger.info(f"Added row using append_row fallback: email={email}")
+                except Exception as append_error:
+                    # Последний fallback: обычный append_row
+                    logger.error(f"All append methods failed: {update_error}, {append_error}")
+                    self.worksheet.append_row(row_data, value_input_option='RAW')
             
-            # Проверяем, что данные добавились правильно
+            # Проверяем, что данные действительно добавились как новая строка
             all_values_after = self.worksheet.get_all_values()
-            if len(all_values_after) > row_count_before:
+            if len(all_values_after) <= row_count_before:
+                logger.error(
+                    f"❌ CRITICAL ERROR: Row was NOT added! "
+                    f"Before: {row_count_before} rows, After: {len(all_values_after)} rows. "
+                    f"This means data was overwritten instead of appended! "
+                    f"Email: {email}, Payment: {payment_type}"
+                )
+                # Пытаемся принудительно добавить строку
+                try:
+                    force_row = row_count_before + 1
+                    force_range = f'A{force_row}:J{force_row}'
+                    self.worksheet.update(force_range, [row_data], value_input_option='RAW')
+                    logger.info(f"Force-added row {force_row} after detection of overwrite")
+                except Exception as force_error:
+                    logger.error(f"Failed to force-add row: {force_error}")
+            else:
                 new_row = all_values_after[-1]
                 # Проверяем, что количество колонок совпадает
                 if len(new_row) != len(row_data):
@@ -572,6 +615,8 @@ class GoogleSheetsIntegration:
                         f"Row data mismatch: expected {len(row_data)} columns, got {len(new_row)}. "
                         f"Row: {new_row}"
                     )
+                else:
+                    logger.debug(f"✅ Successfully verified new row added: {len(all_values_after)} total rows")
             
             # Применяем форматирование к новой строке
             try:
