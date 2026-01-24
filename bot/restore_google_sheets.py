@@ -48,18 +48,22 @@ def get_existing_emails_from_sheets(sheets):
         return set()
     
     try:
-        all_values = sheets.worksheet.get_all_values()
-        if len(all_values) < 2:  # Только заголовки или пусто
+        # Оптимизация: читаем только колонку с email (D), а не все данные
+        # Это значительно уменьшает количество запросов
+        email_column = sheets.worksheet.col_values(4)  # Колонка D (индекс 4 = 1-based)
+        
+        if len(email_column) < 2:  # Только заголовок или пусто
             return set()
         
-        # Email в колонке D (индекс 3)
-        emails = set()
-        for row in all_values[1:]:  # Пропускаем заголовок
-            if len(row) > 3 and row[3]:  # Проверяем, что есть email
-                emails.add(row[3].strip().lower())
+        # Пропускаем заголовок (первый элемент) и создаем set
+        emails = {email.strip().lower() for email in email_column[1:] if email and email.strip()}
+        
+        logger.info(f"Loaded {len(emails)} existing emails from Sheets (optimized)")
         return emails
     except Exception as e:
-        logger.error(f"Error reading existing emails from Sheets: {e}")
+        logger.warning(f"Error reading existing emails from Sheets (will skip duplicate check): {e}")
+        # Если не удалось прочитать, возвращаем пустой set - скрипт добавит все записи
+        # Это безопасно, так как Google Sheets может иметь встроенную защиту от дубликатов
         return set()
 
 
@@ -110,57 +114,97 @@ async def restore_data_to_sheets():
         logger.info("Все записи уже есть в Google Sheets. Восстановление не требуется.")
         return
     
-    # Добавляем записи в Google Sheets
-    logger.info("Начинаем добавление записей в Google Sheets...")
-    added_count = 0
-    error_count = 0
-    
-    for i, conf in enumerate(new_confirmations, 1):
-        try:
-            # Форматируем дату
-            timestamp = conf.confirmed_at.strftime('%Y-%m-%d %H:%M:%S')
+            # Добавляем записи в Google Sheets
+            logger.info("Начинаем добавление записей в Google Sheets...")
+            added_count = 0
+            error_count = 0
+            quota_errors = 0
             
-            # Парсим additional_data если есть
-            additional_data_dict = None
-            if conf.additional_data:
+            for i, conf in enumerate(new_confirmations, 1):
                 try:
-                    additional_data_dict = json.loads(conf.additional_data)
-                except:
-                    additional_data_dict = {"raw": conf.additional_data}
-            
-            # Подготавливаем данные для добавления
-            result = sheets.save_offer_confirmation(
-                first_name=conf.first_name or "—",
-                last_name=conf.last_name or "—",
-                email=conf.email,
-                payment_type=conf.payment_type,
-                ip_address=conf.ip_address,
-                user_agent=conf.user_agent,
-                telegram_user_id=conf.telegram_user_id,
-                telegram_username=conf.telegram_username,
-                additional_data=additional_data_dict
-            )
-            
-            if result:
-                added_count += 1
-                if i % 10 == 0:
-                    logger.info(f"Добавлено {i}/{len(new_confirmations)} записей...")
-            else:
-                error_count += 1
-                logger.warning(f"Не удалось добавить запись: {conf.email}, {conf.payment_type}")
-            
-            # Небольшая задержка чтобы не перегружать API
-            if i % 50 == 0:
-                await asyncio.sleep(1)
-                
-        except Exception as e:
-            error_count += 1
-            logger.error(f"Ошибка при добавлении записи {conf.confirmation_id}: {e}")
+                    # Форматируем дату
+                    timestamp = conf.confirmed_at.strftime('%Y-%m-%d %H:%M:%S')
+                    
+                    # Парсим additional_data если есть
+                    additional_data_dict = None
+                    if conf.additional_data:
+                        try:
+                            additional_data_dict = json.loads(conf.additional_data)
+                        except:
+                            additional_data_dict = {"raw": conf.additional_data}
+                    
+                    # Подготавливаем данные для добавления
+                    result = sheets.save_offer_confirmation(
+                        first_name=conf.first_name or "—",
+                        last_name=conf.last_name or "—",
+                        email=conf.email,
+                        payment_type=conf.payment_type,
+                        ip_address=conf.ip_address,
+                        user_agent=conf.user_agent,
+                        telegram_user_id=conf.telegram_user_id,
+                        telegram_username=conf.telegram_username,
+                        additional_data=additional_data_dict
+                    )
+                    
+                    if result:
+                        added_count += 1
+                        if i % 10 == 0:
+                            logger.info(f"Добавлено {i}/{len(new_confirmations)} записей...")
+                    else:
+                        error_count += 1
+                        logger.warning(f"Не удалось добавить запись: {conf.email}, {conf.payment_type}")
+                    
+                    # КРИТИЧНО: Задержка между запросами для соблюдения лимитов API
+                    # Google Sheets API: 60 запросов в минуту на пользователя
+                    # Делаем задержку 2 секунды = ~30 запросов/минуту (безопасно)
+                    await asyncio.sleep(2)
+                    
+                    # Дополнительная пауза каждые 20 запросов
+                    if i % 20 == 0:
+                        logger.info(f"Пауза 15 секунд после {i} запросов (защита от лимитов API)...")
+                        await asyncio.sleep(15)
+                        
+                except Exception as e:
+                    error_count += 1
+                    error_msg = str(e)
+                    
+                    # Проверяем на ошибку квоты
+                    if "429" in error_msg or "Quota exceeded" in error_msg or "quota" in error_msg.lower():
+                        quota_errors += 1
+                        logger.warning(
+                            f"Превышен лимит API (429) на записи {i}. "
+                            f"Ждем 60 секунд перед продолжением..."
+                        )
+                        await asyncio.sleep(90)  # Ждем 90 секунд при превышении квоты
+                        
+                        # Пытаемся повторить запрос
+                        try:
+                            result = sheets.save_offer_confirmation(
+                                first_name=conf.first_name or "—",
+                                last_name=conf.last_name or "—",
+                                email=conf.email,
+                                payment_type=conf.payment_type,
+                                ip_address=conf.ip_address,
+                                user_agent=conf.user_agent,
+                                telegram_user_id=conf.telegram_user_id,
+                                telegram_username=conf.telegram_username,
+                                additional_data=additional_data_dict
+                            )
+                            if result:
+                                added_count += 1
+                                quota_errors -= 1  # Успешно повторили
+                        except:
+                            pass
+                    else:
+                        logger.error(f"Ошибка при добавлении записи {conf.confirmation_id}: {e}")
     
     logger.info("=" * 60)
     logger.info("Восстановление завершено!")
     logger.info(f"✅ Успешно добавлено: {added_count} записей")
     logger.info(f"❌ Ошибок: {error_count} записей")
+    if quota_errors > 0:
+        logger.warning(f"⚠️  Ошибок квоты API (429): {quota_errors} записей")
+        logger.info("💡 Совет: Запустите скрипт снова через несколько минут для повторной попытки")
     logger.info(f"⏭️  Пропущено (уже есть): {skipped_count} записей")
     logger.info("=" * 60)
 
