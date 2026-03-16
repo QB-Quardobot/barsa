@@ -1730,16 +1730,16 @@ const TARIFFS: Record<string, TariffData> = {
     }
   },
   '2': {
-    name: 'Все и сразу',
+    name: 'Роскошный максимум',
     rub: {
       amount: '46 800 ₽',
-      telegramUrl: 'https://t.me/tribute/app?startapp=sLm3',
-      webUrl: 'https://web.tribute.tg/s/Lm3'
+      telegramUrl: 'https://t.me/tribute/app?startapp=sQj2',
+      webUrl: 'https://t.me/tribute/app?startapp=sQj2'
     },
     eur: {
       amount: '500 €',
-      telegramUrl: 'https://t.me/tribute/app?startapp=sLm2',
-      webUrl: 'https://web.tribute.tg/s/Lm2'
+      telegramUrl: 'https://t.me/tribute/app?startapp=sQqZ',
+      webUrl: 'https://t.me/tribute/app?startapp=sQqZ'
     }
   }
 };
