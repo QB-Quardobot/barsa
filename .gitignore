@@ -41,3 +41,7 @@ bot/credentials.json
 !package-lock.json
 !tsconfig.json
 !tailwind.config.js
+
+# Unused files
+index.html
+public/images/ilya/
