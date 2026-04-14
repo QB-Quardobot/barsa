@@ -162,9 +162,9 @@ const DEBUG_MODE = false;
                   playsinline
                   muted
                   loop
-                  data-src="/videos/IMG_4652.mp4"
+                  data-src="/videos/IMG_4652-optimized.mp4"
                 >
-                  <source data-src="/videos/IMG_4652.mp4" type="video/mp4">
+                  <source data-src="/videos/IMG_4652-optimized.mp4" type="video/mp4">
                   Ваш браузер не поддерживает воспроизведение видео.
                 </video>
               </div>
@@ -176,9 +176,9 @@ const DEBUG_MODE = false;
                   playsinline
                   muted
                   loop
-                  data-src="/videos/IMG_4651.mp4"
+                  data-src="/videos/IMG_4651-optimized.mp4"
                 >
-                  <source data-src="/videos/IMG_4651.mp4" type="video/mp4">
+                  <source data-src="/videos/IMG_4651-optimized.mp4" type="video/mp4">
                   Ваш браузер не поддерживает воспроизведение видео.
                 </video>
               </div>
@@ -190,9 +190,9 @@ const DEBUG_MODE = false;
                   playsinline
                   muted
                   loop
-                  data-src="/videos/IMG_4650.mp4"
+                  data-src="/videos/IMG_4650-optimized.mp4"
                 >
-                  <source data-src="/videos/IMG_4650.mp4" type="video/mp4">
+                  <source data-src="/videos/IMG_4650-optimized.mp4" type="video/mp4">
                   Ваш браузер не поддерживает воспроизведение видео.
                 </video>
               </div>
@@ -1756,7 +1756,6 @@ const DEBUG_MODE = false;
     pointer-events: none;
     /* Ensure it covers entire viewport even during fast scroll */
     min-height: 100vh;
-    will-change: transform;
   }
   
   body > * {
@@ -1776,27 +1775,6 @@ const DEBUG_MODE = false;
     }
   }
   
-  section::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 1100px;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(96, 165, 250, 0.3) 20%,
-      rgba(96, 165, 250, 0.3) 80%,
-      transparent
-    );
-  }
-  
-  section:last-of-type::after {
-    display: none;
-  }
   
   /* === ANIMATED GRADIENT BACKGROUND === */
   .hero-section {
@@ -1877,14 +1855,10 @@ const DEBUG_MODE = false;
   .pain-card-v2 {
     position: relative;
     background: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     border: none;
     border-radius: 16px;
     padding: 1.5rem 1.25rem 1.25rem;
     text-align: left;
-    transform: translateZ(0);
-    will-change: transform;
     transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     overflow: hidden;
   }
@@ -1899,7 +1873,7 @@ const DEBUG_MODE = false;
   }
 
   .pain-card-v2:hover {
-    transform: translateY(-4px) translateZ(0);
+    transform: translateY(-4px);
     box-shadow: 0 8px 32px rgba(239, 68, 68, 0.12);
   }
 
@@ -1953,13 +1927,11 @@ const DEBUG_MODE = false;
     /* CRITICAL LCP: Reserve space with aspect-ratio to prevent CLS */
     /* aspect-ratio is set in critical.css for above-the-fold rendering */
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
   
   .proof-cover-image:hover {
-    transform: translateY(-4px) translateZ(0);
+    transform: translateY(-4px);
     box-shadow: 0 20px 60px rgba(96, 165, 250, 0.3);
   }
   
@@ -1990,8 +1962,6 @@ const DEBUG_MODE = false;
     position: relative;
     overflow: hidden;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease;
   }
   
@@ -2093,8 +2063,6 @@ const DEBUG_MODE = false;
     max-width: 150px;
     opacity: 0.7;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform, opacity;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, border-color 0.25s ease;
   }
   
@@ -2108,7 +2076,7 @@ const DEBUG_MODE = false;
   .old-attempt-item:hover {
     opacity: 1;
     border-color: rgba(239, 68, 68, 0.5);
-    transform: translateY(-2px) translateZ(0);
+    transform: translateY(-2px);
   }
   
   .old-photo-container {
@@ -2120,8 +2088,6 @@ const DEBUG_MODE = false;
     position: relative;
     margin: 0 auto 0.5rem;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform;
   }
   
   .old-photo {
@@ -2132,7 +2098,6 @@ const DEBUG_MODE = false;
     display: block;
     filter: grayscale(0.8);
     transition: filter 0.3s ease;
-    transform: translateZ(0);
   }
   
   .old-attempt-item:hover .old-photo {
@@ -2166,8 +2131,6 @@ const DEBUG_MODE = false;
     position: relative;
     overflow: hidden;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform, opacity;
   }
   
   @media (min-width: 768px) {
@@ -2190,8 +2153,6 @@ const DEBUG_MODE = false;
     opacity: 0;
     transition: opacity 0.6s ease;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: opacity;
   }
   
   .transition-img.loaded {
@@ -2202,7 +2163,7 @@ const DEBUG_MODE = false;
   @media (hover: hover) {
     .transition-image:hover .transition-img {
       box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(96, 165, 250, 0.15);
-      transform: translateY(-2px) translateZ(0);
+      transform: translateY(-2px);
       transition: box-shadow 0.3s ease, transform 0.3s ease;
     }
   }
@@ -2258,8 +2219,6 @@ const DEBUG_MODE = false;
     height: auto;
     min-height: 0;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform;
   }
   
   /* Small screens - fix stretching and line breaks */
@@ -2286,8 +2245,6 @@ const DEBUG_MODE = false;
     height: 200%;
     background: radial-gradient(circle, rgba(96, 165, 250, 0.1), transparent 60%);
     /* GPU acceleration for animation */
-    transform: translateZ(0);
-    will-change: transform;
     animation: rotate 20s linear infinite;
   }
   
@@ -2395,7 +2352,6 @@ const DEBUG_MODE = false;
     height: auto;
     min-height: 0;
     /* GPU acceleration */
-    transform: translateZ(0);
   }
   
   /* Small screens - fix stretching */
@@ -2435,8 +2391,6 @@ const DEBUG_MODE = false;
     margin-left: auto;
     margin-right: auto;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform;
   }
   
   /* Glow effect on container */
@@ -2522,8 +2476,6 @@ const DEBUG_MODE = false;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: scroll-position;
     background: #000;
   }
   
@@ -2541,8 +2493,6 @@ const DEBUG_MODE = false;
     display: block;
     background: #000;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform;
     overflow: hidden;
     border-radius: var(--radius-lg);
   }
@@ -2577,8 +2527,6 @@ const DEBUG_MODE = false;
     opacity: 1;
     transition: opacity 0.4s ease;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: opacity;
     /* Ensure video fills entire wrapper */
     min-width: 100%;
     min-height: 100%;
@@ -2592,9 +2540,8 @@ const DEBUG_MODE = false;
   /* Video controls styling - more visible and beautiful for vertical videos */
   .solution-video::-webkit-media-controls-panel {
     background-color: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(10px);
   }
-  
+
   .solution-video::-webkit-media-controls-play-button {
     background-color: rgba(96, 165, 250, 0.95);
     border-radius: 50%;
@@ -2771,7 +2718,6 @@ const DEBUG_MODE = false;
     /* Ensure pixel-perfect rendering */
     box-sizing: border-box;
     /* GPU acceleration for smooth animation */
-    will-change: opacity;
     animation: pulse 2s ease-in-out infinite;
   }
   
@@ -2806,13 +2752,11 @@ const DEBUG_MODE = false;
     position: relative;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 40px rgba(96, 165, 250, 0.1);
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
   
   .founder-photo-container:hover {
-    transform: translateY(-4px) translateZ(0);
+    transform: translateY(-4px);
     box-shadow: 0 20px 60px rgba(96, 165, 250, 0.3);
   }
   
@@ -2871,9 +2815,8 @@ const DEBUG_MODE = false;
     position: relative;
     overflow: hidden;
     min-width: 160px;
-    transform: translateY(-30px) translateZ(0); /* GPU acceleration */
+    transform: translateY(-30px); /* GPU acceleration */
     /* GPU acceleration - only animate transform */
-    will-change: transform;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
   }
   
@@ -3024,14 +2967,12 @@ const DEBUG_MODE = false;
     border-radius: 16px;
     border: 1px solid rgba(96, 165, 250, 0.15);
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
   }
   
   .stat-line:hover {
     border-color: rgba(96, 165, 250, 0.3);
-    transform: translateY(-2px) translateZ(0); /* GPU acceleration */
+    transform: translateY(-2px); /* GPU acceleration */
     box-shadow: 0 6px 20px rgba(96, 165, 250, 0.15); /* Reduced blur */
   }
   
@@ -3121,8 +3062,6 @@ const DEBUG_MODE = false;
     overflow: hidden;
     position: relative;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform, opacity;
   }
   
   @media (min-width: 768px) {
@@ -3145,8 +3084,6 @@ const DEBUG_MODE = false;
     opacity: 0;
     transition: opacity 0.6s ease;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: opacity;
   }
   
   .models-banner-img.loaded {
@@ -3157,7 +3094,7 @@ const DEBUG_MODE = false;
   @media (hover: hover) {
     .models-banner:hover .models-banner-img {
       box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(96, 165, 250, 0.15);
-      transform: translateY(-2px) translateZ(0);
+      transform: translateY(-2px);
       transition: box-shadow 0.3s ease, transform 0.3s ease;
     }
   }
@@ -3373,13 +3310,11 @@ const DEBUG_MODE = false;
     padding: 2rem 1.5rem;
     text-align: center;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
   }
   
   .feature-box:hover {
-    transform: translateY(-4px) translateZ(0); /* GPU acceleration */
+    transform: translateY(-4px); /* GPU acceleration */
     border-color: var(--primary);
     box-shadow: 0 6px 24px rgba(96, 165, 250, 0.2); /* Reduced blur */
   }
@@ -3461,8 +3396,6 @@ const DEBUG_MODE = false;
     position: relative;
     overflow: hidden;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform, opacity;
   }
   
   @media (min-width: 768px) {
@@ -3486,8 +3419,6 @@ const DEBUG_MODE = false;
     opacity: 0;
     transition: opacity 0.6s ease;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: opacity;
   }
   
   .system-showcase-img.loaded {
@@ -3498,7 +3429,7 @@ const DEBUG_MODE = false;
   @media (hover: hover) {
     .system-showcase:hover .system-showcase-img {
       box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(96, 165, 250, 0.15);
-      transform: translateY(-2px) translateZ(0);
+      transform: translateY(-2px);
       transition: box-shadow 0.3s ease, transform 0.3s ease;
     }
   }
@@ -3952,7 +3883,6 @@ const DEBUG_MODE = false;
     background: rgba(96, 165, 250, 0.2);
     border: 2px solid rgba(96, 165, 250, 0.4);
     border-radius: 50%;
-    backdrop-filter: blur(12px);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: absolute;
     top: 50%;
@@ -4250,8 +4180,6 @@ const DEBUG_MODE = false;
     position: relative;
     overflow: hidden;
     /* GPU acceleration - only animate transform and opacity */
-    transform: translateZ(0);
-    will-change: transform;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
   }
   
@@ -4283,7 +4211,7 @@ const DEBUG_MODE = false;
       0 6px 24px rgba(96, 165, 250, 0.2), /* Reduced blur */
       inset 0 1px 0 rgba(255, 255, 255, 0.15),
       0 0 0 1px rgba(96, 165, 250, 0.1);
-    transform: translateY(-2px) translateZ(0); /* GPU acceleration */
+    transform: translateY(-2px); /* GPU acceleration */
   }
   
   .value-text {
@@ -4323,8 +4251,6 @@ const DEBUG_MODE = false;
     position: relative;
     overflow: hidden;
     /* GPU acceleration - only animate transform and opacity */
-    transform: translateZ(0);
-    will-change: transform;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
   }
   
@@ -4355,7 +4281,7 @@ const DEBUG_MODE = false;
       0 6px 24px rgba(249, 115, 22, 0.25), /* Reduced blur */
       inset 0 1px 0 rgba(255, 255, 255, 0.15),
       0 0 0 1px rgba(249, 115, 22, 0.15);
-    transform: translateY(-2px) translateZ(0); /* GPU acceleration */
+    transform: translateY(-2px); /* GPU acceleration */
   }
   
   .cta-question {
@@ -4430,13 +4356,11 @@ const DEBUG_MODE = false;
     padding: 2rem 1.5rem;
     text-align: center;
     /* GPU acceleration - only animate transform and opacity */
-    transform: translateZ(0);
-    will-change: transform;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
   }
   
   .stats-card:hover {
-    transform: translateY(-4px) translateZ(0); /* GPU acceleration */
+    transform: translateY(-4px); /* GPU acceleration */
     box-shadow: 0 6px 24px rgba(96, 165, 250, 0.15); /* Reduced blur */
     border-color: rgba(96, 165, 250, 0.3);
   }
@@ -4463,8 +4387,6 @@ const DEBUG_MODE = false;
     /* Ensure this section is always rendered (no lazy rendering) */
     content-visibility: visible;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: contents;
     /* Prevent clipping of child elements like click-sticker */
     overflow-x: hidden;
     overflow-y: visible;
@@ -4485,8 +4407,6 @@ const DEBUG_MODE = false;
     text-align: center;
     position: relative;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform, opacity;
   }
   
   @media (min-width: 768px) {
@@ -4507,8 +4427,6 @@ const DEBUG_MODE = false;
     opacity: 1;
     transition: opacity 0.6s ease;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: opacity;
   }
   
   .video-preview-img.loaded {
@@ -4519,7 +4437,7 @@ const DEBUG_MODE = false;
   @media (hover: hover) {
     .final-video-preview:hover .video-preview-img {
       box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(96, 165, 250, 0.15);
-      transform: translateY(-2px) translateZ(0);
+      transform: translateY(-2px);
       transition: box-shadow 0.3s ease, transform 0.3s ease;
     }
   }
@@ -4617,8 +4535,6 @@ const DEBUG_MODE = false;
     overflow-y: visible;
     /* Prevent clipping of click-sticker and other child elements */
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform;
     transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   }
   
@@ -4635,7 +4551,7 @@ const DEBUG_MODE = false;
   
   @media (hover: hover) {
     .final-idea-block:hover {
-      transform: translateY(-4px) translateZ(0);
+      transform: translateY(-4px);
       box-shadow: 
         0 16px 50px rgba(0, 0, 0, 0.6),
         0 0 80px rgba(96, 165, 250, 0.15),
@@ -4693,8 +4609,6 @@ const DEBUG_MODE = false;
     position: relative;
     transition: all 0.3s ease;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform, background-color;
   }
   
   .idea-items li::before {
@@ -4713,7 +4627,7 @@ const DEBUG_MODE = false;
   @media (hover: hover) {
     .idea-items li:hover {
       background: rgba(96, 165, 250, 0.12);
-      transform: translateX(4px) translateZ(0);
+      transform: translateX(4px);
       border-left-color: var(--primary-2);
       box-shadow: 0 4px 12px rgba(96, 165, 250, 0.15);
     }
@@ -4840,11 +4754,11 @@ const DEBUG_MODE = false;
   
   @keyframes pulse {
     0%, 100% {
-      transform: scale(1) translateZ(0);
+      transform: scale(1);
       opacity: 1;
     }
     50% {
-      transform: scale(1.05) translateZ(0);
+      transform: scale(1.05);
       opacity: 0.9;
     }
   }
@@ -4867,7 +4781,7 @@ const DEBUG_MODE = false;
   /* inline-flex + parent text-align: center = reliable centering */
   .final-main .click-sticker.reveal-scale {
     /* Initial state - scale down, centering handled by parent text-align + margin auto */
-    transform: scale(0.92) translateZ(0) !important;
+    transform: scale(0.92) !important;
     /* Ensure margin auto is maintained */
     margin-left: auto !important;
     margin-right: auto !important;
@@ -4875,7 +4789,7 @@ const DEBUG_MODE = false;
   
   .final-main .click-sticker.reveal-scale.is-revealed {
     /* Revealed state - scale to full size, centering handled by parent text-align + margin auto */
-    transform: scale(1) translateZ(0) !important;
+    transform: scale(1) !important;
     opacity: 1;
     /* Ensure margin auto is maintained */
     margin-left: auto !important;
@@ -4946,8 +4860,6 @@ const DEBUG_MODE = false;
     position: relative;
     overflow: hidden;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform;
   }
   
   .btn-video-review::before {
@@ -4966,7 +4878,7 @@ const DEBUG_MODE = false;
   }
   
   .btn-video-review:hover {
-    transform: translateY(-2px) translateZ(0);
+    transform: translateY(-2px);
     box-shadow: 0 12px 32px rgba(96, 165, 250, 0.35);
     border-color: rgba(96, 165, 250, 0.5);
   }
@@ -4989,8 +4901,6 @@ const DEBUG_MODE = false;
     position: relative;
     overflow: hidden;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform;
   }
   
   .btn-see-inside::before {
@@ -5009,7 +4919,7 @@ const DEBUG_MODE = false;
   }
   
   .btn-see-inside:hover {
-    transform: translateY(-2px) translateZ(0);
+    transform: translateY(-2px);
     box-shadow: 0 12px 32px rgba(96, 165, 250, 0.35);
     border-color: rgba(96, 165, 250, 0.5);
   }
@@ -5029,8 +4939,6 @@ const DEBUG_MODE = false;
     margin-left: auto;
     margin-right: auto;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform;
   }
   
   .step-line {
@@ -5180,8 +5088,6 @@ const DEBUG_MODE = false;
     text-align: center !important;
     box-shadow: 0 6px 20px rgba(96, 165, 250, 0.25) !important; /* Reduced blur */
     /* GPU acceleration - only animate transform */
-    transform: translateZ(0);
-    will-change: transform;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease !important;
   }
   
@@ -5199,26 +5105,24 @@ const DEBUG_MODE = false;
       rgba(255, 255, 255, 0) 70%
     );
     /* GPU acceleration for animation */
-    transform: translateZ(0);
-    will-change: transform;
     animation: shine 3s infinite linear;
     z-index: 1;
   }
   
   @keyframes shine {
     0% {
-      transform: translateX(-100px) translateZ(0); /* GPU acceleration */
+      transform: translateX(-100px); /* GPU acceleration */
     }
     20% {
-      transform: translateX(calc(100vw + 100px)) translateZ(0);
+      transform: translateX(calc(100vw + 100px));
     }
     100% {
-      transform: translateX(calc(100vw + 100px)) translateZ(0);
+      transform: translateX(calc(100vw + 100px));
     }
   }
   
   .final-btn-group .btn-capsule:hover {
-    transform: translateY(-2px) translateZ(0) !important; /* GPU acceleration */
+    transform: translateY(-2px) !important; /* GPU acceleration */
     box-shadow: 0 8px 28px rgba(96, 165, 250, 0.35) !important; /* Reduced blur */
   }
   
@@ -5298,8 +5202,6 @@ const DEBUG_MODE = false;
     position: relative;
     overflow: hidden;
     /* GPU acceleration */
-    transform: translateZ(0);
-    will-change: transform;
   }
   
   @media (min-width: 768px) {
@@ -5317,8 +5219,6 @@ const DEBUG_MODE = false;
     height: 200%;
     background: radial-gradient(circle, rgba(96, 165, 250, 0.1), transparent 60%);
     /* GPU acceleration for animation */
-    transform: translateZ(0);
-    will-change: transform;
     animation: rotate 20s linear infinite;
   }
   

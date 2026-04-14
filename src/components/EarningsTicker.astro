@@ -534,7 +534,6 @@
     transform: translateY(20px) scale(0.9);
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     pointer-events: none;
-    will-change: opacity, transform;
   }
   
   @media (max-width: 768px) {
@@ -576,18 +575,15 @@
     background: transparent;
     cursor: pointer;
     outline: none;
-    /* GPU acceleration - only animate transform */
-    transform: translateZ(0);
-    will-change: transform;
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .earnings-ticker-btn:hover {
-    transform: scale(1.05) translateZ(0); /* GPU acceleration */
+    transform: scale(1.05);
   }
   
   .earnings-ticker-btn:active {
-    transform: scale(0.98) translateZ(0); /* GPU acceleration */
+    transform: scale(0.98);
   }
   
   .earnings-ticker-content {
@@ -608,8 +604,6 @@
       0 0 0 1px rgba(96, 165, 250, 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
     min-width: 220px;
-    transform: translateZ(0);
-    will-change: transform, box-shadow, border-color;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
     overflow: hidden;
   }
@@ -629,7 +623,6 @@
       0 8px 24px rgba(0, 0, 0, 0.6),
       0 0 0 1px rgba(96, 165, 250, 0.2),
       inset 0 1px 0 rgba(255, 255, 255, 0.15);
-    transform: translateZ(0); /* GPU acceleration */
   }
   
   .earnings-ticker-content::before {

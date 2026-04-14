@@ -78,7 +78,6 @@ p {
 img {
   height: auto;
   max-width: 100%;
-  transform: translateZ(0);
 }
 
 /* LCP Hero Image - Prevent CLS with aspect-ratio */

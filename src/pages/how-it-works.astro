@@ -73,7 +73,7 @@ import '../styles/animations-extended.css';
         <video 
           class="hero-video" 
           controls 
-          preload="metadata"
+          preload="none"
           poster="/videos/ai-models-poster.jpg"
           playsinline
           data-video-optimized="true"
@@ -1623,11 +1623,11 @@ import '../styles/animations-extended.css';
                         playsinline
                         muted
                         loop
-                        data-src="/videos/testimonials/IMG_7445.MP4"
+                        data-src="/videos/testimonials/IMG_7445-optimized.mp4"
                         width="500"
                         height="625"
                       >
-                        <source data-src="/videos/testimonials/IMG_7445.MP4" type="video/mp4">
+                        <source data-src="/videos/testimonials/IMG_7445-optimized.mp4" type="video/mp4">
                         Ваш браузер не поддерживает воспроизведение видео.
                       </video>
                       <div class="shimmer-overlay"></div>
@@ -1672,11 +1672,11 @@ import '../styles/animations-extended.css';
                         playsinline
                         muted
                         loop
-                        data-src="/videos/testimonials/IMG_7446.MP4"
+                        data-src="/videos/testimonials/IMG_7446-optimized.mp4"
                         width="500"
                         height="625"
                       >
-                        <source data-src="/videos/testimonials/IMG_7446.MP4" type="video/mp4">
+                        <source data-src="/videos/testimonials/IMG_7446-optimized.mp4" type="video/mp4">
                         Ваш браузер не поддерживает воспроизведение видео.
                       </video>
                       <div class="shimmer-overlay"></div>
@@ -1721,11 +1721,11 @@ import '../styles/animations-extended.css';
                         playsinline
                         muted
                         loop
-                        data-src="/videos/testimonials/IMG_7454.MP4"
+                        data-src="/videos/testimonials/IMG_7454-optimized.mp4"
                         width="500"
                         height="625"
                       >
-                        <source data-src="/videos/testimonials/IMG_7454.MP4" type="video/mp4">
+                        <source data-src="/videos/testimonials/IMG_7454-optimized.mp4" type="video/mp4">
                         Ваш браузер не поддерживает воспроизведение видео.
                       </video>
                       <div class="shimmer-overlay"></div>
@@ -2293,19 +2293,19 @@ import '../styles/animations-extended.css';
   section .reveal-fade {
     opacity: 1 !important;
     visibility: visible !important;
-    transform: translateY(0) scale(1) translateZ(0) !important;
+    transform: translateY(0) scale(1) !important;
     /* CLS FIX: Reserve layout space */
     min-height: 0;
     contain: layout style;
   }
-  
+
   /* Reveal animations will override these when they initialize */
   section .reveal-up.is-revealed,
   section .reveal-scale.is-revealed,
   section .reveal-fade.is-revealed {
     opacity: 1 !important;
     visibility: visible !important;
-    transform: translateY(0) scale(1) translateZ(0) !important;
+    transform: translateY(0) scale(1) !important;
   }
 </style>
 

@@ -2102,19 +2102,17 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
   <style>
     /* Touch feedback for all interactive elements (Telegram only) */
     body.tg-webapp .touch-active {
-      transform: scale(0.97) translateZ(0);
+      transform: scale(0.97);
       opacity: 0.85;
       transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-      will-change: transform, opacity;
     }
     
     /* Enhanced touch feedback for buttons (Telegram only) */
     body.tg-webapp button.touch-active,
     body.tg-webapp .btn-capsule.touch-active,
     body.tg-webapp a[data-cta].touch-active {
-      transform: scale(0.95) translateZ(0);
+      transform: scale(0.95);
       opacity: 0.9;
-      will-change: transform, opacity;
     }
     
     /* Disable hover effects in Telegram (they don't work) */
@@ -2144,33 +2142,25 @@ const YM_COUNTER_ID = import.meta.env.PUBLIC_YM_COUNTER_ID || null;
     body.tg-webapp .reveal-fade,
     body.tg-webapp .reveal-up,
     body.tg-webapp .reveal-scale {
-      will-change: opacity, transform;
-      transform: translateZ(0);
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
     }
-    
-    body.tg-webapp .reveal-fade.is-revealed,
-    body.tg-webapp .reveal-up.is-revealed,
-    body.tg-webapp .reveal-scale.is-revealed {
-      will-change: auto;
-    }
-    
-    /* Force hardware acceleration for smooth animations in Telegram */
+
+    /* Telegram reveal animations */
     body.tg-webapp .reveal-up {
-      transform: translateY(20px) translateZ(0);
+      transform: translateY(20px);
     }
-    
+
     body.tg-webapp .reveal-up.is-revealed {
-      transform: translateY(0) translateZ(0);
+      transform: translateY(0);
     }
-    
+
     body.tg-webapp .reveal-scale {
-      transform: scale(0.95) translateZ(0);
+      transform: scale(0.95);
     }
-    
+
     body.tg-webapp .reveal-scale.is-revealed {
-      transform: scale(1) translateZ(0);
+      transform: scale(1);
     }
     
     /* Prevent animation jank during scroll in Telegram */

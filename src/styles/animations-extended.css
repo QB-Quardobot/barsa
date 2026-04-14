@@ -6,7 +6,7 @@
 /* === Slide Animations === */
 .reveal-slide-left {
   opacity: 0;
-  transform: translateX(-80px) translateZ(0);
+  transform: translateX(-80px);
   transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   backface-visibility: hidden;
@@ -17,12 +17,12 @@
 
 .reveal-slide-left.is-revealed {
   opacity: 1;
-  transform: translateX(0) translateZ(0);
+  transform: translateX(0);
 }
 
 .reveal-slide-right {
   opacity: 0;
-  transform: translateX(80px) translateZ(0);
+  transform: translateX(80px);
   transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   backface-visibility: hidden;
@@ -33,14 +33,14 @@
 
 .reveal-slide-right.is-revealed {
   opacity: 1;
-  transform: translateX(0) translateZ(0);
+  transform: translateX(0);
 }
 
 /* === Blur Reveal === */
 .reveal-blur {
   opacity: 0;
   filter: blur(10px);
-  transform: scale(0.98) translateZ(0);
+  transform: scale(0.98);
   transition: opacity 0.5s ease-out,
               filter 0.5s ease-out,
               transform 0.5s ease-out;
@@ -53,13 +53,13 @@
 .reveal-blur.is-revealed {
   opacity: 1;
   filter: blur(0);
-  transform: scale(1) translateZ(0);
+  transform: scale(1);
 }
 
 /* === Rotate Reveal === */
 .reveal-rotate {
   opacity: 0;
-  transform: rotateY(15deg) rotateX(5deg) translateZ(0);
+  transform: rotateY(15deg) rotateX(5deg);
   transform-style: preserve-3d;
   transition: opacity 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
               transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -72,13 +72,13 @@
 
 .reveal-rotate.is-revealed {
   opacity: 1;
-  transform: rotateY(0) rotateX(0) translateZ(0);
+  transform: rotateY(0) rotateX(0);
 }
 
 /* === Bounce Reveal === */
 .reveal-bounce {
   opacity: 0;
-  transform: scale(0.3) translateZ(0);
+  transform: scale(0.3);
   transition: opacity 0.4s ease-out,
               transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   backface-visibility: hidden;
@@ -89,7 +89,7 @@
 
 .reveal-bounce.is-revealed {
   opacity: 1;
-  transform: scale(1) translateZ(0);
+  transform: scale(1);
 }
 
 /* === Glow Reveal === */
@@ -102,7 +102,6 @@
               box-shadow 0.5s ease-out !important;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  transform: translateZ(0);
   /* Progressive Enhancement: Ensure layout is preserved even when hidden */
   visibility: visible;
 }
@@ -123,11 +122,11 @@
 /* Special handling for pricing-card-popular with reveal-glow */
 .pricing-card-popular.reveal-glow {
   /* Preserve scale transform for popular card */
-  transform: scale(1.05) translateZ(0);
+  transform: scale(1.05);
 }
 
 .pricing-card-popular.reveal-glow.is-revealed {
-  transform: scale(1.05) translateZ(0);
+  transform: scale(1.05);
 }
 
 /* === Stagger Animation === */
@@ -137,7 +136,7 @@
 
 .reveal-stagger > * {
   opacity: 0;
-  transform: translateY(20px) translateZ(0);
+  transform: translateY(20px);
   transition: opacity 0.5s ease-out,
               transform 0.5s ease-out;
   transition-delay: calc(var(--stagger-delay, 0) * 80ms);
@@ -149,7 +148,7 @@
 
 .reveal-stagger.is-revealed > * {
   opacity: 1;
-  transform: translateY(0) translateZ(0);
+  transform: translateY(0);
 }
 
 /* === Parallax Layer === */
@@ -191,12 +190,12 @@
 }
 
 .btn-capsule:hover {
-  transform: translateY(-2px) scale(1.03) translateZ(0);
+  transform: translateY(-2px) scale(1.03);
   box-shadow: 0 12px 40px rgba(96, 165, 250, 0.5);
 }
 
 .btn-capsule:active {
-  transform: translateY(0) scale(0.98) translateZ(0);
+  transform: translateY(0) scale(0.98);
 }
 
 /* === Image Hover Zoom === */
@@ -207,11 +206,10 @@
 
 .image-wrapper img {
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  will-change: transform;
 }
 
 .image-wrapper:hover img {
-  transform: scale(1.05) translateZ(0);
+  transform: scale(1.05);
 }
 
 /* === FAQ Accordion Enhanced === */
@@ -286,7 +284,7 @@
 .stat-number.is-counting {
   animation: fade-in 0.3s ease-out;
   /* OPTIMIZED: CSS isolation for counter animation performance */
-  will-change: contents; /* Optimize for text content changes */
+  /* will-change managed dynamically by JS */
   contain: paint layout; /* Isolate repaint and layout calculations */
   isolation: isolate; /* Create new stacking context to prevent interference */
 }
@@ -363,7 +361,7 @@
 }
 
 .format-card:hover {
-  transform: translateY(-4px) scale(1.02) translateZ(0);
+  transform: translateY(-4px) scale(1.02);
   box-shadow: 0 12px 40px rgba(96, 165, 250, 0.2);
 }
 
@@ -381,7 +379,7 @@
 }
 
 .path-card:hover {
-  transform: translateY(-4px) scale(1.01) translateZ(0);
+  transform: translateY(-4px) scale(1.01);
   box-shadow: 0 16px 48px rgba(96, 165, 250, 0.25);
 }
 
@@ -398,11 +396,11 @@
 
 /* Используем will-change только для активных анимаций */
 .is-animating {
-  will-change: transform, opacity;
+  /* will-change managed dynamically by JS */
 }
 
 .is-animating.animation-complete {
-  will-change: auto;
+  /* will-change managed dynamically by JS */
 }
 
 /* === Reduced Motion Support === */
@@ -445,24 +443,24 @@
   /* Уменьшаем интенсивность анимаций на мобильных для лучшей производительности */
   .reveal-slide-left,
   .reveal-slide-right {
-    transform: translateX(-40px) translateZ(0);
+    transform: translateX(-40px);
   }
-  
+
   .reveal-slide-right {
-    transform: translateX(40px) translateZ(0);
+    transform: translateX(40px);
   }
-  
+
   .reveal-bounce {
-    transform: scale(0.5) translateZ(0);
+    transform: scale(0.5);
   }
-  
+
   /* Mobile hover - simplified */
   .pricing-card:hover {
-    transform: translateY(-3px) translateZ(0);
+    transform: translateY(-3px);
   }
-  
+
   .btn-capsule:hover {
-    transform: translateY(-1px) scale(1.01) translateZ(0);
+    transform: translateY(-1px) scale(1.01);
   }
 }
 

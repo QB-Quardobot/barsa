@@ -522,8 +522,8 @@ function createSwiperConfig(config: SwiperConfig) {
     watchSlidesProgress: true,
     watchSlidesVisibility: true,
     // MOBILE FIX: Preload images and update on ready to prevent layout shifts
-    preloadImages: true,
-    updateOnImagesReady: true,
+    preloadImages: false,
+    updateOnImagesReady: false,
     // MOBILE FIX: Enable lazy loading for images
     lazy: {
       loadPrevNext: true,

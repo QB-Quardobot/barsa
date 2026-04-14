@@ -501,7 +501,7 @@ main,
 .ilya-real-photo.reveal-scale {
   opacity: 1 !important;
   visibility: visible !important;
-  transform: scale(1) translateZ(0) !important;
+  transform: scale(1) !important;
   transition: none !important;
   /* CRITICAL: Ensure element takes up space */
   min-height: 300px;
@@ -552,8 +552,7 @@ main,
   background-color: transparent;
   /* Ensure gradient text renders on top layer */
   z-index: 1;
-  /* CRITICAL: Use translateZ(0) to create stacking context and ensure proper isolation */
-  transform: translateZ(0);
+  /* Stacking context created by isolation: isolate */
   /* CRITICAL: Use normal blend mode to prevent parent background from showing through */
   mix-blend-mode: normal;
 }
@@ -625,13 +624,13 @@ main,
 /* Using transform for smooth GPU-accelerated animations */
 .reveal-up {
   /* Start 40px below final position for smooth reveal */
-  transform: translateY(40px) translateZ(0);
+  transform: translateY(40px);
 }
 
 .reveal-up.is-revealed {
   opacity: 1;
   /* Move to final position with smooth easing */
-  transform: translateY(0) translateZ(0);
+  transform: translateY(0);
 }
 
 /* .ilya-current can use transform - gradient text inside is isolated with isolation: isolate */
@@ -643,13 +642,13 @@ main,
 /* Reveal scale animation - beautiful scale reveal from center */
 .reveal-scale {
   /* Start slightly scaled down for smooth reveal */
-  transform: scale(0.92) translateZ(0);
+  transform: scale(0.92);
 }
 
 .reveal-scale.is-revealed {
   opacity: 1;
   /* Scale to full size with smooth easing */
-  transform: scale(1) translateZ(0);
+  transform: scale(1);
 }
 
 /* Staggered delays for child elements (reduced for faster rendering) */
@@ -673,7 +672,7 @@ main,
   .reveal-up,
   .reveal-scale {
     opacity: 1 !important;
-    transform: translateZ(0) !important;
+    transform: none !important;
     transition: none !important;
   }
 }
@@ -713,8 +712,6 @@ img {
   /* Prevent layout shift */
   height: auto;
   max-width: 100%;
-  /* Enable GPU acceleration */
-  transform: translateZ(0);
 }
 
 /* Prevent white flash on images during fast scroll */
