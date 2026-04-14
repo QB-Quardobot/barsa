@@ -11,7 +11,7 @@ const deadlineISO = deadline.toISOString();
 const DEBUG_MODE = false;
 ---
 
-<Base title="AI Influencer 3.0" description="Как зарабатывать $500–$2 500 на AI-моделях без команды, без лица и без вложений. Система AI Influencer 3.0.">
+<Base title="AI Influencer" description="Как зарабатывать $500–$2 500 на AI-моделях без команды, без лица и без вложений. Система AI Influencer.">
   
   <!-- RESOURCE HINTS: Preload critical resources for this page -->
   
@@ -22,7 +22,7 @@ const DEBUG_MODE = false;
   <!-- Preload Hero Image for LCP optimization -->
   <!-- CRITICAL: href должен соответствовать реальному src изображения для мобильных устройств -->
   <!-- Для десктопа браузер выберет правильный размер из imagesrcset -->
-  <link rel="preload" as="image" href="/images/IMG_7476.JPG" fetchpriority="high" slot="head">
+  <link rel="preload" as="image" href="/images/IMG_7476.webp" fetchpriority="high" slot="head">
   
   <!-- Preload Swiper JS (loads later, but DNS/prepare connection early) -->
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" as="script" slot="head">
@@ -73,8 +73,8 @@ const DEBUG_MODE = false;
         <div class="proof-cover reveal-scale">
           <figure class="proof-cover-image">
             <img 
-              src="/images/IMG_7476.JPG"
-              alt="Обложка AI Influencer 3.0 - заработок на AI-моделях"
+              src="/images/IMG_7476.webp"
+              alt="Обложка AI Influencer - заработок на AI-моделях"
               loading="eager"
               decoding="async"
               fetchpriority="high"
@@ -96,80 +96,22 @@ const DEBUG_MODE = false;
             Ты уже мог попробовать крипту, NFT, товарку, арбитраж — и все заканчивалось одинаково:
           </p>
           
-          <!-- Old Attempts - Horizontal -->
-          <div class="old-attempts-row reveal-scale">
-            <div class="old-attempt-item">
-              <div class="old-photo-container">
-                <img 
-                  src="/crypto-photo.webp"
-                  srcset="/crypto-photo-400.webp 400w, /crypto-photo-600.webp 600w, /crypto-photo.webp 800w"
-                  sizes="64px"
-                  alt="Крипта"
-                  class="old-photo"
-                  width="64"
-                  height="64"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-              <p class="old-label">Крипта</p>
-            </div>
-            <div class="old-attempt-item">
-              <div class="old-photo-container">
-                <img 
-                  src="/products-photo.webp"
-                  srcset="/products-photo-400.webp 400w, /products-photo-600.webp 600w, /products-photo.webp 800w"
-                  sizes="64px"
-                  alt="Товарка"
-                  class="old-photo"
-                  width="64"
-                  height="64"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-              <p class="old-label">Товарка</p>
-            </div>
-            <div class="old-attempt-item">
-              <div class="old-photo-container">
-                <img 
-                  src="/arbitrage-photo.webp"
-                  srcset="/arbitrage-photo-400.webp 400w, /arbitrage-photo-600.webp 600w, /arbitrage-photo.webp 800w"
-                  sizes="64px"
-                  alt="Арбитраж"
-                  class="old-photo"
-                  width="64"
-                  height="64"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-              <p class="old-label">Арбитраж</p>
-            </div>
-          </div>
-          
           <!-- Pain Points Cards -->
           <div class="pain-cards reveal-up">
-            <div class="pain-card">
-              <div class="pain-card-icon">⏱️</div>
-              <div class="pain-card-content">
-                <h3 class="pain-card-title">Просранное время</h3>
-                <p class="pain-card-desc">Месяцы ушли на попытки, а результата ноль</p>
-              </div>
+            <div class="pain-card-v2">
+              <span class="pain-num">01</span>
+              <h3 class="pain-card-title">Просранное время</h3>
+              <p class="pain-card-desc">Месяцы ушли на попытки, а результата ноль</p>
             </div>
-            <div class="pain-card">
-              <div class="pain-card-icon">📉</div>
-              <div class="pain-card-content">
-                <h3 class="pain-card-title">Ноль стабильности</h3>
-                <p class="pain-card-desc">Сегодня работает, завтра уже нет</p>
-              </div>
+            <div class="pain-card-v2">
+              <span class="pain-num">02</span>
+              <h3 class="pain-card-title">Ноль стабильности</h3>
+              <p class="pain-card-desc">Сегодня работает, завтра уже нет</p>
             </div>
-            <div class="pain-card">
-              <div class="pain-card-icon">🔮</div>
-              <div class="pain-card-content">
-                <h3 class="pain-card-title">Упущенные возможности</h3>
-                <p class="pain-card-desc">Чувство, что где-то рядом есть профессия будущего, которую ты еще не попробовал</p>
-              </div>
+            <div class="pain-card-v2">
+              <span class="pain-num">03</span>
+              <h3 class="pain-card-title">Упущенные возможности</h3>
+              <p class="pain-card-desc">Где-то рядом есть профессия будущего, а ты её ещё не попробовал</p>
             </div>
           </div>
         </div>
@@ -217,13 +159,12 @@ const DEBUG_MODE = false;
                   class="solution-video"
                   controls
                   preload="none"
-                  poster="/videos/IMG_7008-poster.webp"
                   playsinline
                   muted
                   loop
-                  data-src="/videos/IMG_7008-optimized.mp4"
+                  data-src="/videos/IMG_4652.mp4"
                 >
-                  <source data-src="/videos/IMG_7008-optimized.mp4" type="video/mp4">
+                  <source data-src="/videos/IMG_4652.mp4" type="video/mp4">
                   Ваш браузер не поддерживает воспроизведение видео.
                 </video>
               </div>
@@ -232,13 +173,12 @@ const DEBUG_MODE = false;
                   class="solution-video"
                   controls
                   preload="none"
-                  poster="/videos/IMG_6460-poster.webp"
                   playsinline
                   muted
                   loop
-                  data-src="/videos/IMG_6460-optimized.mp4"
+                  data-src="/videos/IMG_4651.mp4"
                 >
-                  <source data-src="/videos/IMG_6460-optimized.mp4" type="video/mp4">
+                  <source data-src="/videos/IMG_4651.mp4" type="video/mp4">
                   Ваш браузер не поддерживает воспроизведение видео.
                 </video>
               </div>
@@ -247,13 +187,12 @@ const DEBUG_MODE = false;
                   class="solution-video"
                   controls
                   preload="none"
-                  poster="/videos/video1-poster.webp"
                   playsinline
                   muted
                   loop
-                  data-src="/videos/video1-optimized.mp4"
+                  data-src="/videos/IMG_4650.mp4"
                 >
-                  <source data-src="/videos/video1-optimized.mp4" type="video/mp4">
+                  <source data-src="/videos/IMG_4650.mp4" type="video/mp4">
                   Ваш браузер не поддерживает воспроизведение видео.
                 </video>
               </div>
@@ -278,8 +217,8 @@ const DEBUG_MODE = false;
           <div class="solution-promise-card reveal-up">
             <p class="promise-text">
               И если ты дочитаешь до конца, ты поймёшь, как создать свою собственную модель 
-              и выйти на первые <strong class="gradient-text">$200–1000 за 30 дней</strong>,
-              используя только ноутбук и пошаговую систему, которую я называю <strong>AI Influencer 3.0</strong>.
+              и выйти на первые <strong class="gradient-text">$200–2500</strong>,
+              используя только ноутбук и пошаговую систему, которую я называю <strong>AI Influencer</strong>.
             </p>
           </div>
         </div>
@@ -307,10 +246,6 @@ const DEBUG_MODE = false;
               class="founder-photo"
             />
           </div>
-          <div class="founder-name-block">
-            <div class="founder-name">Илья</div>
-            <div class="founder-role">AI-продюсер</div>
-          </div>
         </div>
         
         <!-- Story -->
@@ -318,7 +253,7 @@ const DEBUG_MODE = false;
           
           <p class="story-intro">
             Меня зовут <strong>Илья</strong>, я — AI-продюсер, который вышел на 
-            <strong class="gradient-text">$10 000 в месяц</strong> благодаря AI-моделям.
+            <strong class="gradient-text">$30 000 в месяц</strong> благодаря AI-моделям.
           </p>
           
           <p class="story-para">
@@ -355,8 +290,8 @@ const DEBUG_MODE = false;
               <span class="stat-value gradient-text">$1,000</span>
             </div>
             <div class="stat-line featured">
-              <span class="stat-label">Через 4 месяца:</span>
-              <span class="stat-value gradient-text">$10,000</span>
+              <span class="stat-label">Через 3 месяца:</span>
+              <span class="stat-value gradient-text">$10,000+</span>
             </div>
           </div>
           
@@ -369,12 +304,6 @@ const DEBUG_MODE = false;
             как за пару дней создать свою модель, которая может приносить доход каждый день.
           </p>
           
-          <div class="story-cta-block">
-            <span class="cta-badge">⚡ БЕЗ КОНКУРЕНЦИИ</span>
-            <p class="cta-text">
-              То, что сегодня знают 0.1% — через год будет мейнстримом.
-            </p>
-          </div>
           
         </div>
         
@@ -590,7 +519,7 @@ const DEBUG_MODE = false;
         
         <!-- CTA -->
         <div class="system-finale reveal-fade">
-          <p class="finale-text">🔥 И все это есть в моей программе <strong class="gradient-text">«AI Influencer 3.0»</strong></p>
+          <p class="finale-text">🔥 И все это есть в моей программе <strong class="gradient-text">«AI Influencer»</strong></p>
         </div>
         
       </div>
@@ -642,7 +571,7 @@ const DEBUG_MODE = false;
                     <div class="student-model-image-wrapper">
                       <div class="shimmer-wrapper">
                         <img 
-                          src="/images/student-models/IMG_1952.JPG"
+                          src="/images/student-models/IMG_4452.webp"
                           alt="Модель ученика 1"
                           class="student-model-photo lazy-image"
                           loading="lazy"
@@ -663,7 +592,7 @@ const DEBUG_MODE = false;
                     <div class="student-model-image-wrapper">
                       <div class="shimmer-wrapper">
                         <img 
-                          src="/images/student-models/IMG_1943.JPG"
+                          src="/images/student-models/IMG_4667.webp"
                           alt="Модель ученика 2"
                           class="student-model-photo lazy-image"
                           loading="lazy"
@@ -684,7 +613,7 @@ const DEBUG_MODE = false;
                     <div class="student-model-image-wrapper">
                       <div class="shimmer-wrapper">
                         <img 
-                          src="/images/student-models/IMG_1955.JPG"
+                          src="/images/student-models/IMG_4668.webp"
                           alt="Модель ученика 3"
                           class="student-model-photo lazy-image"
                           loading="lazy"
@@ -705,7 +634,7 @@ const DEBUG_MODE = false;
                     <div class="student-model-image-wrapper">
                       <div class="shimmer-wrapper">
                         <img 
-                          src="/images/student-models/IMG_1960.JPG"
+                          src="/images/student-models/IMG_4666.webp"
                           alt="Модель ученика 4"
                           class="student-model-photo lazy-image"
                           loading="lazy"
@@ -726,7 +655,7 @@ const DEBUG_MODE = false;
                     <div class="student-model-image-wrapper">
                       <div class="shimmer-wrapper">
                         <img 
-                          src="/images/student-models/IMG_1954.JPG"
+                          src="/images/student-models/IMG_4465.webp"
                           alt="Модель ученика 5"
                           class="student-model-photo lazy-image"
                           loading="lazy"
@@ -747,7 +676,7 @@ const DEBUG_MODE = false;
                     <div class="student-model-image-wrapper">
                       <div class="shimmer-wrapper">
                         <img 
-                          src="/images/student-models/IMG_1962.JPG"
+                          src="/images/student-models/IMG_2803.webp"
                           alt="Модель ученика 6"
                           class="student-model-photo lazy-image"
                           loading="lazy"
@@ -768,7 +697,7 @@ const DEBUG_MODE = false;
                     <div class="student-model-image-wrapper">
                       <div class="shimmer-wrapper">
                         <img 
-                          src="/images/student-models/IMG_1963.JPG"
+                          src="/images/student-models/IMG_2809.webp"
                           alt="Модель ученика 7"
                           class="student-model-photo lazy-image"
                           loading="lazy"
@@ -851,7 +780,7 @@ const DEBUG_MODE = false;
         <figure class="final-video-preview reveal-scale">
           <img 
             src="/images/photo_2025-11-03-16-24-07.jpeg"
-            alt="Прямо сейчас открыта регистрация на обучение AI Influencer 3.0"
+            alt="Прямо сейчас открыта регистрация на обучение AI Influencer"
             width="1200"
             height="675"
             loading="lazy"
@@ -1806,7 +1735,6 @@ const DEBUG_MODE = false;
   
   /* === GLOBAL BACKGROUND === */
   body {
-    position: relative;
     overflow-x: hidden;
   }
   
@@ -1836,55 +1764,8 @@ const DEBUG_MODE = false;
     z-index: 1;
   }
   
-  /* === GLOBAL CONTAINER === */
-  .container {
-    width: 100%;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    /* Ensure container doesn't clip centered children */
-    overflow-x: visible;
-    position: relative;
-  }
-  
-  @media (min-width: 640px) {
-    .container {
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
-    }
-  }
-  
-  @media (min-width: 1024px) {
-    .container {
-      padding-left: 2rem;
-      padding-right: 2rem;
-    }
-  }
-  
-  @media (min-width: 1280px) {
-    .container {
-      padding-left: 2.5rem;
-      padding-right: 2.5rem;
-    }
-  }
-  
-  /* === SECTION STYLES === - Optimized for performance */
-  section {
-    position: relative;
-    width: 100%;
-    /* Ensure sections don't overflow */
-    overflow-x: hidden;
-    /* Performance optimization - render off-screen sections lazily */
-    content-visibility: auto;
-    contain-intrinsic-size: auto 600px;
-  }
-  
-  /* Final CTA section should always be rendered (it's visible on load) */
-  .final-cta-section {
-    content-visibility: visible;
-  }
+  /* .container is defined in global.css */
+  /* section base styles are in global.css */
   
   /* Center all section content on desktop */
   @media (min-width: 1024px) {
@@ -1979,70 +1860,74 @@ const DEBUG_MODE = false;
   
   /* === PAIN CARDS === */
   .pain-cards {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 1rem;
     margin: 2rem auto;
-    max-width: 800px;
+    max-width: 900px;
   }
-  
-  .pain-card {
-    background: rgba(168, 85, 247, 0.08);
-    border: 1px solid rgba(168, 85, 247, 0.2);
-    border-radius: 16px;
-    padding: 1rem 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+
+  @media (min-width: 768px) {
+    .pain-cards {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+  }
+
+  .pain-card-v2 {
+    position: relative;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 2rem 1.5rem 1.5rem;
     text-align: left;
-    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.1);
-    /* GPU acceleration */
     transform: translateZ(0);
     will-change: transform;
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    overflow: hidden;
   }
-  
-  .pain-card:hover {
-    border-color: rgba(168, 85, 247, 0.4);
-    background: rgba(168, 85, 247, 0.12);
-    transform: translateY(-2px) translateZ(0);
-    box-shadow: 0 6px 20px rgba(168, 85, 247, 0.25);
+
+  .pain-card-v2::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.06) 0%, transparent 60%);
+    pointer-events: none;
   }
-  
-  .pain-card-icon {
-    font-size: clamp(1.75rem, 4vw, 2rem);
-    flex-shrink: 0;
-    filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6));
-    animation: float 3s ease-in-out infinite;
+
+  .pain-card-v2:hover {
+    transform: translateY(-4px) translateZ(0);
+    border-color: rgba(239, 68, 68, 0.3);
+    box-shadow: 0 8px 32px rgba(239, 68, 68, 0.15);
   }
-  
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
+
+  .pain-num {
+    display: block;
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+    background: linear-gradient(135deg, #ef4444, #f97316);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    opacity: 0.85;
   }
-  
-  .pain-card-content {
-    flex: 1;
-  }
-  
+
   .pain-card-title {
     font-size: clamp(1rem, 2.5vw, 1.125rem);
     font-weight: 700;
     color: var(--fg);
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
   }
-  
+
   .pain-card-desc {
-    font-size: clamp(0.875rem, 2vw, 0.9375rem);
-    color: #b3b3b3;
+    font-size: clamp(0.8rem, 2vw, 0.875rem);
+    color: rgba(255, 255, 255, 0.5);
     line-height: 1.5;
-    display: none;
-  }
-  
-  @media (min-width: 640px) {
-    .pain-card-desc {
-      display: block;
-    }
   }
   
   /* === PROOF COVER - SINGLE LARGE COVER IMAGE === */
@@ -2465,17 +2350,7 @@ const DEBUG_MODE = false;
   
   /* Subtle glow effect on gradient text */
   .solution-hero-title .gradient-text {
-    /* Use system fonts for better cyrillic/latin balance */
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-    font-weight: 900 !important;
-    font-style: normal !important;
-    letter-spacing: inherit;
-    font-synthesis: none;
-    font-variant-numeric: normal !important;
-    font-variant-ligatures: none !important;
-    font-feature-settings: normal !important;
-    text-rendering: optimizeLegibility;
-    position: relative;
+    font-weight: 900;
     filter: drop-shadow(0 0 20px rgba(96, 165, 250, 0.4));
   }
   
@@ -2816,16 +2691,7 @@ const DEBUG_MODE = false;
   
   /* Enhance highlighted text in promise */
   .promise-text strong.gradient-text {
-    font-weight: 700 !important;
-    /* Use system fonts for uniform appearance */
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-    font-style: normal !important;
-    font-variant-numeric: normal !important;
-    font-variant-ligatures: none !important;
-    font-feature-settings: normal !important;
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    position: relative;
+    font-weight: 700;
     filter: drop-shadow(0 0 10px rgba(96, 165, 250, 0.4));
   }
   
@@ -3050,13 +2916,6 @@ const DEBUG_MODE = false;
     letter-spacing: -0.02em;
     position: relative;
     z-index: 2;
-    /* Use system fonts for uniform rendering */
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-    font-variant-numeric: normal !important;
-    font-feature-settings: normal !important;
-    font-variant-ligatures: none !important;
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
   }
   
   .earning-period {
@@ -3081,13 +2940,6 @@ const DEBUG_MODE = false;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    /* Use system fonts for uniform rendering */
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-    font-variant-numeric: normal !important;
-    font-feature-settings: normal !important;
-    font-variant-ligatures: none !important;
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
     display: inline-block;
   }
   
@@ -3206,12 +3058,6 @@ const DEBUG_MODE = false;
     font-weight: 900;
     white-space: nowrap;
     letter-spacing: -0.03em;
-    /* Use system fonts for uniform cyrillic/latin rendering */
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-    font-variant-numeric: normal !important;
-    font-feature-settings: normal !important;
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
   }
   
   .stat-line.featured .stat-value {
@@ -4708,23 +4554,11 @@ const DEBUG_MODE = false;
     margin: 1.5rem auto;
     text-align: center;
     max-width: 900px;
-    /* Exact same styling as value-text strong.gradient-text */
     filter: drop-shadow(0 0 20px rgba(96, 165, 250, 0.3));
-    /* Override gradient-text default styles */
     vertical-align: baseline !important;
-    /* Better mobile line breaks */
     word-break: normal;
     overflow-wrap: break-word;
     hyphens: none;
-    /* Force same font rendering as value-text */
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    font-synthesis: none !important;
-    font-variant-numeric: normal !important;
-    font-variant-ligatures: none !important;
-    font-feature-settings: normal !important;
   }
   
   /* Override gradient-text class defaults for final-title-blue - match value-text strong.gradient-text exactly */
@@ -6027,53 +5861,6 @@ const DEBUG_MODE = false;
     color: #b3b3b3;
     margin-top: 0.5rem;
   }
-  
-  .gradient-text {
-    background: linear-gradient(90deg, var(--primary), var(--primary-2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    /* Use system fonts or better balanced font stack for uniform rendering */
-    /* System fonts often have better cyrillic/latin balance */
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-    font-weight: inherit;
-    font-style: normal !important;
-    letter-spacing: inherit;
-    /* Disable font synthesis to prevent automatic weight variations */
-    font-synthesis: none;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility; /* Better for mixed scripts */
-    /* Ensure numbers and all characters have same weight - no special numeric variants */
-    font-variant-numeric: normal !important;
-    font-variant-east-asian: normal;
-    font-variant-ligatures: none !important;
-    font-feature-settings: normal !important;
-    text-transform: none;
-    /* Force consistent rendering for all character types */
-    font-optical-sizing: auto;
-    font-kerning: normal;
-    /* Ensure display type for consistent rendering */
-    display: inline-block;
-    vertical-align: baseline;
-    /* Force consistent color application */
-    color: transparent;
-  }
-  
-  /* Force same weight for all child elements within gradient text */
-  /* This ensures Russian, English letters and numbers all have identical weight */
-  .gradient-text *,
-  .gradient-text span,
-  .gradient-text strong,
-  .gradient-text em {
-    font-weight: inherit !important;
-    font-style: normal !important;
-    font-variant-numeric: normal !important;
-    font-feature-settings: normal !important;
-    font-synthesis: none;
-    font-family: inherit !important;
-  }
-  
   
   /* === BUTTONS === */
   .btn-outline {

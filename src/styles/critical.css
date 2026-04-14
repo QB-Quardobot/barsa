@@ -2,59 +2,13 @@
    This CSS is inlined in <head> for fastest first paint
    Non-critical CSS loads asynchronously */
 
-/* CSS Variables - Critical */
-:root {
-  --bg: #0a0a0a;
-  --panel: #0d0d10;
-  --fg: #f5f5f5;
-  --muted: #b3b3b3;
-  --primary: #60a5fa;
-  --primary-2: #22d3ee;
-  --border: rgba(255, 255, 255, 0.08);
-  /* Font - Enhanced fallback stack matching global.css */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-  --spacing-unit: 0.5rem;
-  --spacing-sm: calc(var(--spacing-unit) * 1);
-  --spacing-md: calc(var(--spacing-unit) * 2);
-  --spacing-lg: calc(var(--spacing-unit) * 3);
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
-}
-
-/* Base Reset - Critical */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html {
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  /* Prevent font synthesis to ensure clean fallback rendering */
-  font-synthesis: none;
-  /* Ensure text is always visible, even during font loading */
-  text-rendering: optimizeLegibility;
-}
-
+/* FOUC Prevention - Critical body background */
 body {
-  background: linear-gradient(300deg, #0a0a0a, #1a1a2e, #16213e, #0f0f23, #0a0a0a);
-  background-size: 240% 240%;
-  animation: body-gradient-animation 20s ease infinite;
+  background-color: #0a0a0a;
   color: var(--fg);
   line-height: 1.5;
   font-size: clamp(0.9375rem, 1vw + 0.5rem, 1rem);
   min-height: 100vh;
-  background-color: #0a0a0a !important;
-}
-
-@keyframes body-gradient-animation {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
 }
 
 /* Typography - Critical for Hero */
@@ -118,31 +72,6 @@ p {
   font-family: var(--font-sans);
   font-weight: 900;
   color: var(--fg);
-  /* LCP FIX: Prevent any delays */
-  will-change: auto;
-}
-
-.gradient-text {
-  background: linear-gradient(135deg, var(--primary), var(--primary-2));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  /* CRITICAL: No transition - it causes flickering with gradient text */
-  transition: none;
-  /* CRITICAL: No animation - it causes flickering */
-  animation: none;
-  /* CRITICAL: No filter - it causes flickering */
-  filter: none;
-  /* Ensure gradient renders properly - prevent clipping */
-  overflow: visible;
-  contain: none; /* Disable containment to allow gradient to render properly */
-  /* CRITICAL FIX: Create new stacking context to prevent parent background square artifact */
-  isolation: isolate;
-  position: relative;
-  background-color: transparent !important;
-  z-index: 1;
-  transform: none !important;
 }
 
 /* Image Optimization - Critical */
@@ -150,7 +79,6 @@ img {
   height: auto;
   max-width: 100%;
   transform: translateZ(0);
-  will-change: contents;
 }
 
 /* LCP Hero Image - Prevent CLS with aspect-ratio */
@@ -180,16 +108,6 @@ img {
   overflow: hidden;
   background-color: var(--bg);
   /* Reserve space to prevent CLS */
-  min-height: 0;
-}
-
-/* Prevent CLS - containers with fixed aspect ratio */
-.step-image-container {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9; /* 800x450 = 16:9 - standard for step images */
-  overflow: hidden;
-  background-color: var(--bg);
   min-height: 0;
 }
 

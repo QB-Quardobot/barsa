@@ -122,19 +122,11 @@ html {
 }
 
 body {
-  background: linear-gradient(300deg, #0a0a0a, #1a1a2e, #16213e, #0f0f23, #0a0a0a);
-  background-size: 240% 240%;
-  animation: body-gradient-animation 20s ease infinite;
+  background: linear-gradient(180deg, #0a0a0a 0%, #0f0f23 100%);
   color: var(--fg);
   line-height: 1.5;
   font-size: clamp(0.9375rem, 1vw + 0.5rem, 1rem); /* 15px-16px */
   min-height: 100vh;
-}
-
-@keyframes body-gradient-animation {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
 }
 
 /* Typography Scale with clamp() */
@@ -530,6 +522,19 @@ main,
   filter: none;
 }
 
+/* === GRADIENT TEXT — single authoritative definition === */
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  display: inline;
+  /* Safari rendering fixes */
+  isolation: isolate;
+  position: relative;
+}
+
 /* CRITICAL FIX: Prevent background square artifact on gradient text inside transformed parents */
 /* Solution: Use isolation to create isolated stacking context for gradient text */
 /* This allows parent to use transform while gradient text remains isolated */
@@ -541,19 +546,16 @@ main,
 .ilya-current-amount,
 .highlight-glow.gradient-text {
   /* Create isolated stacking context - prevents parent background from bleeding through */
-  /* isolation: isolate creates a new stacking context without affecting layout */
   isolation: isolate;
-  /* Ensure proper rendering layer */
   position: relative;
   /* Prevent background bleeding from parent */
-  background-color: transparent !important;
+  background-color: transparent;
   /* Ensure gradient text renders on top layer */
   z-index: 1;
   /* CRITICAL: Use translateZ(0) to create stacking context and ensure proper isolation */
-  /* This creates a new stacking context that isolates gradient text from parent */
   transform: translateZ(0);
   /* CRITICAL: Use normal blend mode to prevent parent background from showing through */
-  mix-blend-mode: normal !important;
+  mix-blend-mode: normal;
 }
 
 /* CRITICAL: Gradient text issue is fixed using isolation: isolate and transform: translateZ(0) */
@@ -686,31 +688,8 @@ main,
 section {
   /* Prevent layout shifts by maintaining minimum height */
   min-height: 600px;
-  /* Contain layout and style recalculations (less aggressive) */
-  contain: layout style;
   /* Ensure background color to prevent white flash */
   background-color: transparent;
-}
-
-/* CRITICAL: Exclude .about-ilya-section from section contain and overflow rules to allow box-shadow glow */
-.about-ilya-section {
-  contain: none;
-  overflow: visible;
-  overflow-x: visible;
-  overflow-y: visible;
-}
-
-/* Override contain for elements that need gradient rendering */
-/* Use maximum specificity to override any other rules */
-.ilya-current,
-.ilya-current.ilya-current,
-section .ilya-current,
-.about-ilya-section .ilya-current {
-  contain: none !important;
-  overflow: visible !important;
-  backdrop-filter: none !important;
-  /* Prevent contain: content from being applied */
-  contain-intrinsic-size: auto !important;
 }
 
 /* Force GPU acceleration for smooth scrolling */
@@ -723,10 +702,7 @@ html {
 }
 
 body {
-  /* Ensure background color to prevent white flash - critical! */
-  background-color: #0a0a0a !important;
-  /* Fallback gradient background */
-  background: linear-gradient(180deg, #0a0a0a 0%, #0f0f23 100%) !important;
+  background: linear-gradient(180deg, #0a0a0a 0%, #0f0f23 100%);
   min-height: 100vh;
   /* Ensure body fills entire viewport */
   position: relative;
@@ -739,7 +715,6 @@ img {
   max-width: 100%;
   /* Enable GPU acceleration */
   transform: translateZ(0);
-  will-change: contents;
 }
 
 /* Prevent white flash on images during fast scroll */
@@ -768,14 +743,6 @@ img.real-photo {
 
 img.loaded {
   opacity: 1;
-}
-
-/* Optimize container rendering */
-.container {
-  /* Contain paint operations */
-  contain: layout style;
-  /* Force layer creation for smooth compositing */
-  transform: translateZ(0);
 }
 
 /* Prevent flash on reveal elements during fast scroll */

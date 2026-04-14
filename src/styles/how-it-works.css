@@ -7,49 +7,8 @@
   --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-section {
-  position: relative;
-  /* Performance optimization - render off-screen sections lazily */
-  content-visibility: auto;
-  contain-intrinsic-size: auto 600px;
-  /* GPU acceleration */
-  transform: translateZ(0);
-  /* Note: will-change removed to avoid creating unnecessary compositing layers */
-  /* OPTIMIZED: CSS Containment Strategy - apply contain on SECTIONS, not individual elements */
-  /* Use layout style (not paint) to allow overflow content (badges, shadows, etc.) */
-  contain: layout style;
-}
-
-section::after {
-content: '';
-position: absolute;
-bottom: 0;
-left: 50%;
-transform: translateX(-50%);
-width: 90%;
-max-width: 1100px;
-height: 1px;
-background: linear-gradient(
-  90deg,
-transparent,
-rgba(96, 165, 250, 0.3) 20%,
-rgba(96, 165, 250, 0.3) 80%,
-transparent
-  );
-}
-
 .guarantee-section::after {
 bottom: 0;
-}
-
-section:last-of-type::after {
-  display: none;
-}
-
-/* SPACING FIX: Minimize padding for last section before footer */
-section:last-of-type {
-  padding-bottom: 0.5rem !important;
-  margin-bottom: 0 !important;
 }
 
 /* SPACING FIX: Ensure FAQ section has minimal bottom padding */
@@ -88,7 +47,6 @@ opacity: 1 !important;
 visibility: visible !important;
 transform: none !important;
 /* LCP FIX: Preload font for hero title */
-font-display: swap;
 }
 
 .hero-subtitle {
@@ -2006,33 +1964,27 @@ text-align: center;
 margin-top: 3rem;
 }
 
+.before-after-cta {
+text-align: center;
+}
+
 .btn-want-same {
 display: inline-block;
-padding: 1.25rem 3rem;
+padding: 1rem 2.5rem;
 background: linear-gradient(135deg, var(--primary), var(--primary-2));
 color: #fff;
-font-size: clamp(1.125rem, 3vw, 1.25rem);
+font-size: 1rem;
 font-weight: 700;
 text-decoration: none;
 border-radius: 100px;
 transition: all 0.3s ease;
-box-shadow: 0 8px 24px rgba(96, 165, 250, 0.3);
-margin-top: 2rem;
-}
-
-@media (max-width: 767px) {
-.btn-want-same {
-display: block;
-text-align: center;
-margin-left: auto;
-margin-right: auto;
-max-width: 300px;
-}
+box-shadow: 0 4px 16px rgba(96, 165, 250, 0.25);
+margin-top: 1.5rem;
 }
 
 .btn-want-same:hover {
 transform: translateY(-2px);
-box-shadow: 0 12px 32px rgba(96, 165, 250, 0.35);
+box-shadow: 0 8px 28px rgba(96, 165, 250, 0.4);
 }
 
 .difference-section {
@@ -2075,142 +2027,6 @@ text-align: center;
 max-width: 700px;
 margin-left: auto;
 margin-right: auto;
-}
-
-.difference-highlight {
-  font-size: clamp(1.25rem, 3vw, 1.5rem);
-  color: var(--fg);
-  font-weight: 800;
-  line-height: 1.5;
-  margin-top: 3rem;
-  margin-bottom: 0;
-  padding: 2.5rem 2.5rem;
-  background: linear-gradient(135deg, rgba(96, 165, 250, 0.15), rgba(139, 92, 246, 0.12));
-  border: 2px solid rgba(96, 165, 250, 0.4);
-  border-radius: var(--radius-xl);
-  text-align: center;
-  box-shadow: 
-    0 8px 32px rgba(96, 165, 250, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  position: relative;
-  max-width: 700px;
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  display: block;
-  box-sizing: border-box;
-  /* CRITICAL FIX: Clip the ::before element to match border-radius */
-  overflow: hidden;
-}
-
-.difference-highlight::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--primary), var(--primary-2), var(--primary));
-  background-size: 200% 100%;
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  animation: gradient-shift 3s ease infinite;
-  /* CRITICAL FIX: The line is now clipped by parent's overflow: hidden */
-}
-
-.difference-highlight strong {
-  font-weight: 900;
-}
-
-/* Tools Box - Highlight for "Как реклама. Как воронка. Как актив." */
-.difference-tools-box {
-  margin: 2.5rem auto;
-  padding: 1.75rem 2.25rem;
-  background: linear-gradient(135deg, rgba(96, 165, 250, 0.15), rgba(139, 92, 246, 0.12));
-  border: 2px solid rgba(96, 165, 250, 0.4);
-  border-radius: var(--radius-xl);
-  box-shadow: 
-    0 8px 32px rgba(96, 165, 250, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  max-width: 650px;
-  width: 100%;
-  position: relative;
-  overflow: hidden;
-  display: block;
-  box-sizing: border-box;
-}
-
-.difference-tools-box::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--primary), var(--primary-2), var(--primary));
-  background-size: 200% 100%;
-  animation: gradient-shift 3s ease infinite;
-}
-
-.tools-text {
-  font-size: clamp(1.125rem, 2.8vw, 1.375rem);
-  font-weight: 700;
-  color: var(--primary);
-  text-align: center;
-  margin: 0;
-  line-height: 1.6;
-  letter-spacing: 0.02em;
-}
-
-/* Difference List */
-.difference-list {
-  list-style: none;
-  padding: 0;
-  margin: 2rem auto 2.5rem;
-  max-width: 600px;
-  width: 100%;
-  text-align: left;
-  display: block;
-  box-sizing: border-box;
-}
-
-.difference-list li {
-  font-size: clamp(1rem, 2.5vw, 1.125rem);
-  color: var(--muted);
-  line-height: 1.8;
-  margin-bottom: 0.75rem;
-  padding-left: 1.5rem;
-  position: relative;
-}
-
-.difference-list li::before {
-  content: '→';
-  position: absolute;
-  left: 0;
-  color: var(--primary);
-  font-weight: 700;
-  font-size: 1.2em;
-}
-
-.difference-list li:last-child {
-  margin-bottom: 0;
-}
-
-/* Consequence Text */
-.difference-consequence {
-  font-size: clamp(1.125rem, 2.8vw, 1.375rem);
-  color: rgba(239, 68, 68, 0.9);
-  font-weight: 600;
-  text-align: center;
-  margin: 2.5rem auto;
-  padding: 1.25rem 1.75rem;
-  background: rgba(239, 68, 68, 0.1);
-  border-left: 4px solid rgba(239, 68, 68, 0.5);
-  border-radius: var(--radius-lg);
-  max-width: 650px;
-  width: 100%;
-  font-style: italic;
-  display: block;
-  box-sizing: border-box;
 }
 
 /* Final Anchor Widget */
@@ -2333,26 +2149,6 @@ margin-right: auto;
     margin-bottom: 1.5rem;
   }
   
-  .difference-tools-box {
-    margin: 2rem auto;
-    padding: 1.5rem 1.75rem;
-  }
-  
-  .difference-list {
-    margin: 1.5rem auto 2rem;
-    padding: 0 1rem;
-  }
-  
-  .difference-consequence {
-    margin: 2rem auto;
-    padding: 1rem 1.25rem;
-  }
-  
-  .difference-highlight {
-    margin-top: 2.5rem;
-    padding: 2rem 1.75rem;
-  }
-  
   .final-anchor-widget {
     margin-top: 3rem;
     padding: 2rem 1.5rem;
@@ -2371,25 +2167,6 @@ margin-right: auto;
   
   .difference-header {
     margin-bottom: 5rem;
-  }
-  
-  .difference-highlight {
-    padding: 3rem 3rem;
-    margin-top: 3.5rem;
-  }
-  
-  .difference-tools-box {
-    padding: 2rem 2.5rem;
-    margin: 3rem auto;
-  }
-  
-  .difference-list {
-    margin: 2.5rem auto 3rem;
-  }
-  
-  .difference-consequence {
-    padding: 1.5rem 2.25rem;
-    margin: 3rem auto;
   }
   
   .final-anchor-widget {
@@ -2796,11 +2573,6 @@ background-clip: text;
 background-size: 200% 100%;
 animation: gradient-shift 3s ease infinite;
 filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.5));
-}
-
-@keyframes gradient-shift {
-0%, 100% { background-position: 0% 50%; }
-50% { background-position: 100% 50%; }
 }
 
 .vs-divider {
@@ -5470,15 +5242,6 @@ background: rgba(96, 165, 250, 0.1);
 transform: translateY(-2px);
 }
 
-/* Gradient text (reuse from main page) */
-.gradient-text {
-background: linear-gradient(135deg, var(--primary), var(--primary-2));
-  -webkit-background-clip: text;
-background-clip: text;
-  -webkit-text-fill-color: transparent;
-font-weight: 900;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
 .hero-section {
@@ -5518,24 +5281,6 @@ border-radius: var(--radius-xl);
 }
 }
 
-/* Override global reveal styles for this page - show content by default */
-/* Reveal animations will work if JS loads, but content is visible even without JS */
-section .reveal-up,
-section .reveal-scale,
-section .reveal-fade {
-opacity: 1 !important;
-visibility: visible !important;
-transform: translateY(0) scale(1) !important;
-}
-
-/* Reveal animations will override these when they initialize */
-section .reveal-up.is-revealed,
-section .reveal-scale.is-revealed,
-section .reveal-fade.is-revealed {
-opacity: 1 !important;
-visibility: visible !important;
-transform: translateY(0) scale(1) !important;
-}
 
 /* ============================================
    Currency Selection Modal - Liquid Glass Effect
