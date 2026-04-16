@@ -1733,13 +1733,13 @@ const TARIFFS: Record<string, TariffData> = {
     name: 'Роскошный максимум',
     rub: {
       amount: '46 800 ₽',
-      telegramUrl: 'https://t.me/tribute/app?startapp=sQj2',
-      webUrl: 'https://t.me/tribute/app?startapp=sQj2'
+      telegramUrl: 'https://t.me/tribute/app?startapp=sSYb',
+      webUrl: 'https://web.tribute.tg/s/SYb'
     },
     eur: {
       amount: '500 €',
-      telegramUrl: 'https://t.me/tribute/app?startapp=sQqZ',
-      webUrl: 'https://t.me/tribute/app?startapp=sQqZ'
+      telegramUrl: 'https://t.me/tribute/app?startapp=sSYa',
+      webUrl: 'https://web.tribute.tg/s/SYa'
     }
   }
 };
